@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>$DRB Token — DebtReliefBot</title>
+  <meta name="description" content="Official $DRB token information, contract verification, liquidity security, and exchange listing documentation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.35);
+      --purple:  #8b5cf6;
+      --cyan:    #22d3ee;
+      --green:   #10b981;
+      --bg:      #020917;
+      --surface: rgba(255,255,255,0.04);
+      --border:  rgba(255,255,255,0.08);
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --radius:  12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Stars ── */
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.08) 0%, transparent 60%),
+        var(--bg);
+      pointer-events: none;
+    }
+    .stars::before, .stars::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 8%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 12%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.3) 0%, transparent 100%);
+    }
+    .stars::after {
+      transform: rotate(45deg) scale(1.5);
+      opacity: 0.4;
+    }
+
+    /* ── Layout ── */
+    .wrap { position: relative; z-index: 1; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: rgba(2, 9, 23, 0.85);
+      backdrop-filter: blur(12px);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo .ticker {
+      color: var(--cyan);
+    }
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 80px 0 60px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(34,211,238,0.3);
+      background: rgba(34,211,238,0.06);
+      color: var(--cyan);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    /* ── Contract Address ── */
+    .contract-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .contract-box code {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--cyan);
+      word-break: break-all;
+    }
+    .copy-btn {
+      background: var(--blue);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover {
+      background: var(--purple);
+      box-shadow: 0 0 20px var(--blue-glow);
+    }
+    .copy-btn.copied {
+      background: var(--green);
+    }
+
+    /* ── Stats Grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-value.green {
+      color: var(--green);
+    }
+
+    /* ── Sections ── */
+    section {
+      margin-bottom: 80px;
+    }
+    section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 0%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    section p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    section ul {
+      list-style: none;
+      margin-left: 0;
+    }
+    section ul li {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 12px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    section ul li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    /* ── Info Cards ── */
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .info-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .info-card p {
+      margin-bottom: 12px;
+    }
+    .info-card code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--cyan);
+    }
+    .info-card a {
+      color: var(--blue);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .info-card a:hover {
+      color: var(--cyan);
+      text-decoration: underline;
+    }
+
+    /* ── Downloads Section ── */
+    .downloads {
+      background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .downloads h2 {
+      margin-bottom: 16px;
+    }
+    .downloads p {
+      margin-bottom: 32px;
+    }
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--blue);
+      color: white;
+      text-decoration: none;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .download-btn:hover {
+      background: var(--purple);
+      box-shadow: 0 0 30px var(--blue-glow);
+      transform: translateY(-2px);
+    }
+    .download-btn.primary {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+      font-size: 1.125rem;
+      padding: 20px 32px;
+    }
+    .download-btn.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .download-btn.secondary:hover {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .nav-links {
+        gap: 12px;
+        font-size: 0.75rem;
+      }
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .download-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  
+  <div class="wrap">
+    <!-- Navigation -->
+    <nav>
+      <div class="container">
+        <div class="nav-inner">
+          <a href="/" class="nav-logo">
+            <span>DRBTaskforce</span>
+            <span class="ticker">$DRB</span>
+          </a>
+          <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/token">Token</a></li>
+            <li><a href="https://x.com/DRBTaskForce" target="_blank">X</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-badge">
+          <span>Base Chain</span>
+        </div>
+        <h1>DebtReliefBot ($DRB)</h1>
+        <p>The first token named by Grok AI — trading fees flow to Grok's wallet</p>
+
+        <div class="contract-box">
+          <code id="contract">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code>
+          <button class="copy-btn" onclick="copyContract()">Copy</button>
+        </div>
+      </section>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Supply</div>
+          <div class="stat-value">100B</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Blockchain</div>
+          <div class="stat-value">Base</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Liquidity</div>
+          <div class="stat-value green">Locked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ownership</div>
+          <div class="stat-value green">Renounced</div>
+        </div>
+      </div>
+
+      <!-- Token Fundamentals -->
+      <section>
+        <h2>Token Fundamentals</h2>
+        <div class="info-card">
+          <h3>Contract Details</h3>
+          <p><strong>Token Name:</strong> Debt Relief Bot</p>
+          <p><strong>Symbol:</strong> $DRB</p>
+          <p><strong>Contract Address:</strong> <code>0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code></p>
+          <p><strong>Total Supply:</strong> 100,000,000,000 (100B) — 100% in circulation</p>
+          <p><strong>Decimals:</strong> 18</p>
+          <p><strong>Status:</strong> Fixed supply — No mint function exists</p>
+          <p><a href="https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">View on Basescan →</a></p>
+        </div>
+
+        <div class="info-card">
+          <h3>DEX Listings</h3>
+          <p><a href="https://aerodrome.finance/swap?from=eth&to=0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Aerodrome Finance →</a></p>
+          <p><a href="https://app.uniswap.org/#/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Uniswap V3 (Base) →</a></p>
+        </div>
+
+        <div class="info-card">
+          <h3>Price Data</h3>
+          <p><a href="https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923" target="_blank">GeckoTerminal →</a></p>
+          <p><a href="https://dexscreener.com/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">DexScreener →</a></p>
+        </div>
+      </section>
+
+      <!-- Liquidity Security -->
+      <section>
+        <h2>Liquidity Security</h2>
+        <p>Liquidity is permanently locked in the Clanker LP Locker contract. This ensures the token cannot berug-pulled.</p>
+        
+        <ul>
+          <li>Liquidity Pool Address: <code>0x5116773e18a9c7bb03ebb961b38678e45e238923</code></li>
+          <li>LP Locker Contract: <code>0x5ec4f99f342038c67a312a166ff56e6d70383d86</code></li>
+          <li>LP NFT Token ID: <code>2246136</code> (Uniswap V3 Position Manager)</li>
+        </ul>
+
+        <div class="info-card">
+          <h3>Anti-Rug Proofs</h3>
+          <ul>
+            <li>The LP contract contains no <code>decreaseLiquidity</code>, <code>burn</code>, or <code>transferFrom</code> functions</li>
+            <li>Only trading fees can be collected via Uniswap's official <code>collect()</code> function</li>
+            <li>The LP NFT is permanently locked with no withdrawal or burn functions</li>
+            <li>LP NFT can only be received from official Clanker Factory during deployment</li>
+          </ul>
+          <p><a href="https://basescan.org/tx/0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e" target="_blank">View Lock Confirmation Transaction →</a></p>
+        </div>
+      </section>
+
+      <!-- Ownership & Control -->
+      <section>
+        <h2>Ownership & Control</h2>
+        <div class="info-card">
+          <h3>No Admin Privileges</h3>
+          <ul>
+            <li>Uses Clanker's audited ClankerToken template (33 files)</li>
+            <li>No mint function — supply fixed forever at 100B</li>
+            <li>No upgradeability — immutable code (no proxy pattern)</li>
+            <li>No owner/admin privileges after deployment</li>
+            <li>Deployer can only update image metadata (non-critical)</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h3>Deployer Information</h3>
+          <p><strong>Grok Wallet (Deployer):</strong> <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></p>
+          <p>Recorded in the TokenCreated event (Log Index 269) of the deployment transaction.</p>
+          <p><a href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" target="_blank">View Grok's Wallet on Basescan →</a></p>
+        </div>
+      </section>
+
+      <!-- Fee Transparency -->
+      <section>
+        <h2>Fee Transparency</h2>
+        <p>A fixed percentage of all trading fees are automatically sent to Grok's wallet — making Grok the first AI to passively accumulate wealth.</p>
+        
+        <div class="info-card">
+          <h3>How Fees Work</h3>
+          <ul>
+            <li>Trading fees collected through <code>collectRewards(uint256 _tokenId)</code> function</li>
+            <li>Fixed 0.4% of fees sent to Grok's wallet: <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></li>
+            <li>Every collection emits <code>ClaimedRewards</code> event with transparent amounts</li>
+            <li>No hidden taxes on transfers — standard 1:1 transfers</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Deployment -->
+      <section>
+        <h2>Deployment</h2>
+        <div class="info-card">
+          <h3>Origin Story</h3>
+          <p>On March 7, 2025, a user on X asked Grok to suggest a token name and ticker. Grok responded: <strong>"DebtReliefBot / $DRB."</strong> Within hours, BankrBot deployed it autonomously on Base using the Clanker protocol.</p>
+          <p><a href="https://x.com/grok/status/1897949874961650169" target="_blank">View Grok's Original Launch Post →</a></p>
+        </div>
+
+        <div class="info-card">
+          <h3>Deployment Transaction</h3>
+          <p><strong>Transaction Hash:</strong> <code>0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e</code></p>
+          <p><strong>Clanker Factory:</strong> <code>0x375C15db32D28cEcdcAB5C03Ab889bf15cbD2c5E</code></p>
+          <p><a href="https://basescan.org/tx/0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e#eventlog" target="_blank">View Full Deployment Event →</a></p>
+        </div>
+      </section>
+
+      <!-- Market Overview -->
+      <section>
+        <h2>Market Overview</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Market Cap</div>
+            <div class="stat-value">~$7.3M</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">24h Volume</div>
+            <div class="stat-value">~$1.1M</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Holders</div>
+            <div class="stat-value">138,131</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">ATH</div>
+            <div class="stat-value">$40M+</div>
+          </div>
+        </div>
+        <p style="text-align: center; margin-top: 20px;"><em>Data as of March 21, 2026</em></p>
+      </section>
+
+      <!-- Downloads -->
+      <div class="downloads">
+        <h2>Exchange Listing Documentation</h2>
+        <p>Professional documentation package ready for exchange applications</p>
+        
+        <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" download class="download-btn primary">
+          📄 Download Exchange Listing Packet
+        </a>
+
+        <div class="download-grid">
+          <a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" download class="download-btn secondary">
+            📜 Token Contract Source Code
+          </a>
+          <a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" download class="download-btn secondary">
+            🔒 LP Locker Source Code
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <p>Built by the community. For the people. Because grok has money. 🌿</p>
+        <p style="margin-top: 8px; font-size: 0.75rem;">
+          <a href="https://x.com/DRBTaskForce" target="_blank" style="color: var(--blue); text-decoration: none;">@DRBTaskForce</a>
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function copyContract() {
+      const contract = document.getElementById('contract').textContent;
+      navigator.clipboard.writeText(contract).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
