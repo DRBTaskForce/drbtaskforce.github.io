@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>$DRB Attention Leaderboard - Example</title>
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #0a0e27;
+      color: #e0e6ff;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .leaderboard {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .account:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateX(4px);
+    }
+    
+    .rank {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #7c3aed;
+      min-width: 3rem;
+    }
+    
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #7c3aed;
+    }
+    
+    .info {
+      flex: 1;
+    }
+    
+    .username {
+      font-weight: 600;
+      color: #a78bfa;
+    }
+    
+    .metrics {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+    
+    .metric {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .metric-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    
+    .metric-value {
+      font-weight: 600;
+      color: #e0e6ff;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #9ca3af;
+    }
+    
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 1rem;
+      color: #fca5a5;
+    }
+    
+    .last-updated {
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+    
+    .refresh-btn {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 1rem;
+    }
+    
+    .refresh-btn:hover {
+      background: #6d28d9;
+    }
+  </style>
+</head>
+<body>
+  <h1>$DRB Attention Leaders</h1>
+  <p>X creators driving the most $DRB mindshare</p>
+  
+  <button class="refresh-btn" onclick="loadLeaderboard()">↻ Refresh</button>
+  
+  <div id="leaderboard" class="leaderboard">
+    <div class="loading">Loading leaderboard...</div>
+  </div>
+  
+  <div id="lastUpdated" class="last-updated"></div>
+
+  <script>
+    // ⚠️ UPDATE THIS URL after deploying your worker
+    const API_URL = 'https://drbtaskforce-api.YOUR_SUBDOMAIN.workers.dev/leaderboard';
+    // OR for custom domain: 'https://api.drbtaskforce.com/leaderboard'
+    
+    async function loadLeaderboard() {
+      const container = document.getElementById('leaderboard');
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      
+      try {
+        container.innerHTML = '<div class="loading">Loading...</div>';
+        
+        const response = await fetch(API_URL);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.accounts || data.accounts.length === 0) {
+          container.innerHTML = '<div class="loading">No data available</div>';
+          return;
+        }
+        
+        // Render leaderboard
+        container.innerHTML = data.accounts.map(account => `
+          <a href="https://x.com/${account.username}" target="_blank" class="account" style="text-decoration: none; color: inherit;">
+            <div class="rank">#${account.rank}</div>
+            <img src="${account.profileImage}" alt="${account.username}" class="avatar" loading="lazy">
+            <div class="info">
+              <div class="username">@${account.username}</div>
+              <div class="metrics">
+                <div class="metric">
+                  <span class="metric-label">Mindshare</span>
+                  <span class="metric-value">${account.mindshare.toFixed(1)}%</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Velocity</span>
+                  <span class="metric-value">${account.velocity.toFixed(1)}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Score</span>
+                  <span class="metric-value">${account.attentionScore.toFixed(1)}</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        `).join('');
+        
+        // Update timestamp
+        const date = new Date(data.lastUpdated);
+        lastUpdatedEl.textContent = `Last updated: ${date.toLocaleString()}`;
+        
+      } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        container.innerHTML = `
+          <div class="error">
+            <strong>Failed to load leaderboard</strong><br>
+            ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Load on page load
+    loadLeaderboard();
+    
+    // Auto-refresh every 15 minutes
+    setInterval(loadLeaderboard, 15 * 60 * 1000);
+  </script>
+</body>
+</html>

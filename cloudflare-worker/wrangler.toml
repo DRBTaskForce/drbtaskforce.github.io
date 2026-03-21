@@ -1,0 +1,16 @@
+name = "drbtaskforce-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# For development, the worker runs at:
+# https://drbtaskforce-api.YOURNAME.workers.dev
+
+# Production configuration (uncomment when you have a custom domain)
+# [env.production]
+# routes = [
+#   { pattern = "api.drbtaskforce.com/*", zone_name = "drbtaskforce.com" }
+# ]
+
+# Secrets (set via: wrangler secret put CHECKR_API_KEY)
+# Do NOT put actual values here - use wrangler secret command
+# Environment variables are accessed via env.CHECKR_API_KEY in worker.js

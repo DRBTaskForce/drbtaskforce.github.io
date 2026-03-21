@@ -1,0 +1,5 @@
+# Development environment variables
+# Copy this file to .dev.vars and fill in your actual API keys
+# .dev.vars is gitignored and used by `wrangler dev` for local testing
+
+CHECKR_API_KEY=your_checkr_api_key_here

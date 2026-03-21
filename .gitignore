@@ -17,3 +17,13 @@ _site/
 # Details at https://github.com/github/pages-gem/issues/768
 Gemfile.lock
 .DS_Store
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Cloudflare Worker
+cloudflare-worker/node_modules/
+cloudflare-worker/.wrangler/
