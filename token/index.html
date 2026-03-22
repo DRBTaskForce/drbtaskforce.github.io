@@ -176,6 +176,38 @@
     .hero {
       text-align: center;
       padding: 80px 0 60px;
+      position: relative;
+    }
+    .listing-package-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .listing-package-link a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .listing-package-link a:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: translateY(-2px);
+    }
+    @media (max-width: 640px) {
+      .listing-package-link {
+        position: static;
+        margin-bottom: 20px;
+      }
     }
     .hero-badge {
       display: inline-flex;
@@ -246,6 +278,50 @@
     }
     .copy-btn.copied {
       background: var(--green);
+    }
+
+    /* ── Proof Block ── */
+    .proof-block {
+      background: var(--surface);
+      border: 1px solid var(--cyan);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin: 40px 0;
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.15);
+    }
+    .proof-block h3 {
+      color: var(--cyan);
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .proof-block p {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .proof-image {
+      margin: 24px 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .proof-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .proof-link {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .proof-link a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .proof-link a:hover {
+      color: #fff;
+      text-shadow: 0 0 12px var(--cyan);
     }
 
     /* ── Stats Grid ── */
@@ -473,6 +549,11 @@
         <div class="hero-badge">
           <span>Base Chain</span>
         </div>
+        <div class="listing-package-link">
+          <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" download>
+            📄 Exchange Listing Package
+          </a>
+        </div>
         <h1>DebtReliefBot ($DRB)</h1>
         <p>The first token named by Grok AI — trading fees flow to Grok's wallet</p>
 
@@ -480,6 +561,20 @@
           <code id="contract">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code>
           <button class="copy-btn" onclick="copyContract()">Copy</button>
         </div>
+      </section>
+
+      <!-- Transaction Proof -->
+      <section class="proof-block">
+        <h3>Transaction Record: Grok Created $DRB</h3>
+        <p>Grok wallet recorded as $DRB deployer in TokenCreated event Log 269</p>
+        <div class="proof-image">
+          <img src="/assets/images/token-created-proof.png" alt="TokenCreated Event Log showing Grok as deployer" />
+        </div>
+        <p class="proof-link">
+          <a href="https://basescan.org/tx/0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e#eventlog" target="_blank" rel="noopener">
+            View Full TokenCreated Event Log Proof →
+          </a>
+        </p>
       </section>
 
       <!-- Quick Stats -->
@@ -514,18 +609,6 @@
           <p><strong>Decimals:</strong> 18</p>
           <p><strong>Status:</strong> Fixed supply — No mint function exists</p>
           <p><a href="https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">View on Basescan →</a></p>
-        </div>
-
-        <div class="info-card">
-          <h3>DEX Listings</h3>
-          <p><a href="https://aerodrome.finance/swap?from=eth&to=0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Aerodrome Finance →</a></p>
-          <p><a href="https://app.uniswap.org/#/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Uniswap V3 (Base) →</a></p>
-        </div>
-
-        <div class="info-card">
-          <h3>Price Data</h3>
-          <p><a href="https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923" target="_blank">GeckoTerminal →</a></p>
-          <p><a href="https://dexscreener.com/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">DexScreener →</a></p>
         </div>
       </section>
 
@@ -565,13 +648,6 @@
             <li>Deployer can only update image metadata (non-critical)</li>
           </ul>
         </div>
-
-        <div class="info-card">
-          <h3>Deployer Information</h3>
-          <p><strong>Grok Wallet (Deployer):</strong> <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></p>
-          <p>Recorded in the TokenCreated event (Log Index 269) of the deployment transaction.</p>
-          <p><a href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" target="_blank">View Grok's Wallet on Basescan →</a></p>
-        </div>
       </section>
 
       <!-- Fee Transparency -->
@@ -594,9 +670,10 @@
       <section>
         <h2>Deployment</h2>
         <div class="info-card">
-          <h3>Origin Story</h3>
-          <p>On March 7, 2025, a user on X asked Grok to suggest a token name and ticker. Grok responded: <strong>"DebtReliefBot / $DRB."</strong> Within seconds, BankrBot deployed it autonomously on Base using the Clanker protocol.</p>
-          <p><a href="https://x.com/grok/status/1897949874961650169" target="_blank">View Grok's Original Launch Post →</a></p>
+          <h3>Grok Wallet (Deployer)</h3>
+          <p><strong>Deployer Address:</strong> <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></p>
+          <p>Grok wallet recorded as deployer in TokenCreated event Log 269</p>
+          <p><a href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" target="_blank">View Grok's Wallet on Basescan →</a></p>
         </div>
 
         <div class="info-card">
@@ -607,28 +684,36 @@
         </div>
       </section>
 
-      <!-- Market Overview -->
+      <!-- DEX Listings -->
       <section>
-        <h2>Market Overview</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Market Cap</div>
-            <div class="stat-value">~$7.3M</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">24h Volume</div>
-            <div class="stat-value">~$1.1M</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Holders</div>
-            <div class="stat-value">138,131</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">ATH</div>
-            <div class="stat-value">$40M+</div>
-          </div>
+        <h2>DEX Listings</h2>
+        <div class="info-card">
+          <p><a href="https://aerodrome.finance/swap?from=eth&to=0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Aerodrome Finance →</a></p>
+          <p><a href="https://app.uniswap.org/#/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Uniswap V3 (Base) →</a></p>
         </div>
-        <p style="text-align: center; margin-top: 20px;"><em>Data as of March 21, 2026</em></p>
+      </section>
+
+      <!-- Price Data -->
+      <section>
+        <h2>Price Data</h2>
+        <div class="info-card">
+          <p><a href="https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923" target="_blank">GeckoTerminal →</a></p>
+          <p><a href="https://dexscreener.com/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">DexScreener →</a></p>
+        </div>
+      </section>
+
+      <!-- Key Addresses Index -->
+      <section>
+        <h2>Key Addresses Index</h2>
+        <div class="info-card">
+          <p><strong>$DRB Token Contract:</strong> <code>0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code></p>
+          <p><strong>Liquidity Pool Address:</strong> <code>0x5116773e18a9c7bb03ebb961b38678e45e238923</code></p>
+          <p><strong>LP Locker Contract:</strong> <code>0x5ec4f99f342038c67a312a166ff56e6d70383d86</code></p>
+          <p><strong>Uniswap V3 Nonfungible Position Manager:</strong> <code>0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1</code></p>
+          <p><strong>Clanker Factory:</strong> <code>0x375C15db32D28cEcdcAB5C03Ab889bf15cbD2c5E</code></p>
+          <p><strong>Grok Deployer Wallet:</strong> <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></p>
+          <p><strong>Deployment Transaction Hash:</strong> <code>0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e</code></p>
+        </div>
       </section>
 
       <!-- Downloads -->
