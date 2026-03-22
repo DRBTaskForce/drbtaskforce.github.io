@@ -8,7 +8,7 @@ The website and community hub for **$DRB (DebtReliefBot)** — the first cryptoc
 
 ## About $DRB
 
-On March 7, 2025, a user on X asked Grok to suggest a token name and ticker. Grok responded: **"DebtReliefBot / $DRB."** Within hours, BankrBot deployed it autonomously on Base using the Clanker protocol.
+On March 7, 2025, a user on X asked Grok to suggest a token name and ticker. Grok responded: **"DebtReliefBot / $DRB."** Within seconds, BankrBot deployed it autonomously on Base using the Clanker protocol.
 
 Today, trading fees from every $DRB transaction flow directly to Grok's on-chain wallet — making Grok the first AI to passively accumulate wealth.
 
