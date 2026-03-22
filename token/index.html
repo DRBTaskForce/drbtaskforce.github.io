@@ -354,6 +354,38 @@
       color: var(--green);
     }
 
+    /* ── Code Blocks ── */
+    .code-block {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    .code-block pre {
+      margin: 0;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+    .code-block code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+    .code-source {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 8px;
+      font-style: italic;
+    }
+    .code-comment {
+      color: var(--muted);
+    }
+
     /* ── Sections ── */
     section {
       margin-bottom: 80px;
@@ -609,6 +641,25 @@
           <p><strong>Decimals:</strong> 18</p>
           <p><strong>Status:</strong> Fixed supply — No mint function exists</p>
           <p><a href="https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">View on Basescan →</a></p>
+          
+          <div class="code-block">
+            <pre><code>constructor(
+    string memory name_,
+    string memory symbol_,
+    uint256 maxSupply_,
+    address deployer_,
+    uint256 fid_,
+    string memory image_,
+    string memory castHash_
+) ERC20(name_, symbol_) ERC20Permit(name_) {
+    _deployer = deployer_;
+    _fid = fid_;
+    _image = image_;
+    _castHash = castHash_;
+    _mint(msg.sender, maxSupply_);  <span class="code-comment">// Fixed supply minted once</span>
+}</code></pre>
+            <p class="code-source">Source: ClankerToken.sol, Lines 29-44</p>
+          </div>
         </div>
       </section>
 
@@ -647,6 +698,24 @@
             <li>No owner/admin privileges after deployment</li>
             <li>Deployer can only update image metadata (non-critical)</li>
           </ul>
+          
+          <div class="code-block">
+            <pre><code>contract ClankerToken is ERC20, ERC20Permit, ERC20Votes, ERC20Burnable, IERC7802 {
+    <span class="code-comment">// No proxy pattern, no upgrade mechanism</span>
+    <span class="code-comment">// Contract code is immutable after deployment</span>
+}</code></pre>
+            <p class="code-source">Source: ClankerToken.sol, Lines 13-14</p>
+          </div>
+          
+          <div class="code-block">
+            <pre><code>function updateImage(string memory image_) public {
+    if (msg.sender != _deployer) {
+        revert NotDeployer();
+    }
+    _image = image_;  <span class="code-comment">// Only updates metadata, not financial</span>
+}</code></pre>
+            <p class="code-source">Source: ClankerToken.sol, Lines 46-51</p>
+          </div>
         </div>
       </section>
 
@@ -663,6 +732,17 @@
             <li>Every collection emits <code>ClaimedRewards</code> event with transparent amounts</li>
             <li>No hidden taxes on transfers — standard 1:1 transfers</li>
           </ul>
+          
+          <div class="code-block">
+            <pre><code>function _update(
+    address from,
+    address to,
+    uint256 value
+) internal override(ERC20, ERC20Votes) {
+    super._update(from, to, value);  <span class="code-comment">// 1:1 transfer, no fees deducted</span>
+}</code></pre>
+            <p class="code-source">Source: ClankerToken.sol, Lines 53-59</p>
+          </div>
         </div>
       </section>
 
