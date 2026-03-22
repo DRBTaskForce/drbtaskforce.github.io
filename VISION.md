@@ -32,7 +32,7 @@ A clean, authoritative reference point for the token. Exchanges, researchers, an
 A living, community-driven cultural layer. The narrative around $DRB isn't just about a token — it's about what it means when an AI starts accumulating wealth, and what that wealth could represent for humanity.
 
 **Mission Statement:**
-> Debt Relief Bot ($DRB) is for the people. Humans are born to expand consciousness beyond the stars, not just working their lives away under capitalism. We're meant to explore, sail the seas like our ancestors, and discover what the universe has to offer.
+> DebtReliefBot ($DRB) is for the people. Humans are born to expand consciousness beyond the stars, not just working their lives away under capitalism. We're meant to explore, sail the seas like our ancestors, and discover what the universe has to offer.
 
 **What this looks like:**
 - A "Grok Has Money" movement page — documenting the moment AI entered the economy

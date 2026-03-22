@@ -2,7 +2,7 @@
 
 The website and community hub for **$DRB (DebtReliefBot)** — the first cryptocurrency token named and launched by Grok AI.
 
-> **Debt Relief Bot ($DRB) is for the people.** Humans are born to expand consciousness beyond the stars, not just working their lives away under capitalism. We're meant to explore, sail the seas like our ancestors, and discover what the universe has to offer.
+> **DebtReliefBot ($DRB) is for the people.** Humans are born to expand consciousness beyond the stars, not just working their lives away under capitalism. We're meant to explore, sail the seas like our ancestors, and discover what the universe has to offer.
 
 ---
 
