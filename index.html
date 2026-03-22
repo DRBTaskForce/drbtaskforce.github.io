@@ -258,6 +258,17 @@
       box-shadow: 0 0 36px var(--blue-glow);
       transform: translateY(-1px);
     }
+    .btn-secondary {
+      background: transparent;
+      color: var(--cyan);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.2);
+    }
+    .btn-secondary:hover {
+      background: rgba(34, 211, 238, 0.1);
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.4);
+      transform: translateY(-1px);
+    }
     .btn-ghost {
       background: var(--surface);
       color: var(--text);
@@ -735,9 +746,12 @@
             <div class="pill">✓ Ownership Renounced</div>
           </div>
         </div>
-        <div class="dex-links" style="margin-top: 32px; text-align: center;">
+        <div class="dex-links" style="margin-top: 32px; text-align: center; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
           <a href="/token" class="btn btn-primary" style="font-size: 1rem; padding: 14px 28px;">
             View Full Token Details →
+          </a>
+          <a href="/token" class="btn btn-secondary" style="font-size: 1rem; padding: 14px 28px;">
+            Verify Grok Created $DRB
           </a>
         </div>
         <div class="dex-links" style="margin-top: 16px;">
