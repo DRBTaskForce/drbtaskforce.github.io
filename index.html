@@ -135,6 +135,34 @@
     }
     .nav-links a:hover { color: #fff; }
 
+    /* ── Nav CTA ── */
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--cyan);
+      border: 1px solid rgba(34,211,238,0.45);
+      background: rgba(34,211,238,0.07);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-cta:hover {
+      background: rgba(34,211,238,0.15);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(34,211,238,0.25);
+    }
+    .hero-verify { display: none; }
+    @media (max-width: 640px) {
+      .nav-cta { display: none; }
+      .hero-verify { display: inline-flex; }
+    }
+
     /* ── Hamburger ── */
     .hamburger {
       display: none;
@@ -588,6 +616,7 @@
             <li><a href="#community">Community</a></li>
             <li><a href="https://x.com/DRBTaskForce" target="_blank">X</a></li>
           </ul>
+          <a href="/token/" class="nav-cta">✓ Verify Grok Created $DRB</a>
           <button class="hamburger" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
             <span></span><span></span><span></span>
           </button>
@@ -624,6 +653,7 @@
              target="_blank" rel="noopener" class="btn btn-ghost">
             Basescan
           </a>
+          <a href="/token/" class="btn btn-secondary hero-verify">✓ Verify Grok Created $DRB</a>
         </div>
       </div>
     </section>
@@ -754,7 +784,7 @@
             Verify Grok Created $DRB
           </a>
         </div>
-        <div class="dex-links" style="margin-top: 16px;">
+        <div class="dex-links" style="margin-top: 16px; justify-content: center;">
           <a href="https://app.uniswap.org/explore/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2"
              target="_blank" rel="noopener" class="btn btn-ghost">Buy on Uniswap</a>
           <a href="https://dexscreener.com/base/0x5116773e18a9c7bb03ebb961b38678e45e238923"
