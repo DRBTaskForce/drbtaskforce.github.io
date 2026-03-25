@@ -59,8 +59,8 @@
       inset: 0;
       z-index: 0;
       background:
-        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.04) 0%, transparent 70%),
         var(--bg);
       pointer-events: none;
     }
@@ -69,25 +69,20 @@
       position: absolute;
       inset: 0;
       background-image:
-        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 40% 8%,  rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 92% 12%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 33% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 78% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 48% 25%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 62% 88%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 18% 65%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 90% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 3%  35%, rgba(255,255,255,0.5) 0%, transparent 100%);
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 8%,  rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 12%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.12) 0%, transparent 100%),
+        radial-gradient(1px 1px at 33% 90%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 78% 55%, rgba(255,255,255,0.2) 0%, transparent 100%);
     }
     .stars::after {
       transform: rotate(45deg) scale(1.5);
-      opacity: 0.4;
+      opacity: 0.2;
     }
 
     /* ── Layout ── */
@@ -488,10 +483,14 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
-      transition: border-color 0.2s;
+      padding: 28px 24px;
+      transition: all 0.2s;
+      backdrop-filter: blur(8px);
     }
-    .card:hover { border-color: rgba(59,130,246,0.4); }
+    .card:hover {
+      border-color: rgba(34,211,238,0.3);
+      background: rgba(34,211,238,0.04);
+    }
     .card-label {
       font-size: 0.7rem;
       font-weight: 700;
@@ -519,17 +518,7 @@
       margin-top: 4px;
     }
     .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(34,197,94,0.12);
-      border: 1px solid rgba(34,197,94,0.25);
-      color: #4ade80;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 100px;
-      margin-top: 6px;
+      display: none;
     }
 
     /* ── DEX Links ── */
@@ -644,15 +633,10 @@
              target="_blank" rel="noopener" class="btn btn-primary">
             Buy $DRB
           </a>
-          <a href="https://dexscreener.com/base/0x5116773e18a9c7bb03ebb961b38678e45e238923"
-             target="_blank" rel="noopener" class="btn btn-ghost">
-            Live Chart
+          <a href="#community" class="btn btn-secondary">
+            Join Community
           </a>
-          <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2"
-             target="_blank" rel="noopener" class="btn btn-ghost">
-            Basescan
-          </a>
-          <a href="/token/" class="btn btn-secondary hero-verify">✓ Verify Grok Created $DRB</a>
+          <a href="/token/" class="btn btn-ghost hero-verify">Verify Grok Created $DRB</a>
         </div>
       </div>
     </section>
@@ -771,8 +755,9 @@
           <div class="card">
             <div class="card-label">Security</div>
             <div class="card-value">Verified</div>
-            <div class="pill">✓ Liquidity Locked</div>
-            <div class="pill">✓ Ownership Renounced</div>
+            <div class="card-sub" style="margin-top: 12px; line-height: 1.6;">
+              Liquidity locked · Ownership renounced · Community verified
+            </div>
           </div>
         </div>
         <div class="dex-links" style="margin-top: 32px; text-align: center; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
