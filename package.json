@@ -1,0 +1,16 @@
+{
+  "name": "drbtaskforce",
+  "version": "1.0.0",
+  "description": "DRBTaskforce community hub for $DRB token on Base",
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy",
+    "clean": "rm -rf _site"
+  },
+  "keywords": ["drb", "debtreliefbot", "crypto", "base"],
+  "author": "DRBTaskforce",
+  "license": "MIT",
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.1"
+  }
+}

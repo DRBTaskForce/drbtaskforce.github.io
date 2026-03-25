@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title | default("DRBTaskforce — DebtReliefBot ($DRB)") }}</title>
+  <meta name="description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI. Community hub for token info, chain verification, and the Grok Has Money movement.") }}" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://drbtaskforce.github.io{{ page.url }}" />
+  <meta property="og:title" content="{{ title | default("DRBTaskforce — DebtReliefBot ($DRB)") }}" />
+  <meta property="og:description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI.") }}" />
+  <meta property="og:image" content="https://drbtaskforce.github.io/assets/images/logo.png" />
+  <meta property="og:image:alt" content="$DRB Task Force logo" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@DRBTaskForce" />
+  <meta name="twitter:title" content="{{ title | default("DRBTaskforce — DebtReliefBot ($DRB)") }}" />
+  <meta name="twitter:description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI.") }}" />
+  <meta name="twitter:image" content="https://drbtaskforce.github.io/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="wrap">
+
+    <!-- Nav -->
+    <nav>
+      <div class="container">
+        <div class="nav-inner">
+          <a href="/" class="nav-logo">
+            <img src="/assets/images/drb-face-simple.png" alt="DRB" />
+            <span>DRBTaskforce</span>
+            <span class="ticker">$DRB</span>
+          </a>
+          <ul class="nav-links" id="nav-links">
+            <li><a href="/#origin">Origin</a></li>
+            <li><a href="/#token">Token</a></li>
+            <li><a href="/#community">Community</a></li>
+            <li><a href="https://x.com/DRBTaskForce" target="_blank">X</a></li>
+          </ul>
+          <a href="/token/" class="nav-cta">✓ Verify Grok Created $DRB</a>
+          <button class="hamburger" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    {{ content | safe }}
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <p>
+          <strong>DRBTaskforce</strong> — community hub for <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank" rel="noopener">$DRB</a> on Base.
+          Not affiliated with xAI or Grok.
+        </p>
+        <p class="disclaimer">
+          $DRB is a meme token. This site provides informational content only and is not financial advice.
+          Cryptocurrency trading involves significant risk of loss.
+        </p>
+      </div>
+    </footer>
+
+  </div>
+  <script>
+    function toggleNav() {
+      document.getElementById('nav-links').classList.toggle('open');
+      document.getElementById('hamburger').classList.toggle('open');
+    }
+    // Close menu when a link is clicked
+    document.querySelectorAll('.nav-links a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        document.getElementById('nav-links').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>
