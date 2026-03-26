@@ -120,6 +120,15 @@ export default {
       return jsonResponse({ error: 'API key not configured' }, 500, origin);
     }
 
+    // Rate limit by IP
+    if (env.RATE_LIMITER) {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const { success } = await env.RATE_LIMITER.limit({ key: ip });
+      if (!success) {
+        return jsonResponse({ error: 'Too many requests. Please wait a moment.' }, 429, origin);
+      }
+    }
+
     const model = env.MODEL || 'grok-3';
 
     // Call xAI Chat Completions API
