@@ -32,6 +32,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/main.css" />
+  
+  <!-- Markdown rendering with XSS protection -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 </head>
 <body>
   <div class="stars"></div>
@@ -129,7 +133,30 @@
         label.textContent = sender;
         const body = document.createElement('div');
         body.className = 'chat-msg-body';
-        body.textContent = text;
+        
+        // Render markdown safely with XSS protection
+        if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+          // Configure marked for inline rendering (no block elements like <p>)
+          marked.use({
+            breaks: true,
+            gfm: true
+          });
+          const rawHtml = marked.parse(text, { async: false });
+          const cleanHtml = DOMPurify.sanitize(rawHtml, {
+            ALLOWED_TAGS: ['a', 'strong', 'em', 'code', 'br'],
+            ALLOWED_ATTR: ['href', 'target', 'rel']
+          });
+          body.innerHTML = cleanHtml;
+          // Ensure external links open in new tab
+          body.querySelectorAll('a').forEach(link => {
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+          });
+        } else {
+          // Fallback to plain text if libraries not loaded
+          body.textContent = text;
+        }
+        
         el.appendChild(label);
         el.appendChild(body);
         const msgs = document.getElementById('drb-messages');
