@@ -42,7 +42,7 @@
       <div class="container">
         <div class="nav-inner">
           <a href="/" class="nav-logo">
-            <img src="/assets/images/drb-face-simple.png" alt="DRB" />
+            <img src="/assets/images/DRB_Logo_Cropped.png" alt="DRB" />
             <span>DRBTaskforce</span>
             <span class="ticker">$DRB</span>
           </a>
@@ -78,6 +78,110 @@
     </footer>
 
   </div>
+  <!-- Chat Widget -->
+  <div id="drb-chat-btn">
+    <button type="button" onclick="toggleChat()" aria-label="Open DebtReliefBot chat">
+      <img src="/assets/images/DRB_Logo_Cropped.png" width="44" height="44" alt="DRB" />
+    </button>
+  </div>
+
+  <div id="drb-chat-window" aria-hidden="true">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <img src="/assets/images/DRB_Logo_Cropped.png" width="28" height="28" alt="" />
+        <div>
+          <div class="chat-title">DebtReliefBot</div>
+          <div class="chat-subtitle">Powered by Grok</div>
+        </div>
+      </div>
+      <button type="button" onclick="toggleChat()" aria-label="Close chat" class="chat-close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="drb-messages"></div>
+    <div class="chat-input-row">
+      <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off" />
+      <button id="drb-send-btn" type="button" onclick="sendMessage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const API_URL = 'https://YOUR-WORKER-NAME.YOURSUBDOMAIN.workers.dev/chat';
+
+      function toggleChat() {
+        const w = document.getElementById('drb-chat-window');
+        const isOpen = w.classList.contains('open');
+        w.classList.toggle('open', !isOpen);
+        w.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+        document.getElementById('drb-chat-btn').classList.toggle('active', !isOpen);
+        if (!isOpen) document.getElementById('drb-user-input').focus();
+      }
+
+      function addMessage(sender, text, side, id) {
+        const el = document.createElement('div');
+        if (id) el.id = id;
+        el.className = 'chat-msg chat-msg-' + side;
+        const label = document.createElement('span');
+        label.className = 'chat-msg-label';
+        label.textContent = sender;
+        const body = document.createElement('div');
+        body.className = 'chat-msg-body';
+        body.textContent = text;
+        el.appendChild(label);
+        el.appendChild(body);
+        const msgs = document.getElementById('drb-messages');
+        msgs.appendChild(el);
+        el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+
+      async function sendMessage() {
+        const input = document.getElementById('drb-user-input');
+        const btn = document.getElementById('drb-send-btn');
+        const msg = input.value.trim();
+        if (!msg) return;
+        addMessage('You', msg, 'right');
+        input.value = '';
+        const thinkingId = 'thinking-' + Date.now();
+        addMessage('DRB', 'Thinking…', 'left', thinkingId);
+        btn.disabled = true;
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg }),
+          });
+          const raw = await res.text();
+          let data = {};
+          try { data = raw ? JSON.parse(raw) : {}; } catch { /**/ }
+          const thinking = document.getElementById(thinkingId);
+          if (thinking) thinking.remove();
+          if (!res.ok) {
+            addMessage('DRB', data.error || data.message || 'Request failed (' + res.status + ').', 'left');
+            return;
+          }
+          const reply = data.reply != null ? String(data.reply).trim() : '';
+          addMessage('DRB', reply || 'No reply received. Check your Worker response format.', 'left');
+        } catch {
+          const thinking = document.getElementById(thinkingId);
+          if (thinking) thinking.remove();
+          addMessage('DRB', 'Could not reach the chat service.', 'left');
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      document.getElementById('drb-user-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      window.toggleChat = toggleChat;
+      window.sendMessage = sendMessage;
+    })();
+  </script>
+
   <script>
     function toggleNav() {
       document.getElementById('nav-links').classList.toggle('open');
