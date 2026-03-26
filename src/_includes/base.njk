@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>{{ title | default("DRBTaskforce — DebtReliefBot ($DRB)") }}</title>
   <meta name="description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI. Community hub for token info, chain verification, and the Grok Has Money movement.") }}" />
 
@@ -203,6 +203,17 @@
       document.getElementById('drb-user-input').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') sendMessage();
       });
+
+      // Handle mobile viewport changes when keyboard appears
+      if (window.visualViewport) {
+        const chatWindow = document.getElementById('drb-chat-window');
+        window.visualViewport.addEventListener('resize', () => {
+          if (window.innerWidth <= 640 && chatWindow.classList.contains('open')) {
+            const viewportHeight = window.visualViewport.height;
+            chatWindow.style.height = viewportHeight + 'px';
+          }
+        });
+      }
 
       window.toggleChat = toggleChat;
       window.sendMessage = sendMessage;
