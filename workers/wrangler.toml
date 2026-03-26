@@ -1,0 +1,9 @@
+name = "drb-chat-worker"
+main = "chat-worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+MODEL = "grok-3"
+
+# Set your API key as a secret — never commit it:
+# npx wrangler secret put XAI_API_KEY

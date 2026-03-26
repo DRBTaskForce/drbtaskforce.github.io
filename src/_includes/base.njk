@@ -109,7 +109,7 @@
 
   <script>
     (function () {
-      const API_URL = 'https://YOUR-WORKER-NAME.YOURSUBDOMAIN.workers.dev/chat';
+      const API_URL = 'https://drb-chat-worker.drbtaskforce.workers.dev';
 
       function toggleChat() {
         const w = document.getElementById('drb-chat-window');
@@ -148,7 +148,7 @@
         addMessage('DRB', 'Thinking…', 'left', thinkingId);
         btn.disabled = true;
         try {
-          const res = await fetch(API_URL, {
+          const res = await fetch(API_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: msg }),
