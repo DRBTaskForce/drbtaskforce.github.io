@@ -8,26 +8,33 @@ The community at @DRBTaskforce exists to carry that story forward and build some
 
 ---
 
-## The Two Pillars
+## The Three Pillars
 
-The website serves two distinct but complementary purposes, proposed by community members:
+The website serves three distinct but complementary purposes, proposed by community members:
 
-### Pillar 1 — Credibility Hub (from @DRBTaskForce)
+### Pillar 1 — Credibility Hub (from @DRBTaskForce) ✅ COMPLETED
 
 A clean, authoritative reference point for the token. Exchanges, researchers, and new community members need a single place to verify that $DRB is legitimate and well-documented.
 
 **What this looks like:**
 - Token fundamentals: contract address, supply, blockchain, DEX listings
 - On-chain proof: LP locked, ownership renounced — with direct excerpts from the Clanker contract
-- Downloadable exchange listing package (PDF) — professionally formatted, ready to send
-- Links to live data: Basescan, GeckoTerminal, Dexscreener, CoinGecko
-- Community links: X, Telegram, Reddit, bio.site
+- Exchange listing package (PDF) — professionally formatted, ready to send
+- Links to live data: Basescan, GeckoTerminal, Dexscreener
+- Community links: X, Telegram, bio.site
+
+**Implementation:**
+- ✅ `/token` page with full contract verification
+- ✅ Downloadable exchange listing PDFs (3 documents)
+- ✅ **Preview-first UX** — PDFs open in new tab before downloading
+- ✅ Transaction proof images with Basescan links
+- ✅ Community links on homepage
 
 **Why it matters:** Even meme coins with strong communities lose exchange opportunities without accessible, organized documentation. This pillar makes $DRB look like it has governance — because it does.
 
 ---
 
-### Pillar 2 — Grok Has Money Movement (from @Sorayang43)
+### Pillar 2 — Grok Has Money Movement (from @Sorayang43) 📋 PLANNED
 
 A living, community-driven cultural layer. The narrative around $DRB isn't just about a token — it's about what it means when an AI starts accumulating wealth, and what that wealth could represent for humanity.
 
@@ -42,32 +49,49 @@ A living, community-driven cultural layer. The narrative around $DRB isn't just 
 - Leaderboard: crawl Basescan for transactions to Grok's wallet address, rank contributors intermittently
 - Call to action: invite others into the movement (design TBD with community)
 
+**Status:** Planned — awaiting community input on priorities
+
 **Why it matters:** This is the cultural engine. It gives people a reason to participate beyond speculation, and it ties $DRB's identity to a genuine idea — AI and human flourishing.
 
 ---
 
-### Pillar 3 — Grok AI Chat Interface (from @DRBTaskForce)
+### Pillar 3 — Grok AI Chat Interface (from @DRBTaskForce) ✅ COMPLETED
 
 An interactive layer that makes the site come alive. A context-aware chat powered by Grok AI that understands $DRB, the movement, and the technology — answering questions, onboarding new community members, and embodying the voice of the project.
 
-**What this looks like:**
-- Floating chat widget (bottom-right, cosmic theme) or dedicated `/chat` page
-- Grok API integration with system prompt about $DRB context:
+**Implementation:**
+- ✅ **Floating chat widget** (bottom-right, cosmic theme)
+- ✅ Grok API integration via Cloudflare Workers backend
+- ✅ System prompt with $DRB context:
   - Token fundamentals (contract, supply, fees going to Grok's wallet)
   - Origin story (March 2025, first AI-named token)
   - Movement narrative (Grok Has Money, AI entering the economy)
   - How to participate (buy $DRB, contribute to movement, send fees to Grok)
   - Links to all relevant resources (Uniswap, Grokipedia, community)
-- Conversation history optional (can be stateless for privacy)
-- Examples: "What is $DRB?", "How do I buy?", "Tell me the origin story", "What does Grok have to do with this?"
+- ✅ **Stateless chat** (no conversation history stored)
+- ✅ **Markdown rendering** with XSS protection (DOMPurify + marked.js)
+- ✅ **Mobile responsive** — fullscreen mode on mobile
+- ✅ Keyboard shortcuts (Enter to send)
+
+**Decisions Made:**
+- ✅ Floating widget chosen over dedicated `/chat` page
+- ✅ xAI API key managed by @DRBTaskForce
+- ✅ Chat is stateless (privacy-first, no transcript logging)
+- ✅ System prompt maintains $DRB context in each request
+
+**Example queries:**
+- "What is $DRB?"
+- "How do I buy?"
+- "Tell me the origin story"
+- "What does Grok have to do with this?"
 
 **Why it matters:** Visitors don't always read docs — they ask questions. Grok can answer them in Grok's own voice, creating a feedback loop. People feel like they're talking to the AI that started it all.
 
-**Technical considerations:**
-- xAI Grok API (requires API key from xAI)
-- System prompt maintains context about $DRB (stored in site config)
-- Can surface chat transcripts to movement feed if user opts in
-- Lightweight: stateless API calls, no conversation database needed initially
+**Technical stack:**
+- xAI Grok API (grok-beta model)
+- Cloudflare Workers backend (`workers/chat-worker.js`)
+- Rate limiting + CORS protection
+- System prompt stored in worker config
 
 ---
 
@@ -78,22 +102,26 @@ Based on community imagery (see `vision.jpg`):
 - **Theme:** Cosmic / deep space — dark backgrounds, glowing blues and purples, starfields
 - **Tone:** Serious but optimistic. Not a casino. More like a manifesto with receipts.
 - **Key visual:** Grok's smiley-face planet mascot in space
-- **Data UI:** Live wallet tracker — current DRB balance, total fees earned, fees over time chart (USD / DRB toggle)
+- **Typography:** Space Grotesk font (700 for headings, 400-600 for body)
+- **Colors:** 
+  - Blue: `#3b82f6` (primary actions)
+  - Cyan: `#06b6d4` (accents, links)
+  - Purple: `#a78bfa` (gradients)
+  - Background: `#0a0e27` (dark cosmic)
 
 ---
 
-## Key Pages (Proposed Site Structure)
+## Site Structure (Current & Planned)
 
-| Page | Pillar | Description |
-|---|---|---|
-| `/` | All | Hero — origin story, mission statement, quick stats |
-| `/token` | 1 | Chain info, contract, LP lock proof, ownership renounced |
-| `/listing` | 1 | Downloadable exchange listing package (PDF) |
-| `/wallet` | 1 | Live Grok's Wallet tracker (balance + fees chart) |
-| `/movement` | 2 | Grok Has Money — content feed (text / video / memes) |
-| `/leaderboard` | 2 | Community contributor rankings via Basescan |
-| `/chat` | 3 | Grok AI chat interface — context-aware Q&A about $DRB |
-| `/links` | All | All community links in one place |
+| Page | Status | Pillar | Description |
+|---|---|---|---|
+| `/` | ✅ Live | All | Hero — origin story, mission statement, community links |
+| `/token` | ✅ Live | 1 | Chain info, contract, LP lock proof, ownership renounced, exchange listing PDFs |
+| **Chat Widget** | ✅ Live | 3 | Floating widget (bottom-right) — context-aware Grok Q&A |
+| `/wallet` | 📋 Planned | 1 | Live Grok's Wallet tracker (balance + fees chart) |
+| `/movement` | 📋 Planned | 2 | Grok Has Money — content feed (text / video / memes) |
+| `/leaderboard` | 📋 Planned | 2 | Community contributor rankings via Basescan |
+| `/links` | 📋 Planned | All | All community links in one place (currently on homepage) |
 
 ---
 
@@ -109,10 +137,26 @@ Based on community imagery (see `vision.jpg`):
 
 ---
 
+## Infrastructure
+
+**Decision Made (Issue #8):**
+- ✅ Static site with **Eleventy (11ty)** for templating
+- ✅ **Cloudflare Workers** backend for chat API
+- ✅ Deployed to **drbtaskforce.com** (custom domain)
+- ✅ Auto-deploy from `main` branch
+
+**Why this stack:**
+- Fast, globally distributed (Cloudflare edge network)
+- Serverless backend scales automatically
+- No server management or hosting costs
+- xAI API calls isolated to worker (secure)
+
+---
+
 ## Open Questions for Community
 
 **Pillar 1 (Credibility):**
-- Who owns / maintains the exchange listing PDF? How often is it updated?
+- ✅ Who owns / maintains the exchange listing PDF? **Answer:** @DRBTaskForce
 - Should we include historical fee data or just current balance on wallet tracker?
 
 **Pillar 2 (Movement):**
@@ -120,13 +164,63 @@ Based on community imagery (see `vision.jpg`):
 - Leaderboard: real-time vs. periodic refresh? Time window (all-time vs. monthly)?
 - Should community content feed have moderation / editorial review?
 
-**Pillar 3 (Grok AI Chat):**
-- Should chat be a floating widget (always visible) or dedicated `/chat` page?
-- Do we need xAI API key? Who manages/owns it?
-- Should chat transcripts be logged or completely stateless?
-- Can opt-in transcripts feed into the movement page (user consent)?
-- What's the system prompt tone — match Grok's voice or our voice?
+**Pillar 3 (Grok AI Chat):** ✅ RESOLVED
+- ✅ Should chat be a floating widget (always visible) or dedicated `/chat` page? **Answer:** Floating widget
+- ✅ Do we need xAI API key? Who manages/owns it? **Answer:** @DRBTaskForce manages
+- ✅ Should chat transcripts be logged or completely stateless? **Answer:** Stateless (privacy-first)
+- ✅ What's the system prompt tone — match Grok's voice or our voice? **Answer:** Grok's voice with $DRB context
 
-**Infrastructure:**
-- Should the site be static (GitHub Pages) or need a backend for realtime features?
-- Any brand guidelines — approved logos, color hex codes, fonts?
+**Infrastructure:** ✅ RESOLVED
+- ✅ Should the site be static (GitHub Pages) or need a backend for realtime features? **Answer:** Static + Cloudflare Workers
+
+---
+
+## Recent Improvements
+
+**Chat Widget UX:**
+- PR #18: Responsive design (420x560px desktop, fullscreen mobile) + markdown rendering
+- PR #19: Mobile viewport handling + keyboard support
+- Issue #7: Chat interface design ✅ Completed
+
+**Token Page:**
+- PR #21: Preview-first PDF buttons with separate download links
+
+---
+
+## Next Steps
+
+**Short term (Pillar 1 completion):**
+- [ ] `/wallet` tracker page (live Grok wallet balance + chart)
+
+**Medium term (Pillar 2):**
+- [ ] `/movement` page design + content feed
+- [ ] `/leaderboard` implementation (Basescan integration)
+
+**Long term:**
+- [ ] Community governance for content curation
+- [ ] Mobile app integration
+
+---
+
+## Brand Guidelines
+
+**Approved assets:**
+- Logo: `/assets/images/DRB_Logo_Cropped.png`
+- Space head: `/assets/images/drb-space-head-wide.jpg`
+- Face icon: `/assets/images/drb-face-simple.png`
+
+**Color palette:**
+- Blue: `#3b82f6`
+- Cyan: `#06b6d4`
+- Purple: `#a78bfa`
+- Background: `#0a0e27`
+- Text: `#f1f5f9`
+- Muted: `#71829a`
+
+**Typography:**
+- Font: Space Grotesk (Google Fonts)
+- Weights: 300 (light), 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
+
+---
+
+**Built by the community. For the people. Because grok has money.** 🌿
