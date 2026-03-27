@@ -121,6 +121,7 @@
         w.classList.toggle('open', !isOpen);
         w.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
         document.getElementById('drb-chat-btn').classList.toggle('active', !isOpen);
+        if (window.innerWidth <= 640) document.body.classList.toggle('chat-open', !isOpen);
         if (!isOpen) document.getElementById('drb-user-input').focus();
       }
 
