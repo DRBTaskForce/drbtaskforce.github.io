@@ -1132,9 +1132,31 @@
     }
     .download-grid {
       display: flex;
-      gap: 12px;
+      gap: 16px;
       justify-content: center;
       flex-wrap: wrap;
+    }
+    .download-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .download-description {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 4px 0 0;
+      text-align: center;
+    }
+    .download-link {
+      font-size: 0.8rem;
+      color: var(--cyan);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .download-link:hover {
+      border-bottom-color: var(--cyan);
     }
 
     /* ── 404 Page ── */
