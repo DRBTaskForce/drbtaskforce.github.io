@@ -1,0 +1,299 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  h1, h2 { font-family: 'Syne', sans-serif; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    background-color: #080b1a;
+    color: #f1f5f9;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Keep CSS variables so any remaining var() references keep working */
+  :root {
+    --blue:    #6366f1;
+    --purple:  #a78bfa;
+    --cyan:    #38bdf8;
+    --aurora:  #10d9a0;
+    --bg:      #080b1a;
+    --surface: rgba(255,255,255,0.04);
+    --border:  rgba(255,255,255,0.08);
+    --text:    #f1f5f9;
+    --muted:   #94a3b8;
+    --radius:  12px;
+  }
+}
+
+/* ── Utilities with no Tailwind equivalent ── */
+@layer utilities {
+  /* Gradient text — used on hero .gradient span and 404 .error-code */
+  .gradient-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* ── Inexpressible as utilities — stays as raw CSS ── */
+
+/* Stars background (10-stop radial-gradient arrays on pseudo-elements) */
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.05) 0%, transparent 70%),
+    #080b1a;
+  pointer-events: none;
+}
+.stars::before, .stars::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 8%,  rgba(255,255,255,0.2)  0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.1)  0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 12%, rgba(255,255,255,0.2)  0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.12) 0%, transparent 100%),
+    radial-gradient(1px 1px at 33% 90%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 55%, rgba(255,255,255,0.2)  0%, transparent 100%);
+}
+.stars::after { transform: rotate(45deg) scale(1.5); opacity: 0.2; }
+
+/* Hero image — mask-image + mask-composite have no utility equivalent */
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  mix-blend-mode: screen;
+  mask-image:
+    linear-gradient(to right, transparent 0%, black 22%, black 88%, transparent 100%),
+    linear-gradient(to bottom, black 55%, transparent 92%);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, black 22%, black 88%, transparent 100%),
+    linear-gradient(to bottom, black 55%, transparent 92%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+@media (max-width: 640px) {
+  .hero-image img {
+    mask-image:
+      linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%),
+      linear-gradient(to bottom, black 40%, transparent 82%);
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%),
+      linear-gradient(to bottom, black 40%, transparent 82%);
+  }
+}
+
+/* Hamburger animation — :nth-child compound selectors, toggled by JS */
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile nav dropdown — JS-toggled .open class */
+@media (max-width: 640px) {
+  #nav-links {
+    display: none;
+    position: absolute;
+    top: 68px; left: 0; right: 0;
+    background: rgba(4,7,18,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-direction: column;
+    padding: 16px 24px;
+    gap: 16px;
+    z-index: 99;
+  }
+  #nav-links.open { display: flex; }
+}
+
+/* Chat window — JS-toggled display none/flex */
+#drb-chat-window { display: none; }
+#drb-chat-window.open { display: flex; }
+
+/* Chat message sides — built by JS: 'chat-msg-' + side */
+.chat-msg-right { align-self: flex-end; align-items: flex-end; }
+.chat-msg-left  { align-self: flex-start; align-items: flex-start; }
+
+/* Mobile full-screen chat */
+@media (max-width: 640px) {
+  #drb-chat-window {
+    bottom: 0; right: 0; left: 0; top: 0;
+    width: 100%; max-width: 100%;
+    height: 100vh; height: 100dvh;
+    max-height: 100vh; max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #drb-chat-btn {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    right: 16px;
+  }
+  #drb-chat-btn.active { display: none; }
+  body.chat-open { overflow: hidden; }
+  #drb-messages { -webkit-overflow-scrolling: touch; }
+}
+
+/* Custom scrollbar */
+#drb-messages::-webkit-scrollbar { width: 4px; }
+#drb-messages::-webkit-scrollbar-track { background: transparent; }
+#drb-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+/* Mission quote decorative marks */
+.mission-quote::before,
+.mission-quote::after {
+  content: '\201C';
+  font-size: 4rem;
+  color: #6366f1;
+  opacity: 0.3;
+  position: absolute;
+  line-height: 1;
+  font-style: normal;
+}
+.mission-quote::before { top: -8px; left: 0; }
+.mission-quote::after  { bottom: -32px; right: 0; }
+
+/* nav-cta / hero-verify mobile visibility swap */
+.hero-verify { display: none; }
+@media (max-width: 640px) {
+  .nav-cta { display: none; }
+  .hero-verify { display: inline-flex; }
+}
+
+/* Hero banner — overlay, mfer-btn hide, container positioning */
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(8,11,26,0.92) 0%, rgba(8,11,26,0.65) 40%, rgba(8,11,26,0.1) 70%, transparent 100%),
+    linear-gradient(to bottom, transparent 40%, rgba(8,11,26,0.8) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-banner .mfer-btn { display: none; }
+.hero-banner .hero-sub { color: rgba(255,255,255,0.78); }
+.hero-banner > .container-content {
+  position: relative;
+  z-index: 1;
+  margin-left: 0;
+  padding-left: clamp(32px, 6vw, 96px);
+  padding-right: 24px;
+}
+@media (max-width: 640px) {
+  .hero-banner { align-items: flex-end !important; padding-bottom: 48px !important; text-align: center !important; }
+  .hero-banner .hero-actions { justify-content: center; }
+  .hero-banner .hero-sub { margin: 0 auto 40px; }
+  .hero-banner > .container-content { padding-left: 24px; }
+}
+
+/* Hero image — absolute positioned wrapper */
+.hero-image {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 62%; height: 100%;
+}
+@media (max-width: 640px) {
+  .hero-image { right: auto; left: 0; width: 100%; }
+}
+
+/* Timeline connector line */
+.timeline-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px; top: 32px; bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Tweet card overlay */
+.tweet-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(56,189,248,0.02) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Chat message elements — built dynamically by JS */
+.chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 85%; }
+.chat-msg-label { font-size: 0.65rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.chat-msg-body {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding: 10px 14px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-msg-right .chat-msg-body {
+  background: linear-gradient(135deg, #6366f1, #38bdf8);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg-left .chat-msg-body {
+  background: rgba(255,255,255,0.06);
+  color: #f1f5f9;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg-body a { color: #38bdf8; text-decoration: underline; transition: opacity 0.2s; }
+.chat-msg-body a:hover { opacity: 0.8; }
+.chat-msg-right .chat-msg-body a { color: rgba(255,255,255,0.9); }
+
+/* copy-btn .copied state override */
+.copy-btn.copied { background: #16a34a; background-image: none; }
+
+/* Token page — nested section styles */
+.token-page section {
+  padding: 60px 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.token-page section h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 16px; }
+.token-page section > p,
+.token-page section > ul { color: #94a3b8; font-size: 0.9rem; line-height: 1.7; margin-bottom: 16px; }
+.token-page section > ul { list-style: none; display: flex; flex-direction: column; gap: 8px; padding-left: 0; }
+.token-page section > ul li { padding-left: 16px; position: relative; }
+.token-page section > ul li::before { content: '→'; position: absolute; left: 0; color: #38bdf8; font-size: 0.75rem; }
+.token-page section > ul li code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; color: #38bdf8; }
+
+/* Info card — nested styles */
+.info-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+.info-card p { font-size: 0.875rem; color: #94a3b8; line-height: 1.7; margin-bottom: 8px; }
+.info-card p strong { color: #f1f5f9; }
+.info-card p a { color: #38bdf8; text-decoration: none; }
+.info-card p a:hover { text-decoration: underline; }
+.info-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.info-card ul li { font-size: 0.875rem; color: #94a3b8; line-height: 1.6; padding-left: 16px; position: relative; }
+.info-card ul li::before { content: '→'; position: absolute; left: 0; color: #38bdf8; font-size: 0.75rem; top: 2px; }
+.info-card ul li code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; color: #38bdf8; }
+
+/* Proof block — nested styles */
+.proof-block h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+.proof-block > p { font-size: 0.875rem; color: #94a3b8; margin-bottom: 16px; line-height: 1.6; }
+.proof-image { border-radius: 8px; overflow: hidden; margin: 16px 0; }
+.proof-image img { width: 100%; height: auto; display: block; }
+.proof-link a { font-size: 0.875rem; color: #38bdf8; text-decoration: none; }
+.proof-link a:hover { text-decoration: underline; }
+
+/* Code block — nested styles */
+.code-comment { color: #6b7280; font-style: italic; }
+.code-source { padding: 10px 20px; font-size: 0.7rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.01); }

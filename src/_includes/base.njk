@@ -30,35 +30,38 @@
   {% if noindex %}<meta name="robots" content="noindex" />{% endif %}
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/main.css" />
-  
+
   <!-- Markdown rendering with XSS protection -->
   <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 </head>
 <body>
   <div class="stars"></div>
-  <div class="wrap">
+  <div class="relative z-10">
 
     <!-- Nav -->
-    <nav>
-      <div class="container">
-        <div class="nav-inner">
-          <a href="/" class="nav-logo">
-            <img src="/assets/images/DRB_Logo_Cropped.png" alt="DRB" />
+    <nav class="sticky top-0 z-[100] border-b border-border-col bg-[rgba(8,11,26,0.8)] backdrop-blur-[12px]">
+      <div class="max-w-[960px] mx-auto px-6">
+        <div class="flex items-center justify-between h-[68px]">
+          <a href="/" class="font-bold text-base text-white no-underline flex items-center gap-3">
+            <img src="/assets/images/DRB_Logo_Cropped.png" alt="DRB" class="w-8 h-8 rounded-full" />
             <span>DRBTaskforce</span>
-            <span class="ticker">$DRB</span>
+            <span class="text-brand-cyan">$DRB</span>
           </a>
-          <ul class="nav-links" id="nav-links">
-            <li><a href="/#origin">Origin</a></li>
-            <li><a href="/#token">Token</a></li>
-            <li><a href="/#community">Community</a></li>
-            <li><a href="https://x.com/DRBTaskForce" target="_blank">X</a></li>
+          <ul class="flex gap-6 list-none" id="nav-links">
+            <li><a href="/#origin" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Origin</a></li>
+            <li><a href="/#token" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Token</a></li>
+            <li><a href="/#community" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Community</a></li>
+            <li><a href="https://x.com/DRBTaskForce" target="_blank" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">X</a></li>
           </ul>
-          <a href="/token/" class="nav-cta">Verify Grok Created $DRB</a>
-          <button class="hamburger" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
-            <span></span><span></span><span></span>
+          <a href="/token/" class="nav-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-brand text-[0.78rem] font-semibold no-underline text-brand-cyan border border-brand-cyan/30 bg-brand-cyan/[0.05] transition-all duration-200 hover:bg-brand-cyan/[0.12] hover:border-brand-cyan hover:shadow-[0_0_12px_rgba(56,189,248,0.2)] whitespace-nowrap">Verify Grok Created $DRB</a>
+          <button class="hidden flex-col justify-center gap-[5px] bg-transparent border-0 cursor-pointer p-1.5 max-[640px]:flex" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
+            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
+            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
+            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
           </button>
         </div>
       </div>
@@ -68,13 +71,13 @@
     {{ content | safe }}
 
     <!-- Footer -->
-    <footer>
-      <div class="container">
-        <p>
-          <strong>DRBTaskforce</strong> — community hub for <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank" rel="noopener">$DRB</a> on Base.
+    <footer class="border-t border-border-col py-8 text-center">
+      <div class="max-w-[960px] mx-auto px-6">
+        <p class="text-[0.8rem] text-text-muted leading-[1.6]">
+          <strong>DRBTaskforce</strong> — community hub for <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank" rel="noopener" class="text-brand-cyan no-underline hover:underline">$DRB</a> on Base.
           Not affiliated with xAI or Grok.
         </p>
-        <p class="disclaimer">
+        <p class="max-w-[600px] mx-auto text-[0.75rem] text-text-muted opacity-70 mt-3">
           $DRB is a meme token. This site provides informational content only and is not financial advice.
           Cryptocurrency trading involves significant risk of loss.
         </p>
@@ -82,30 +85,36 @@
     </footer>
 
   </div>
+
   <!-- Chat Widget -->
-  <div id="drb-chat-btn">
-    <button type="button" onclick="toggleChat()" aria-label="Open DebtReliefBot chat">
-      <img src="/assets/images/DRB_Logo_Cropped.png" width="44" height="44" alt="DRB" />
+  <div id="drb-chat-btn" class="fixed bottom-6 right-6 z-[9999]">
+    <button type="button" onclick="toggleChat()" aria-label="Open DebtReliefBot chat"
+      class="w-14 h-14 rounded-full border-2 border-brand-cyan/40 bg-[rgba(8,11,26,0.9)] backdrop-blur-[12px] cursor-pointer p-0 flex items-center justify-center shadow-glow-cyan transition-all duration-200 hover:border-brand-cyan hover:shadow-glow-cyan-lg hover:scale-105">
+      <img src="/assets/images/DRB_Logo_Cropped.png" width="44" height="44" alt="DRB" class="rounded-full block" />
     </button>
   </div>
 
-  <div id="drb-chat-window" aria-hidden="true">
-    <div class="chat-header">
-      <div class="chat-header-info">
-        <img src="/assets/images/DRB_Logo_Cropped.png" width="28" height="28" alt="" />
+  <div id="drb-chat-window" aria-hidden="true"
+    class="fixed bottom-[92px] right-6 w-[420px] max-w-[calc(100vw-48px)] h-[560px] max-h-[calc(100vh-120px)] bg-[rgba(8,11,26,0.97)] border border-border-col rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] backdrop-blur-[20px] z-[9998] flex-col overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3.5 border-b border-border-col shrink-0 bg-[rgba(8,11,26,0.97)]">
+      <div class="flex items-center gap-2.5">
+        <img src="/assets/images/DRB_Logo_Cropped.png" width="28" height="28" alt="" class="rounded-full" />
         <div>
-          <div class="chat-title">DebtReliefBot</div>
-          <div class="chat-subtitle">Powered by Grok</div>
+          <div class="font-semibold text-sm text-white">DebtReliefBot</div>
+          <div class="text-[0.7rem] text-brand-cyan">Powered by Grok</div>
         </div>
       </div>
-      <button type="button" onclick="toggleChat()" aria-label="Close chat" class="chat-close">
+      <button type="button" onclick="toggleChat()" aria-label="Close chat"
+        class="bg-transparent border-0 text-text-muted cursor-pointer p-1 rounded-md flex transition-colors duration-150 hover:text-white">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div id="drb-messages"></div>
-    <div class="chat-input-row">
-      <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off" />
-      <button id="drb-send-btn" type="button" onclick="sendMessage()">
+    <div id="drb-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 min-h-0"></div>
+    <div class="flex gap-2 px-3.5 py-3 border-t border-border-col shrink-0">
+      <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off"
+        class="flex-1 px-3.5 py-2.5 bg-white/[0.05] border border-border-col rounded-[10px] text-text-primary font-body text-[0.85rem] outline-none transition-colors duration-200 placeholder:text-text-muted focus:border-brand-cyan/40" />
+      <button id="drb-send-btn" type="button" onclick="sendMessage()"
+        class="w-[38px] h-[38px] rounded-[10px] bg-gradient-to-br from-brand-blue to-brand-cyan border-0 text-white cursor-pointer flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-50">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
@@ -148,30 +157,24 @@
         label.textContent = sender;
         const body = document.createElement('div');
         body.className = 'chat-msg-body';
-        
+
         // Render markdown safely with XSS protection
         if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-          // Configure marked for inline rendering (no block elements like <p>)
-          marked.use({
-            breaks: true,
-            gfm: true
-          });
+          marked.use({ breaks: true, gfm: true });
           const rawHtml = marked.parse(text, { async: false });
           const cleanHtml = DOMPurify.sanitize(rawHtml, {
             ALLOWED_TAGS: ['a', 'strong', 'em', 'code', 'br'],
             ALLOWED_ATTR: ['href', 'target', 'rel']
           });
           body.innerHTML = cleanHtml;
-          // Ensure external links open in new tab
           body.querySelectorAll('a').forEach(link => {
             link.setAttribute('target', '_blank');
             link.setAttribute('rel', 'noopener noreferrer');
           });
         } else {
-          // Fallback to plain text if libraries not loaded
           body.textContent = text;
         }
-        
+
         el.appendChild(label);
         el.appendChild(body);
         const msgs = document.getElementById('drb-messages');
@@ -219,7 +222,6 @@
         if (e.key === 'Enter') sendMessage();
       });
 
-      // Handle mobile viewport changes when keyboard appears
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', updateChatPosition);
         window.visualViewport.addEventListener('scroll', updateChatPosition);
@@ -235,7 +237,6 @@
       document.getElementById('nav-links').classList.toggle('open');
       document.getElementById('hamburger').classList.toggle('open');
     }
-    // Close menu when a link is clicked
     document.querySelectorAll('.nav-links a').forEach(function(a) {
       a.addEventListener('click', function() {
         document.getElementById('nav-links').classList.remove('open');
