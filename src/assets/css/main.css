@@ -752,7 +752,7 @@
         right: 16px;
       }
       #drb-chat-btn.active { display: none; }
-      body.chat-open { overflow: hidden; position: fixed; width: 100%; }
+      body.chat-open { overflow: hidden; }
       
       /* Ensure messages area scrolls properly on mobile */
       #drb-messages {

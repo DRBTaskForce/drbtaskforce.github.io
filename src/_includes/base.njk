@@ -115,13 +115,27 @@
     (function () {
       const API_URL = 'https://drb-chat-worker.drbtaskforce.workers.dev';
 
+      function updateChatPosition() {
+        const w = document.getElementById('drb-chat-window');
+        if (window.innerWidth <= 640 && w.classList.contains('open') && window.visualViewport) {
+          w.style.top = window.visualViewport.offsetTop + 'px';
+          w.style.height = window.visualViewport.height + 'px';
+        }
+      }
+
       function toggleChat() {
         const w = document.getElementById('drb-chat-window');
         const isOpen = w.classList.contains('open');
         w.classList.toggle('open', !isOpen);
         w.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
         document.getElementById('drb-chat-btn').classList.toggle('active', !isOpen);
-        if (window.innerWidth <= 640) document.body.classList.toggle('chat-open', !isOpen);
+        if (window.innerWidth <= 640) {
+          document.body.classList.toggle('chat-open', !isOpen);
+          if (!isOpen) {
+            w.style.top = '';
+            w.style.height = '';
+          }
+        }
         if (!isOpen) document.getElementById('drb-user-input').focus();
       }
 
@@ -207,13 +221,8 @@
 
       // Handle mobile viewport changes when keyboard appears
       if (window.visualViewport) {
-        const chatWindow = document.getElementById('drb-chat-window');
-        window.visualViewport.addEventListener('resize', () => {
-          if (window.innerWidth <= 640 && chatWindow.classList.contains('open')) {
-            const viewportHeight = window.visualViewport.height;
-            chatWindow.style.height = viewportHeight + 'px';
-          }
-        });
+        window.visualViewport.addEventListener('resize', updateChatPosition);
+        window.visualViewport.addEventListener('scroll', updateChatPosition);
       }
 
       window.toggleChat = toggleChat;
