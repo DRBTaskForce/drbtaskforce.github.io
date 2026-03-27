@@ -21,7 +21,7 @@ description: "Official $DRB token information, contract verification, liquidity 
     <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-6">DebtReliefBot ($DRB)</h1>
     <p class="text-lg text-text-muted max-w-[480px] mb-10 leading-[1.7] mx-auto">The first token named by Grok AI — trading fees flow to Grok's wallet</p>
 
-    <div class="flex items-center gap-3 bg-white/[0.04] border border-border-col rounded-brand px-5 py-4 my-6 flex-wrap">
+    <div class="flex items-center gap-3 bg-black/[0.04] dark:bg-white/[0.04] border border-border-col rounded-brand px-5 py-4 my-6 flex-wrap">
       <code id="contract" class="font-mono text-[0.8rem] text-brand-cyan flex-1 break-all">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code>
       <button class="copy-btn px-4 py-2 bg-gradient-to-br from-brand-blue to-brand-cyan text-white border-0 rounded-lg text-[0.8rem] font-semibold cursor-pointer transition-all duration-200 font-body whitespace-nowrap" onclick="copyContract()">Copy</button>
     </div>
@@ -45,19 +45,19 @@ description: "Official $DRB token information, contract verification, liquidity 
   <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 my-8">
     <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Total Supply</div>
-      <div class="text-2xl font-bold text-white">100B</div>
+      <div class="text-2xl font-bold text-text-primary">100B</div>
     </div>
     <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Blockchain</div>
-      <div class="text-2xl font-bold text-white">Base</div>
+      <div class="text-2xl font-bold text-text-primary">Base</div>
     </div>
     <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Liquidity</div>
-      <div class="text-2xl font-bold text-green-400">Locked</div>
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400">Locked</div>
     </div>
     <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Ownership</div>
-      <div class="text-2xl font-bold text-green-400">Renounced</div>
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400">Renounced</div>
     </div>
   </div>
 
@@ -74,7 +74,7 @@ description: "Official $DRB token information, contract verification, liquidity 
       <p><strong>Status:</strong> Fixed supply — No mint function exists</p>
       <p><a href="https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">View on Basescan →</a></p>
 
-      <div class="mt-5 bg-black/40 border border-border-col rounded-brand overflow-hidden">
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
         <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">constructor(
     string memory name_,
     string memory symbol_,
@@ -131,7 +131,7 @@ description: "Official $DRB token information, contract verification, liquidity 
         <li>Deployer can only update image metadata (non-critical)</li>
       </ul>
 
-      <div class="mt-5 bg-black/40 border border-border-col rounded-brand overflow-hidden">
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
         <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">contract ClankerToken is ERC20, ERC20Permit, ERC20Votes, ERC20Burnable, IERC7802 {
     <span class="code-comment">// No proxy pattern, no upgrade mechanism</span>
     <span class="code-comment">// Contract code is immutable after deployment</span>
@@ -139,7 +139,7 @@ description: "Official $DRB token information, contract verification, liquidity 
         <p class="code-source">Source: ClankerToken.sol, Lines 13-14</p>
       </div>
 
-      <div class="mt-5 bg-black/40 border border-border-col rounded-brand overflow-hidden">
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
         <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">function updateImage(string memory image_) public {
     if (msg.sender != _deployer) {
         revert NotDeployer();
@@ -165,7 +165,7 @@ description: "Official $DRB token information, contract verification, liquidity 
         <li>No hidden taxes on transfers — standard 1:1 transfers</li>
       </ul>
 
-      <div class="mt-5 bg-black/40 border border-border-col rounded-brand overflow-hidden">
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
         <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">function _update(
     address from,
     address to,
@@ -246,7 +246,7 @@ description: "Official $DRB token information, contract verification, liquidity 
     <div class="flex gap-5 justify-center flex-wrap">
       <div class="text-center">
         <a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-white/[0.08] hover:-translate-y-px">
+          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           View Token Contract Source Code
         </a>
@@ -254,7 +254,7 @@ description: "Official $DRB token information, contract verification, liquidity 
       </div>
       <div class="text-center">
         <a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-white/[0.08] hover:-translate-y-px">
+          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           View LP Locker Source Code
         </a>

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/**/*.njk',
     './src/**/*.html',
@@ -13,15 +14,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'brand-blue':   '#6366f1',
-        'brand-purple': '#a78bfa',
-        'brand-cyan':   '#38bdf8',
-        'brand-aurora': '#10d9a0',
-        'bg':           '#080b1a',
-        'surface':      'rgba(255,255,255,0.04)',
-        'border-col':   'rgba(255,255,255,0.08)',
-        'text-primary': '#f1f5f9',
-        'text-muted':   '#94a3b8',
+        // Brand colors use RGB channel vars so opacity modifiers (brand-blue/30) work
+        'brand-blue':   'rgb(var(--brand-blue) / <alpha-value>)',
+        'brand-purple': 'rgb(var(--brand-purple) / <alpha-value>)',
+        'brand-cyan':   'rgb(var(--brand-cyan) / <alpha-value>)',
+        'brand-aurora': 'rgb(var(--brand-aurora) / <alpha-value>)',
+        // Semantic tokens reference CSS vars directly
+        'bg':           'var(--color-bg)',
+        'surface':      'var(--color-surface)',
+        'border-col':   'var(--color-border)',
+        'text-primary': 'var(--color-text)',
+        'text-muted':   'var(--color-muted)',
       },
       fontFamily: {
         display: ['Syne', 'sans-serif'],
@@ -32,10 +35,10 @@ module.exports = {
         brand: '12px',
       },
       boxShadow: {
-        'glow-blue':    '0 4px 20px rgba(99,102,241,0.3)',
-        'glow-blue-lg': '0 8px 28px rgba(99,102,241,0.4)',
-        'glow-cyan':    '0 4px 24px rgba(56,189,248,0.25)',
-        'glow-cyan-lg': '0 4px 32px rgba(56,189,248,0.4)',
+        'glow-blue':    'var(--shadow-glow-blue)',
+        'glow-blue-lg': 'var(--shadow-glow-blue-lg)',
+        'glow-cyan':    'var(--shadow-glow-cyan)',
+        'glow-cyan-lg': 'var(--shadow-glow-cyan-lg)',
       },
       keyframes: {
         'pulse-dot': {

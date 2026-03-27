@@ -29,6 +29,16 @@
 
   {% if noindex %}<meta name="robots" content="noindex" />{% endif %}
 
+  <!-- Theme init — runs before paint to prevent flash -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -43,20 +53,27 @@
   <div class="relative z-10">
 
     <!-- Nav -->
-    <nav class="sticky top-0 z-[100] border-b border-border-col bg-[rgba(8,11,26,0.8)] backdrop-blur-[12px]">
+    <nav class="sticky top-0 z-[100] border-b border-border-col bg-[var(--nav-bg)] backdrop-blur-[12px]">
       <div class="max-w-[960px] mx-auto px-6">
         <div class="flex items-center justify-between h-[68px]">
-          <a href="/" class="font-bold text-base text-white no-underline flex items-center gap-3">
+          <a href="/" class="font-bold text-base text-text-primary no-underline flex items-center gap-3">
             <img src="/assets/images/DRB_Logo_Cropped.png" alt="DRB" class="w-8 h-8 rounded-full" />
             <span>DRBTaskforce</span>
             <span class="text-brand-cyan">$DRB</span>
           </a>
           <ul class="flex gap-6 list-none" id="nav-links">
-            <li><a href="/#origin" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Origin</a></li>
-            <li><a href="/#token" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Token</a></li>
-            <li><a href="/#community" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">Community</a></li>
-            <li><a href="https://x.com/DRBTaskForce" target="_blank" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-white">X</a></li>
+            <li><a href="/#origin" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Origin</a></li>
+            <li><a href="/#token" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Token</a></li>
+            <li><a href="/#community" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Community</a></li>
+            <li><a href="https://x.com/DRBTaskForce" target="_blank" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">X</a></li>
           </ul>
+          <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"
+            class="flex items-center justify-center w-8 h-8 rounded-full text-text-muted hover:text-text-primary transition-colors duration-200 bg-transparent border-0 cursor-pointer shrink-0">
+            <!-- Moon (shown in light mode) -->
+            <svg id="theme-icon-moon" class="block dark:hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <!-- Sun (shown in dark mode) -->
+            <svg id="theme-icon-sun" class="hidden dark:block w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
           <a href="/token/" class="nav-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-brand text-[0.78rem] font-semibold no-underline text-brand-cyan border border-brand-cyan/30 bg-brand-cyan/[0.05] transition-all duration-200 hover:bg-brand-cyan/[0.12] hover:border-brand-cyan hover:shadow-[0_0_12px_rgba(56,189,248,0.2)] whitespace-nowrap">Verify Grok Created $DRB</a>
           <button class="hidden flex-col justify-center gap-[5px] bg-transparent border-0 cursor-pointer p-1.5 max-[640px]:flex" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
             <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
@@ -89,30 +106,30 @@
   <!-- Chat Widget -->
   <div id="drb-chat-btn" class="fixed bottom-6 right-6 z-[9999]">
     <button type="button" onclick="toggleChat()" aria-label="Open DebtReliefBot chat"
-      class="w-14 h-14 rounded-full border-2 border-brand-cyan/40 bg-[rgba(8,11,26,0.9)] backdrop-blur-[12px] cursor-pointer p-0 flex items-center justify-center shadow-glow-cyan transition-all duration-200 hover:border-brand-cyan hover:shadow-glow-cyan-lg hover:scale-105">
+      class="w-14 h-14 rounded-full border-2 border-brand-cyan/40 bg-[var(--chat-btn-bg)] backdrop-blur-[12px] cursor-pointer p-0 flex items-center justify-center shadow-glow-cyan transition-all duration-200 hover:border-brand-cyan hover:shadow-glow-cyan-lg hover:scale-105">
       <img src="/assets/images/DRB_Logo_Cropped.png" width="44" height="44" alt="DRB" class="rounded-full block" />
     </button>
   </div>
 
   <div id="drb-chat-window" aria-hidden="true"
-    class="fixed bottom-[92px] right-6 w-[420px] max-w-[calc(100vw-48px)] h-[560px] max-h-[calc(100vh-120px)] bg-[rgba(8,11,26,0.97)] border border-border-col rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] backdrop-blur-[20px] z-[9998] flex-col overflow-hidden">
-    <div class="flex items-center justify-between px-4 py-3.5 border-b border-border-col shrink-0 bg-[rgba(8,11,26,0.97)]">
+    class="fixed bottom-[92px] right-6 w-[420px] max-w-[calc(100vw-48px)] h-[560px] max-h-[calc(100vh-120px)] bg-[var(--chat-bg)] border border-border-col rounded-2xl shadow-[var(--chat-shadow)] backdrop-blur-[20px] z-[9998] flex-col overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3.5 border-b border-border-col shrink-0 bg-[var(--chat-bg)]">
       <div class="flex items-center gap-2.5">
         <img src="/assets/images/DRB_Logo_Cropped.png" width="28" height="28" alt="" class="rounded-full" />
         <div>
-          <div class="font-semibold text-sm text-white">DebtReliefBot</div>
+          <div class="font-semibold text-sm text-text-primary">DebtReliefBot</div>
           <div class="text-[0.7rem] text-brand-cyan">Powered by Grok</div>
         </div>
       </div>
       <button type="button" onclick="toggleChat()" aria-label="Close chat"
-        class="bg-transparent border-0 text-text-muted cursor-pointer p-1 rounded-md flex transition-colors duration-150 hover:text-white">
+        class="bg-transparent border-0 text-text-muted cursor-pointer p-1 rounded-md flex transition-colors duration-150 hover:text-text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div id="drb-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 min-h-0"></div>
     <div class="flex gap-2 px-3.5 py-3 border-t border-border-col shrink-0">
       <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off"
-        class="flex-1 px-3.5 py-2.5 bg-white/[0.05] border border-border-col rounded-[10px] text-text-primary font-body text-[0.85rem] outline-none transition-colors duration-200 placeholder:text-text-muted focus:border-brand-cyan/40" />
+        class="flex-1 px-3.5 py-2.5 bg-[var(--chat-input-bg)] border border-border-col rounded-[10px] text-text-primary font-body text-[0.85rem] outline-none transition-colors duration-200 placeholder:text-text-muted focus:border-brand-cyan/40" />
       <button id="drb-send-btn" type="button" onclick="sendMessage()"
         class="w-[38px] h-[38px] rounded-[10px] bg-gradient-to-br from-brand-blue to-brand-cyan border-0 text-white cursor-pointer flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-50">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -243,6 +260,11 @@
         document.getElementById('hamburger').classList.remove('open');
       });
     });
+
+    function toggleTheme() {
+      var isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
   </script>
 </body>
 </html>
