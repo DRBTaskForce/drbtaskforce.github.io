@@ -23,26 +23,35 @@ We're building drbtaskforce.com around three complementary purposes:
 ### 🏛️ Pillar 1: Credibility Hub
 Professional, authoritative documentation for exchanges, researchers, and community members.
 
-- `/token` — Contract address, supply, ownership status
-- `/listing` — Exchange listing package (downloadable PDF)
-- `/wallet` — Live tracker of Grok's fee wallet (real-time balance + earnings chart)
-- `/links` — All community resources in one place
+- `/token` — Contract address, supply, ownership status, exchange listing PDFs
+- ~~`/listing`~~ — Integrated into `/token` page
+- `/wallet` — Live tracker of Grok's fee wallet (planned)
+- `/links` — All community resources (currently on homepage)
+
+**Status:** ✅ Core pages live
 
 **Why it matters:** Even strong communities lose exchange opportunities without organized documentation. This makes $DRB look like it has governance — because it does.
 
 ### 🌍 Pillar 2: Grok Has Money Movement
 A living, community-driven cultural layer celebrating AI entering the economy.
 
-- `/movement` — Community content feed (essays, videos, memes)
-- `/leaderboard` — Contributor rankings (gamified by $DRB sent to Grok's wallet)
+- `/movement` — Community content feed (essays, videos, memes) — *planned*
+- `/leaderboard` — Contributor rankings (gamified by $DRB sent to Grok's wallet) — *planned*
+
+**Status:** 📋 Planned
 
 **Why it matters:** This is the cultural engine. It gives people a reason to participate beyond speculation, and ties $DRB's identity to a genuine idea — AI and human flourishing.
 
-### 🤖 Pillar 3: Grok AI Chat Interface
+### 🤖 Pillar 3: Grok AI Chat Interface ✅ COMPLETED
 An interactive layer that brings the site to life.
 
-- `/chat` — Context-aware Grok-powered Q&A about $DRB, the origin story, and how to participate
+- **Floating chat widget** (bottom-right) — Context-aware Grok-powered Q&A about $DRB
 - Conversational onboarding for new community members
+- Markdown rendering with XSS protection
+- Mobile responsive (fullscreen mode on mobile)
+- Keyboard shortcuts (Enter to send)
+
+**Status:** ✅ Live on drbtaskforce.com
 
 **Why it matters:** People prefer asking questions to reading docs. Grok answers in Grok's voice, creating a direct connection between visitors and the narrative.
 
@@ -67,25 +76,23 @@ An interactive layer that brings the site to life.
 - Vote on priorities (Pillar 1 first? All in parallel?)
 - Share content for the movement feed
 
-### For Decision-Making
-See **Issue #9** ([Roadmap & Priorities](https://github.com/DRBTaskForce/drbtaskforce.github.io/issues/9)) — we're deciding which pillar ships first based on community input.
-
 ---
 
 ## Tech Stack
 
-- **Static site:** HTML/CSS/JS on GitHub Pages
-- **Design:** Space Grotesk font, cosmic dark theme (blues/purples), responsive
+- **Static Site Generator:** [Eleventy (11ty)](https://www.11ty.dev/) v2.0.1
+- **Templating:** Nunjucks (`.njk` files)
+- **Styling:** CSS (Space Grotesk font, cosmic dark theme)
+- **Backend:** Cloudflare Workers (chat API)
+- **Chat:** xAI Grok API integration
+- **Deployment:** Auto-deploys from `main` branch to drbtaskforce.com
 - **APIs:** Basescan (wallet tracker), Grok (chat interface), DEX price feeds
-- **Deployment:** Auto-deploys from `main` branch
-
-See **Issue #8** ([Infrastructure decision](https://github.com/DRBTaskForce/drbtaskforce.github.io/issues/8)) — we may upgrade to serverless functions or a backend as features grow.
 
 ---
 
 ## Key Links
 
-- **Website:** https://drbtaskforce.com (live at GitHub Pages)
+- **Website:** https://drbtaskforce.com
 - **Vision Document:** [VISION.md](./VISION.md) — full strategic overview
 - **GitHub Issues:** [All tasks & decisions](https://github.com/DRBTaskForce/drbtaskforce.github.io/issues)
 - **Community:** [@DRBTaskForce](https://x.com/DRBTaskForce) on X
@@ -100,28 +107,74 @@ See **Issue #8** ([Infrastructure decision](https://github.com/DRBTaskForce/drbt
 ```bash
 git clone https://github.com/DRBTaskForce/drbtaskforce.github.io.git
 cd drbtaskforce.github.io
+npm install
 ```
 
-No build process needed — it's a static site. Open `index.html` in a browser to preview locally.
+### Local Development
+```bash
+npm run dev      # Dev server at http://localhost:8080 with live reload
+npm run build    # Production build to _site/
+npm run clean    # Remove build artifacts
+```
 
 ### File Structure
 ```
 .
-├── index.html       # Homepage (50% complete)
-├── VISION.md        # Strategic overview (complete)
-├── README.md        # This file
-└── references/      # Research & reference docs
-    ├── GROKIPEDIA.md
-    └── DRBTASKFORCE_BIOSITE.md
+├── src/
+│   ├── _includes/
+│   │   └── base.njk         # Base template with chat widget
+│   ├── index.njk            # Homepage
+│   ├── token/
+│   │   └── index.njk        # Token info page
+│   ├── assets/
+│   │   ├── css/main.css     # All styles
+│   │   ├── images/          # Logos, proofs, hero images
+│   │   └── pdfs/            # Exchange listing docs
+│   └── 404.njk              # 404 page
+├── workers/                  # Cloudflare Worker backend
+│   ├── chat-worker.js       # Grok API integration
+│   ├── wrangler.toml        # Worker config
+│   └── README.md            # Worker documentation
+├── references/               # Research & reference docs
+├── package.json              # Dependencies (Eleventy)
+├── .eleventy.js              # Eleventy configuration
+├── README.md                 # This file
+└── VISION.md                 # Strategic overview
 ```
 
 ### Contributing Code
 1. Fork the repo
-2. Create a feature branch: `git checkout -b pillar-1/token-page`
+2. Create a feature branch: `git checkout -b pillar-2/movement-page`
 3. Make your changes
-4. Test locally
-5. Commit: `git commit -m "Add /token page (#1)"`
-6. Push and open a PR
+4. Test locally: `npm run dev`
+5. Build: `npm run build`
+6. Commit: `git commit -m "Add /movement page (#12)"`
+7. Push and open a PR
+
+### Cloudflare Workers (Chat Backend)
+The chat widget is powered by a Cloudflare Worker that integrates with xAI's Grok API.
+
+```bash
+cd workers/
+npm install -g wrangler
+wrangler dev          # Local development
+wrangler deploy       # Deploy to production
+```
+
+See `workers/README.md` for details.
+
+---
+
+## Current Site Structure
+
+| Page | Status | Description |
+|---|---|---|
+| `/` | ✅ Live | Homepage — origin story, mission, community links |
+| `/token` | ✅ Live | Token info, contract verification, exchange listing PDFs |
+| Chat Widget | ✅ Live | Floating bottom-right widget (site-wide) |
+| `/wallet` | 📋 Planned | Live Grok wallet tracker (balance + fees chart) |
+| `/movement` | 📋 Planned | Grok Has Money content feed |
+| `/leaderboard` | 📋 Planned | Community contributor rankings |
 
 ---
 
