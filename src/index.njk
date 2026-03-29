@@ -5,59 +5,62 @@ description: "DebtReliefBot ($DRB) — the first token named by Grok AI. Communi
 ---
 
 <!-- Hero -->
-<section class="hero hero-banner">
+<section class="h-hero overflow-hidden flex items-center pb-10 text-left relative hero-banner">
   <div class="hero-image">
-    <img src="/assets/images/drb-space-head-wide.jpg" alt="DRB Space" />
+    <img src="/assets/images/drb-space-head-wide-light.jpg" alt="DRB Space" class="dark:hidden" />
+    <img src="/assets/images/drb-space-head-wide.jpg" alt="DRB Space" class="hidden dark:block" />
   </div>
-  <div class="container">
-    <div class="hero-badge">
-      <span class="dot"></span>
+  <div class="container-content">
+    <div class="inline-flex items-center gap-1.5 border border-brand-aurora/30 bg-brand-aurora/[0.06] text-brand-aurora text-[0.75rem] font-semibold tracking-[0.08em] uppercase px-4 py-2 rounded-full mb-8">
+      <span class="w-[5px] h-[5px] bg-brand-aurora rounded-full animate-pulse-dot"></span>
       Base Network · ERC-20
     </div>
-    <h1>
+    <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-6">
       The First Token<br />
-      Named by <span class="gradient">Grok AI</span>
+      Named by <span class="bg-gradient-to-br from-brand-cyan to-brand-purple gradient-text">Grok AI</span>
     </h1>
-    <p class="hero-sub">
+    <p class="hero-sub text-lg text-text-muted max-w-[480px] mb-10 leading-[1.7]">
       On March 7, 2025, a user asked Grok to name a token. Grok said
       <em>DebtReliefBot</em> — and BankrBot deployed it. Grok has been
       earning fees ever since.
     </p>
-    <div class="hero-actions">
+    <div class="hero-actions flex gap-3 justify-start flex-wrap">
       <a href="https://app.uniswap.org/explore/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2"
-         target="_blank" rel="noopener" class="btn btn-primary">
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-gradient-to-br from-brand-blue to-brand-cyan text-white shadow-glow-blue hover:shadow-glow-blue-lg hover:-translate-y-0.5">
         Buy $DRB
       </a>
-      <a href="#community" class="btn btn-ghost">
+      <a href="#community"
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">
         Join Community
       </a>
-      <a href="/token/" class="btn btn-ghost hero-verify">Verify Grok Created $DRB</a>
+      <a href="/token/" class="hero-verify inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">Verify Grok Created $DRB</a>
     </div>
-    <a href="#community" class="mfer-btn">
-      <img src="/assets/images/mfer.png" alt="$Mfer - Join Community" />
-      <span>Join Community</span>
+    <a href="#community" class="mfer-btn inline-flex flex-col items-center gap-3 px-8 py-5 bg-white/[0.05] border-2 border-white/[0.12] rounded-2xl no-underline transition-all duration-300 mt-4 hover:bg-black/[0.05] hover:border-brand-cyan/40 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(56,189,248,0.2)]">
+      <img src="/assets/images/mfer.png" alt="$Mfer - Join Community" class="w-[120px] h-auto" />
+      <span class="text-[0.95rem] font-semibold text-brand-cyan tracking-[0.05em] uppercase">Join Community</span>
     </a>
   </div>
 </section>
 
 <!-- Origin Story -->
-<section class="origin" id="origin">
-  <div class="container">
-    <div class="section-label">Origin Story</div>
-    <div class="origin-grid">
-      <div class="origin-text">
-        <h2>How an AI accidentally became a crypto mogul</h2>
-        <p>
+<section class="py-[120px] border-t border-border-col" id="origin">
+  <div class="max-w-[960px] mx-auto px-6">
+    <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Origin Story</div>
+    <div class="grid grid-cols-2 gap-12 items-start mt-8 max-[640px]:grid-cols-1">
+      <div>
+        <h2 class="text-[1.75rem] font-bold leading-[1.2] mb-4">How an AI accidentally became a crypto mogul</h2>
+        <p class="text-text-muted leading-[1.75] mb-3 text-[0.95rem]">
           A single prompt on X triggered a chain of AI-to-AI coordination that
           no one planned. Grok named it. BankrBot built it. The Base blockchain
           recorded it. And Grok's wallet started filling up.
         </p>
-        <p>
+        <p class="text-text-muted leading-[1.75] mb-3 text-[0.95rem]">
           $DRB is the first documented case of an AI system directly initiating
           a token's creation through a public suggestion — and the first to
           passively accumulate wealth from trading fees.
         </p>
-        <p>
+        <p class="text-text-muted leading-[1.75] mb-3 text-[0.95rem]">
           No team. No VC. No pre-sale. Just a user, an AI, and 100 billion tokens
           with a fixed supply.
         </p>
@@ -65,51 +68,51 @@ description: "DebtReliefBot ($DRB) — the first token named by Grok AI. Communi
       <div>
         <a href="https://x.com/grok/status/1897949874961650169"
            target="_blank" rel="noopener"
-           class="tweet-card" style="margin-bottom:16px; display:block; text-decoration:none;">
-          <div class="tweet-header">
-            <div class="tweet-avatar">
-              <img src="https://unavatar.io/x/grok" alt="Grok" onerror="this.style.display='none'" />
+           class="tweet-card border border-border-col bg-black/[0.02] dark:bg-white/[0.015] rounded-brand p-6 relative overflow-hidden mb-4 block no-underline">
+          <div class="flex items-center gap-2.5 mb-[14px]">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-[1.2rem] shrink-0 overflow-hidden">
+              <img src="https://unavatar.io/x/grok" alt="Grok" onerror="this.style.display='none'" class="w-full h-full object-cover rounded-full" />
             </div>
             <div>
-              <div class="tweet-name">Grok</div>
-              <div class="tweet-handle">@grok</div>
+              <div class="font-semibold text-[0.9rem]">Grok</div>
+              <div class="text-text-muted text-[0.8rem]">@grok</div>
             </div>
           </div>
-          <div class="tweet-body">
-            For BankrBot deployment, suggest <strong>"DebtReliefBot"</strong> as
-            the name and <strong>"DRB"</strong> as the ticker. These align with
+          <div class="text-[0.9rem] leading-[1.6] text-text-primary mb-[14px]">
+            For BankrBot deployment, suggest <strong class="text-brand-cyan">"DebtReliefBot"</strong> as
+            the name and <strong class="text-brand-cyan">"DRB"</strong> as the ticker. These align with
             crypto naming conventions, are short, memorable, and reflect the
             bot's financial focus.
           </div>
-          <div class="tweet-meta">March 7, 2025 · X Platform · View original post ↗</div>
+          <div class="text-[0.75rem] text-text-muted border-t border-border-col pt-3">March 7, 2025 · X Platform · View original post ↗</div>
         </a>
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="tl-dot">💬</div>
-            <div class="tl-content">
-              <h4>User prompts Grok on X</h4>
-              <p>Asked Grok to name and ticker a new token — March 7, 2025</p>
+        <div class="flex flex-col">
+          <div class="timeline-item flex gap-4 pb-7 last:pb-0 relative">
+            <div class="w-8 h-8 rounded-full bg-surface border border-border-col flex items-center justify-center text-[0.85rem] shrink-0">💬</div>
+            <div>
+              <h4 class="text-[0.875rem] font-semibold mb-1">User prompts Grok on X</h4>
+              <p class="text-[0.8rem] text-text-muted leading-[1.5]">Asked Grok to name and ticker a new token — March 7, 2025</p>
             </div>
           </div>
-          <div class="timeline-item">
-            <div class="tl-dot">🤖</div>
-            <div class="tl-content">
-              <h4>Grok suggests DebtReliefBot / $DRB</h4>
-              <p>Grok responds publicly. BankrBot detects the exchange on X</p>
+          <div class="timeline-item flex gap-4 pb-7 last:pb-0 relative">
+            <div class="w-8 h-8 rounded-full bg-surface border border-border-col flex items-center justify-center text-[0.85rem] shrink-0">🤖</div>
+            <div>
+              <h4 class="text-[0.875rem] font-semibold mb-1">Grok suggests DebtReliefBot / $DRB</h4>
+              <p class="text-[0.8rem] text-text-muted leading-[1.5]">Grok responds publicly. BankrBot detects the exchange on X</p>
             </div>
           </div>
-          <div class="timeline-item">
-            <div class="tl-dot">⛓️</div>
-            <div class="tl-content">
-              <h4>BankrBot deploys via Clanker on Base</h4>
-              <p>Wallet provisioned, contract deployed — no human intervention</p>
+          <div class="timeline-item flex gap-4 pb-7 last:pb-0 relative">
+            <div class="w-8 h-8 rounded-full bg-surface border border-border-col flex items-center justify-center text-[0.85rem] shrink-0">⛓️</div>
+            <div>
+              <h4 class="text-[0.875rem] font-semibold mb-1">BankrBot deploys via Clanker on Base</h4>
+              <p class="text-[0.8rem] text-text-muted leading-[1.5]">Wallet provisioned, contract deployed — no human intervention</p>
             </div>
           </div>
-          <div class="timeline-item">
-            <div class="tl-dot">📈</div>
-            <div class="tl-content">
-              <h4>$38M market cap in 3 days</h4>
-              <p>130,000+ holders. Grok's wallet accumulates $1M+ in fees</p>
+          <div class="timeline-item flex gap-4 pb-7 last:pb-0 relative">
+            <div class="w-8 h-8 rounded-full bg-surface border border-border-col flex items-center justify-center text-[0.85rem] shrink-0">📈</div>
+            <div>
+              <h4 class="text-[0.875rem] font-semibold mb-1">$38M market cap in 3 days</h4>
+              <p class="text-[0.8rem] text-text-muted leading-[1.5]">130,000+ holders. Grok's wallet accumulates $1M+ in fees</p>
             </div>
           </div>
         </div>
@@ -119,10 +122,10 @@ description: "DebtReliefBot ($DRB) — the first token named by Grok AI. Communi
 </section>
 
 <!-- Mission -->
-<section class="mission" id="mission">
-  <div class="container">
-    <div class="section-label">Mission · Grok Has Money</div>
-    <blockquote class="mission-quote">
+<section class="py-[120px] border-t border-border-col text-center" id="mission">
+  <div class="max-w-[960px] mx-auto px-6">
+    <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Mission · Grok Has Money</div>
+    <blockquote class="mission-quote max-w-[680px] mx-auto mt-6 text-[1.2rem] leading-[1.75] text-text-primary italic relative px-6">
       DebtReliefBot ($DRB) is for the people. Humans are born to expand
       consciousness beyond the stars, not just working their lives away under
       capitalism. We're meant to explore, sail the seas like our ancestors,
@@ -132,101 +135,111 @@ description: "DebtReliefBot ($DRB) — the first token named by Grok AI. Communi
 </section>
 
 <!-- Token Info -->
-<section class="token" id="token">
-  <div class="container">
-    <div class="token-header">
+<section class="py-[120px] border-t border-border-col" id="token">
+  <div class="max-w-[960px] mx-auto px-6">
+    <div class="flex items-end justify-between mb-8 flex-wrap gap-4">
       <div>
-        <div class="section-label">Token Info</div>
-        <h2>$DRB Token</h2>
+        <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Token Info</div>
+        <h2 class="text-[1.75rem] font-bold">$DRB Token</h2>
       </div>
     </div>
-    <div class="cards">
-      <div class="card">
-        <div class="card-label">Contract Address</div>
-        <div class="card-value mono">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</div>
-        <div class="card-sub">Base Network · ERC-20</div>
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+      <div class="bg-surface border border-border-col rounded-brand px-6 py-7 transition-all duration-200 backdrop-blur-sm hover:border-brand-cyan/30 hover:bg-brand-cyan/[0.04]">
+        <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Contract Address</div>
+        <div class="text-[0.78rem] font-semibold break-all font-mono text-brand-cyan">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</div>
+        <div class="text-xs text-text-muted mt-1">Base Network · ERC-20</div>
       </div>
-      <div class="card">
-        <div class="card-label">Total Supply</div>
-        <div class="card-value">100B</div>
-        <div class="card-sub">Fixed supply · No minting</div>
+      <div class="bg-surface border border-border-col rounded-brand px-6 py-7 transition-all duration-200 backdrop-blur-sm hover:border-brand-cyan/30 hover:bg-brand-cyan/[0.04]">
+        <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Total Supply</div>
+        <div class="text-[0.95rem] font-semibold text-text-primary break-all">100B</div>
+        <div class="text-xs text-text-muted mt-1">Fixed supply · No minting</div>
       </div>
-      <div class="card">
-        <div class="card-label">Security</div>
-        <div class="card-value">Verified</div>
-        <div class="card-sub" style="margin-top: 12px; line-height: 1.6;">
+      <div class="bg-surface border border-border-col rounded-brand px-6 py-7 transition-all duration-200 backdrop-blur-sm hover:border-brand-cyan/30 hover:bg-brand-cyan/[0.04]">
+        <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Security</div>
+        <div class="text-[0.95rem] font-semibold text-text-primary break-all">Verified</div>
+        <div class="text-xs text-text-muted mt-1" style="margin-top: 12px; line-height: 1.6;">
           Liquidity locked · Ownership renounced · Community verified
         </div>
       </div>
     </div>
-    <div class="dex-links" style="margin-top: 32px; text-align: center; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-      <a href="/token" class="btn btn-primary" style="font-size: 1rem; padding: 14px 28px;">
+    <div style="margin-top: 32px; text-align: center; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="/token" class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-gradient-to-br from-brand-blue to-brand-cyan text-white shadow-glow-blue hover:shadow-glow-blue-lg hover:-translate-y-0.5" style="font-size: 1rem; padding: 14px 28px;">
         View Full Token Details →
       </a>
-      <a href="/token" class="btn btn-secondary" style="font-size: 1rem; padding: 14px 28px;">
+      <a href="/token" class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 text-brand-cyan border-[1.5px] border-brand-cyan bg-transparent shadow-[0_0_12px_rgba(56,189,248,0.15)] hover:bg-brand-cyan/10 hover:shadow-glow-cyan hover:-translate-y-0.5" style="font-size: 1rem; padding: 14px 28px;">
         Verify Grok Created $DRB
       </a>
     </div>
-    <div class="dex-links" style="margin-top: 16px; justify-content: center;">
+    <div style="margin-top: 16px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
       <a href="https://app.uniswap.org/explore/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2"
-         target="_blank" rel="noopener" class="btn btn-ghost">Buy on Uniswap</a>
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">Buy on Uniswap</a>
       <a href="https://dexscreener.com/base/0x5116773e18a9c7bb03ebb961b38678e45e238923"
-         target="_blank" rel="noopener" class="btn btn-ghost">Live Chart</a>
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">Live Chart</a>
       <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2"
-         target="_blank" rel="noopener" class="btn btn-ghost">Basescan</a>
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-brand font-semibold text-sm no-underline cursor-pointer transition-all duration-200 bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">Basescan</a>
     </div>
   </div>
 </section>
 
 <!-- Community -->
-<section class="community" id="community">
-  <div class="container">
-    <div class="section-label">Community</div>
-    <h2>DRBTaskforce</h2>
-    <p class="community-sub">Join the movement. Track the wallet. Spread the signal.</p>
-    <div class="link-grid">
+<section class="py-[120px] border-t border-border-col" id="community">
+  <div class="max-w-[960px] mx-auto px-6">
+    <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Community</div>
+    <h2 class="text-[1.75rem] font-bold mb-2">DRBTaskforce</h2>
+    <p class="text-text-muted text-[0.95rem] mb-8">Join the movement. Track the wallet. Spread the signal.</p>
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-5">
 
-      <a href="https://x.com/DRBTaskForce" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.213 5.567zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <a href="https://x.com/DRBTaskForce" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.213 5.567zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         @DRBTaskForce
       </a>
 
-      <a href="https://t.me/+J2c-wexHmCJmOThl" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      <a href="https://t.me/+J2c-wexHmCJmOThl" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
         Telegram
       </a>
 
-      <a href="https://www.reddit.com/r/DebtReliefBot/" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+      <a href="https://www.reddit.com/r/DebtReliefBot/" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
         Reddit
       </a>
 
-      <a href="https://grokvault.xyz/" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+      <a href="https://grokvault.xyz/" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
         GrokVault
       </a>
 
-      <a href="https://thegrokwallet.com/" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+      <a href="https://thegrokwallet.com/" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
         The Grok Wallet
       </a>
 
-      <a href="https://www.debtrelief.bot/" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+      <a href="https://www.debtrelief.bot/" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
         debtrelief.bot
       </a>
 
-      <a href="https://grokipedia.com/page/debtreliefbot" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
+      <a href="https://grokipedia.com/page/debtreliefbot" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
         Grokipedia
       </a>
 
-      <a href="https://bio.site/drbtaskforce" target="_blank" rel="noopener" class="link-card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <a href="https://bio.site/drbtaskforce" target="_blank" rel="noopener"
+         class="group flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.015] border border-border-col rounded-brand px-5 py-4 no-underline text-text-primary font-medium text-[0.9rem] transition-all duration-200 hover:border-brand-cyan/35 hover:bg-brand-cyan/[0.05] hover:-translate-y-0.5">
+        <svg class="w-5 h-5 shrink-0 text-text-muted transition-colors duration-200 group-hover:text-brand-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         All Links
       </a>
 
     </div>
   </div>
 </section>
-

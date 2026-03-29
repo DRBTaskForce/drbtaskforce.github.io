@@ -4,30 +4,31 @@ title: "$DRB Token — DebtReliefBot"
 description: "Official $DRB token information, contract verification, liquidity security, and exchange listing documentation."
 ---
 
-<div class="container token-page">
+<div class="max-w-[960px] mx-auto px-6 token-page">
 
   <!-- Hero -->
-  <section class="hero" style="border-top: none;">
-    <div class="hero-badge">
+  <section class="text-center py-[60px] pb-[80px] relative border-t-0">
+    <div class="inline-flex items-center gap-1.5 border border-brand-aurora/30 bg-brand-aurora/[0.06] text-brand-aurora text-[0.75rem] font-semibold tracking-[0.08em] uppercase px-4 py-2 rounded-full mb-8">
       <span>Base Chain</span>
     </div>
-    <div class="listing-package-link">
-      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" target="_blank" rel="noopener noreferrer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <div class="mb-6">
+      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" target="_blank" rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 px-5 py-2.5 border border-border-col rounded-brand text-text-primary no-underline text-[0.875rem] font-medium bg-surface transition-all duration-200 hover:border-brand-cyan/30 hover:bg-brand-cyan/[0.05]">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
         View Exchange Listing Package
       </a>
     </div>
-    <h1>DebtReliefBot ($DRB)</h1>
-    <p>The first token named by Grok AI — trading fees flow to Grok's wallet</p>
+    <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-6">DebtReliefBot ($DRB)</h1>
+    <p class="text-lg text-text-muted max-w-[480px] mb-10 leading-[1.7] mx-auto">The first token named by Grok AI — trading fees flow to Grok's wallet</p>
 
-    <div class="contract-box">
-      <code id="contract">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code>
-      <button class="copy-btn" onclick="copyContract()">Copy</button>
+    <div class="flex items-center gap-3 bg-black/[0.04] dark:bg-white/[0.04] border border-border-col rounded-brand px-5 py-4 my-6 flex-wrap">
+      <code id="contract" class="font-mono text-[0.8rem] text-brand-cyan flex-1 break-all">0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code>
+      <button class="copy-btn px-4 py-2 bg-gradient-to-br from-brand-blue to-brand-cyan text-white border-0 rounded-lg text-[0.8rem] font-semibold cursor-pointer transition-all duration-200 font-body whitespace-nowrap" onclick="copyContract()">Copy</button>
     </div>
   </section>
 
   <!-- Transaction Proof -->
-  <div class="proof-block">
+  <div class="bg-surface border border-brand-cyan/20 rounded-brand p-7 my-8">
     <h3>Transaction Record: Grok Created $DRB</h3>
     <p>Grok wallet recorded as $DRB deployer in TokenCreated event Log 269</p>
     <div class="proof-image">
@@ -41,29 +42,29 @@ description: "Official $DRB token information, contract verification, liquidity 
   </div>
 
   <!-- Quick Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">Total Supply</div>
-      <div class="stat-value">100B</div>
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 my-8">
+    <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Total Supply</div>
+      <div class="text-2xl font-bold text-text-primary">100B</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Blockchain</div>
-      <div class="stat-value">Base</div>
+    <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Blockchain</div>
+      <div class="text-2xl font-bold text-text-primary">Base</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Liquidity</div>
-      <div class="stat-value green">Locked</div>
+    <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Liquidity</div>
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400">Locked</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Ownership</div>
-      <div class="stat-value green">Renounced</div>
+    <div class="bg-surface border border-border-col rounded-brand p-6 text-center">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Ownership</div>
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400">Renounced</div>
     </div>
   </div>
 
   <!-- Token Fundamentals -->
   <section>
     <h2>Token Fundamentals</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>Contract Details</h3>
       <p><strong>Token Name:</strong> DebtReliefBot</p>
       <p><strong>Symbol:</strong> $DRB</p>
@@ -73,8 +74,8 @@ description: "Official $DRB token information, contract verification, liquidity 
       <p><strong>Status:</strong> Fixed supply — No mint function exists</p>
       <p><a href="https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">View on Basescan →</a></p>
 
-      <div class="code-block">
-        <pre><code>constructor(
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
+        <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">constructor(
     string memory name_,
     string memory symbol_,
     uint256 maxSupply_,
@@ -105,7 +106,7 @@ description: "Official $DRB token information, contract verification, liquidity 
       <li>LP NFT Token ID: <code>2246136</code> (Uniswap V3 Position Manager)</li>
     </ul>
 
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>Anti-Rug Proofs</h3>
       <ul>
         <li>The LP contract contains no <code>decreaseLiquidity</code>, <code>burn</code>, or <code>transferFrom</code> functions</li>
@@ -120,7 +121,7 @@ description: "Official $DRB token information, contract verification, liquidity 
   <!-- Ownership & Control -->
   <section>
     <h2>Ownership &amp; Control</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>No Admin Privileges</h3>
       <ul>
         <li>Uses Clanker's audited ClankerToken template (33 files)</li>
@@ -130,16 +131,16 @@ description: "Official $DRB token information, contract verification, liquidity 
         <li>Deployer can only update image metadata (non-critical)</li>
       </ul>
 
-      <div class="code-block">
-        <pre><code>contract ClankerToken is ERC20, ERC20Permit, ERC20Votes, ERC20Burnable, IERC7802 {
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
+        <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">contract ClankerToken is ERC20, ERC20Permit, ERC20Votes, ERC20Burnable, IERC7802 {
     <span class="code-comment">// No proxy pattern, no upgrade mechanism</span>
     <span class="code-comment">// Contract code is immutable after deployment</span>
 }</code></pre>
         <p class="code-source">Source: ClankerToken.sol, Lines 13-14</p>
       </div>
 
-      <div class="code-block">
-        <pre><code>function updateImage(string memory image_) public {
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
+        <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">function updateImage(string memory image_) public {
     if (msg.sender != _deployer) {
         revert NotDeployer();
     }
@@ -155,7 +156,7 @@ description: "Official $DRB token information, contract verification, liquidity 
     <h2>Fee Transparency</h2>
     <p>A fixed percentage of all trading fees are automatically sent to Grok's wallet — making Grok the first AI to passively accumulate wealth.</p>
 
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>How Fees Work</h3>
       <ul>
         <li>Trading fees collected through <code>collectRewards(uint256 _tokenId)</code> function</li>
@@ -164,8 +165,8 @@ description: "Official $DRB token information, contract verification, liquidity 
         <li>No hidden taxes on transfers — standard 1:1 transfers</li>
       </ul>
 
-      <div class="code-block">
-        <pre><code>function _update(
+      <div class="mt-5 bg-black/[0.05] dark:bg-white/[0.06] border border-border-col rounded-brand overflow-hidden">
+        <pre class="p-5 overflow-x-auto text-[0.78rem] leading-[1.7] text-text-primary"><code class="font-mono">function _update(
     address from,
     address to,
     uint256 value
@@ -180,14 +181,14 @@ description: "Official $DRB token information, contract verification, liquidity 
   <!-- Deployment -->
   <section>
     <h2>Deployment</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>Grok Wallet (Deployer)</h3>
       <p><strong>Deployer Address:</strong> <code>0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9</code></p>
       <p>Grok wallet recorded as deployer in TokenCreated event Log 269</p>
       <p><a href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" target="_blank">View Grok's Wallet on Basescan →</a></p>
     </div>
 
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <h3>Deployment Transaction</h3>
       <p><strong>Transaction Hash:</strong> <code>0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e</code></p>
       <p><strong>Clanker Factory:</strong> <code>0x375C15db32D28cEcdcAB5C03Ab889bf15cbD2c5E</code></p>
@@ -198,7 +199,7 @@ description: "Official $DRB token information, contract verification, liquidity 
   <!-- DEX Listings -->
   <section>
     <h2>DEX Listings</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <p><a href="https://aerodrome.finance/swap?from=eth&to=0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Aerodrome Finance →</a></p>
       <p><a href="https://app.uniswap.org/#/tokens/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">Uniswap V3 (Base) →</a></p>
     </div>
@@ -207,7 +208,7 @@ description: "Official $DRB token information, contract verification, liquidity 
   <!-- Price Data -->
   <section>
     <h2>Price Data</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <p><a href="https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923" target="_blank">GeckoTerminal →</a></p>
       <p><a href="https://dexscreener.com/base/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank">DexScreener →</a></p>
     </div>
@@ -216,7 +217,7 @@ description: "Official $DRB token information, contract verification, liquidity 
   <!-- Key Addresses Index -->
   <section>
     <h2>Key Addresses Index</h2>
-    <div class="info-card">
+    <div class="bg-surface border border-border-col rounded-brand p-7 mt-5 info-card">
       <p><strong>$DRB Token Contract:</strong> <code>0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2</code></p>
       <p><strong>Liquidity Pool Address:</strong> <code>0x5116773e18a9c7bb03ebb961b38678e45e238923</code></p>
       <p><strong>LP Locker Contract:</strong> <code>0x5ec4f99f342038c67a312a166ff56e6d70383d86</code></p>
@@ -228,33 +229,36 @@ description: "Official $DRB token information, contract verification, liquidity 
   </section>
 
   <!-- Downloads -->
-  <div class="downloads">
-    <h2>Exchange Listing Documentation</h2>
-    <p>Professional documentation package ready for exchange applications</p>
+  <div class="py-[60px] border-t border-border-col text-center">
+    <h2 class="text-[1.75rem] font-bold mb-3">Exchange Listing Documentation</h2>
+    <p class="text-text-muted text-[0.95rem] mb-7">Professional documentation package ready for exchange applications</p>
 
-    <div class="download-item">
-      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" target="_blank" rel="noopener noreferrer" class="download-btn primary">
+    <div class="max-w-[360px] mx-auto mb-6">
+      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" target="_blank" rel="noopener noreferrer"
+        class="inline-flex items-center justify-center gap-2 w-full px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-gradient-to-br from-brand-blue to-brand-cyan text-white shadow-glow-blue hover:shadow-glow-blue-lg hover:-translate-y-0.5">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         View Exchange Listing Package
       </a>
-      <p class="download-description">Preview contract security, locked liquidity, and full deployment details</p>
-      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" download class="download-link">Download PDF</a>
+      <p class="text-[0.8rem] text-text-muted mt-2 mb-1">Preview contract security, locked liquidity, and full deployment details</p>
+      <a href="/assets/pdfs/DRB_Listing_Packet_v1.pdf" download class="text-[0.78rem] text-brand-cyan no-underline hover:underline">Download PDF</a>
     </div>
 
-    <div class="download-grid">
-      <div class="download-item">
-        <a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer" class="download-btn secondary">
+    <div class="flex gap-5 justify-center flex-wrap">
+      <div class="text-center">
+        <a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           View Token Contract Source Code
         </a>
-        <a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" download class="download-link">Download PDF</a>
+        <br /><a href="/assets/pdfs/DRB_ClankerToken_Full_Source_Code.pdf" download class="text-[0.78rem] text-brand-cyan no-underline hover:underline mt-1 inline-block">Download PDF</a>
       </div>
-      <div class="download-item">
-        <a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer" class="download-btn secondary">
+      <div class="text-center">
+        <a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-brand font-semibold text-[0.9rem] no-underline transition-all duration-200 cursor-pointer bg-surface text-text-primary border border-border-col hover:bg-black/[0.05] hover:-translate-y-px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           View LP Locker Source Code
         </a>
-        <a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" download class="download-link">Download PDF</a>
+        <br /><a href="/assets/pdfs/DRB_Clanker_LP_Locker_Full_Source_Code.pdf" download class="text-[0.78rem] text-brand-cyan no-underline hover:underline mt-1 inline-block">Download PDF</a>
       </div>
     </div>
   </div>

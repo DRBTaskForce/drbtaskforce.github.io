@@ -9,8 +9,8 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/robots.txt");
   eleventyConfig.addPassthroughCopy("src/favicon.ico");
   
-  // Watch CSS for changes
-  eleventyConfig.addWatchTarget("src/assets/css/");
+  // Watch Tailwind source only — main.css is generated output, watching it causes an infinite loop
+  eleventyConfig.addWatchTarget("src/assets/css/tailwind.css");
   
   // Set directories
   return {
