@@ -3,7 +3,7 @@
 # Quick test script for DRB Chat Worker
 # Usage: ./test-query.sh "Your question here" [worker-url]
 
-WORKER_URL="${2:-https://drb-chat-worker.remibyte.workers.dev}"
+WORKER_URL="${2:-https://drb-chat-worker.drbtaskforce.workers.dev}"
 QUESTION="$1"
 
 if [ -z "$QUESTION" ]; then

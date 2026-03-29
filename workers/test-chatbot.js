@@ -9,7 +9,7 @@
  *   node test-chatbot.js https://drb-chat-worker.your-subdomain.workers.dev
  */
 
-const WORKER_URL = process.argv[2] || 'https://drb-chat-worker.remibyte.workers.dev';
+const WORKER_URL = process.argv[2] || 'https://drb-chat-worker.drbtaskforce.workers.dev';
 
 // Test cases organized by category
 const TEST_CASES = [

@@ -7,7 +7,7 @@
 ║     DRB Chatbot Test Suite                        ║
 ╚════════════════════════════════════════════════════╝
 
-Testing worker: https://drb-chat-worker.remibyte.workers.dev
+Testing worker: https://drb-chat-worker.drbtaskforce.workers.dev
 
 
 ═══ 📋 General $DRB Questions ═══
@@ -185,7 +185,7 @@ $ ./test-query.sh "What is the contract address?"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🤖 DRB Chatbot Query
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Worker: https://drb-chat-worker.remibyte.workers.dev
+Worker: https://drb-chat-worker.drbtaskforce.workers.dev
 Question: What is the contract address?
 
 The $DRB token contract address is 0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2 on the Base blockchain. You can verify it on Basescan at https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2

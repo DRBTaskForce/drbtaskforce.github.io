@@ -19,10 +19,10 @@ node test-chatbot.js <worker-url>
 
 Example:
 ```bash
-node test-chatbot.js https://drb-chat-worker.remibyte.workers.dev
+node test-chatbot.js https://drb-chat-worker.drbtaskforce.workers.dev
 ```
 
-If no URL is provided, it defaults to `https://drb-chat-worker.remibyte.workers.dev`.
+If no URL is provided, it defaults to `https://drb-chat-worker.drbtaskforce.workers.dev`.
 
 ### Test Categories
 
