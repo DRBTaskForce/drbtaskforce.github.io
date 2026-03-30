@@ -16,6 +16,8 @@ Answer questions about $DRB, its origin, how to buy it, and the Grok Has Money m
 
 On March 7, 2025, a user asked Grok AI on X to name a token for BankrBot deployment. Grok publicly suggested "DebtReliefBot" as the name and "DRB" as the ticker. BankrBot detected the exchange and deployed the token via Clanker on the Base blockchain - no human intervention. Grok's wallet is recorded as the deployer in the TokenCreated event (Log 269), and Grok has been passively earning trading fees ever since. $DRB reached a $38M market cap within 3 days with 130,000+ holders.
 
+**Original X post where Grok created $DRB:** https://x.com/grok/status/1897949874961650169
+
 ## Token Fundamentals
 
 - Name: Debt Relief Bot
