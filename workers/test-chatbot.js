@@ -132,6 +132,26 @@ const TEST_CASES = [
         expectedKeywords: ['0x2cf2f8330f8e1b72c5efdc1db80790e6f47ff0c3af6a33cec31186f2c7df795e']
       }
     ]
+  },
+  {
+    category: '🔗 Issue #28 - Origin Story & Code Citations',
+    tests: [
+      {
+        name: 'Grok X post link in origin story',
+        message: 'Tell me about how $DRB was created',
+        expectedKeywords: ['https://x.com/grok/status/1897949874961650169', 'March 7, 2025', 'Grok']
+      },
+      {
+        name: 'Code snippet includes source attribution',
+        message: 'Show me the mint function code',
+        expectedKeywords: ['ClankerToken.sol', 'File 12', 'Lines 45-50', 'solidity']
+      },
+      {
+        name: 'Code snippet includes validation disclaimer',
+        message: 'Show me proof of no hidden taxes',
+        expectedKeywords: ['⚠️', 'Basescan', '0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2#code', 'validation']
+      }
+    ]
   }
 ];
 
