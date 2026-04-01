@@ -637,6 +637,9 @@ video {
 .h-10 {
   height: 2.5rem;
 }
+.h-12 {
+  height: 3rem;
+}
 .h-14 {
   height: 3.5rem;
 }
@@ -717,6 +720,9 @@ video {
 }
 .w-\[5px\] {
   width: 5px;
+}
+.w-auto {
+  width: auto;
 }
 .w-full {
   width: 100%;
@@ -1097,7 +1103,7 @@ video {
   text-align: center;
 }
 .font-body {
-  font-family: Space Grotesk, sans-serif;
+  font-family: Inter, sans-serif;
 }
 .font-mono {
   font-family: JetBrains Mono, Courier New, monospace;
@@ -1303,6 +1309,11 @@ video {
 }
 .transition-colors {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-opacity {
+  transition-property: opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -1741,6 +1752,9 @@ video {
 .hover\:underline:hover {
   text-decoration-line: underline;
 }
+.hover\:opacity-100:hover {
+  opacity: 1;
+}
 .hover\:shadow-\[0_0_12px_rgba\(56\2c 189\2c 248\2c 0\.2\)\]:hover {
   --tw-shadow: 0 0 12px rgba(56,189,248,0.2);
   --tw-shadow-colored: 0 0 12px var(--tw-shadow-color);
@@ -1803,5 +1817,11 @@ video {
 
   .max-\[640px\]\:grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+@media (min-width: 640px) {
+
+  .sm\:inline {
+    display: inline;
   }
 }

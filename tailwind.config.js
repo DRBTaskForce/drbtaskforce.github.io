@@ -28,7 +28,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['Syne', 'sans-serif'],
-        body:    ['Space Grotesk', 'sans-serif'],
+        body:    ['Inter', 'sans-serif'],
         mono:    ['JetBrains Mono', 'Courier New', 'monospace'],
       },
       borderRadius: {
