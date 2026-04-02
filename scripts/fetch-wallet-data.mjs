@@ -69,7 +69,7 @@ async function fetchAllTransfers(contractAddress) {
 
 /**
  * GeckoTerminal daily OHLCV for the DRB/WETH pool.
- * Returns {date → priceInWeth} map (close price).
+ * Returns {date → priceUsd} map (close price — GeckoTerminal returns USD).
  */
 async function fetchDrbPriceHistory() {
   const url = `https://api.geckoterminal.com/api/v2/networks/base/pools/${DRB_POOL}/ohlcv/day?limit=1000`;
@@ -81,7 +81,7 @@ async function fetchDrbPriceHistory() {
   const result = {};
   for (const [ts, , , , close] of candles) {
     const date = new Date(ts * 1000).toISOString().slice(0, 10);
-    result[date] = close; // DRB price in WETH
+    result[date] = close; // DRB price in USD (GeckoTerminal OHLCV returns USD)
   }
   return result;
 }
@@ -170,9 +170,9 @@ function buildCumulativeBalanceMap(transfers, incomingOnly = false) {
  * For each day where we have both DRB and ETH prices, compute the wallet's
  * total USD value and return an array sorted by date.
  */
-function buildValueHistory(drbCumByDate, wethCumByDate, drbPriceWeth, ethPriceUsd) {
+function buildValueHistory(drbCumByDate, wethCumByDate, drbPriceUsd, ethPriceUsd) {
   // Backbone: dates from DRB price history, sorted ascending
-  const priceDates = Object.keys(drbPriceWeth).sort();
+  const priceDates = Object.keys(drbPriceUsd).sort();
 
   let lastDrb = 0;
   let lastWeth = 0;
@@ -186,8 +186,7 @@ function buildValueHistory(drbCumByDate, wethCumByDate, drbPriceWeth, ethPriceUs
     if (drbCumByDate[date]  !== undefined) lastDrb  = drbCumByDate[date];
     if (wethCumByDate[date] !== undefined) lastWeth = wethCumByDate[date];
 
-    const drbWeth  = drbPriceWeth[date];
-    const drbUsd   = drbWeth * ethUsd;
+    const drbUsd   = drbPriceUsd[date]; // already USD — do not multiply by ethUsd
     const usdValue = lastDrb * drbUsd + lastWeth * ethUsd;
 
     history.push({
@@ -235,7 +234,7 @@ async function main() {
   console.log("Fetching wallet data for:", WALLET_ADDRESS);
 
   // 1. Transfer history + price history (in parallel)
-  const [drbTransfers, wethTransfers, drbPriceWeth, ethPriceUsd] = await Promise.all([
+  const [drbTransfers, wethTransfers, drbPriceUsd, ethPriceUsd] = await Promise.all([
     fetchAllTransfers(DRB_CONTRACT),
     fetchAllTransfers(WETH_CONTRACT),
     fetchDrbPriceHistory().catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
@@ -243,14 +242,14 @@ async function main() {
   ]);
 
   console.log(`DRB transfers: ${drbTransfers.length} | WETH transfers: ${wethTransfers.length}`);
-  console.log(`DRB price days: ${Object.keys(drbPriceWeth).length} | ETH price days: ${Object.keys(ethPriceUsd).length}`);
+  console.log(`DRB price days: ${Object.keys(drbPriceUsd).length} | ETH price days: ${Object.keys(ethPriceUsd).length}`);
 
   // 2. Cumulative balance maps
   const drb  = buildCumulativeBalanceMap(drbTransfers,  false); // net (in - out)
   const weth = buildCumulativeBalanceMap(wethTransfers, true);  // incoming only
 
   // 3. Wallet USD value history
-  const walletValueAllTime   = buildValueHistory(drb.cumByDate, weth.cumByDate, drbPriceWeth, ethPriceUsd);
+  const walletValueAllTime   = buildValueHistory(drb.cumByDate, weth.cumByDate, drbPriceUsd, ethPriceUsd);
   const walletValueLast30Days = last30DaysFrom(walletValueAllTime);
 
   console.log(`Value history: ${walletValueAllTime.length} days | 30d: ${walletValueLast30Days.length} days`);

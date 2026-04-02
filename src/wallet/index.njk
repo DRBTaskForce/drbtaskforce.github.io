@@ -57,18 +57,11 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       <div class="text-[0.75rem] text-text-muted mt-1">via DexScreener</div>
     </div>
 
-    <!-- Total DRB received -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Total DRB Received</div>
-      <div class="text-2xl font-bold text-text-primary">{{ wallet.cumulativeDrbReceived | formatDrb }}</div>
-      <div class="text-[0.75rem] text-text-muted mt-1">{{ wallet.totalDrbTransactions }} fee claims</div>
-    </div>
-
     <!-- Last updated -->
     <div class="bg-surface border border-border-col rounded-brand p-6">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Data Updated</div>
       <div class="text-base font-semibold text-text-primary">{{ wallet.lastUpdated | formatDate }}</div>
-      <div class="text-[0.75rem] text-text-muted mt-1">daily via GitHub Actions</div>
+      <div class="text-[0.75rem] text-text-muted mt-1">updated daily</div>
     </div>
 
   </div>
@@ -76,15 +69,15 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   <!-- Chart -->
   <div class="bg-surface border border-border-col rounded-brand p-6 mb-8">
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Cumulative Fees</h2>
+      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Wallet Value Over Time</h2>
       <div class="flex gap-2">
         <button id="btn-30d" onclick="showChart('30d')"
           class="chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150">
           30 Days
         </button>
-        <button id="btn-alltime" onclick="showChart('alltime')"
+        <button id="btn-90d" onclick="showChart('90d')"
           class="chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40">
-          All Time
+          90 Days
         </button>
       </div>
     </div>
@@ -95,7 +88,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
   <!-- Footer note -->
   <p class="text-center text-[0.75rem] text-text-muted">
-    Chart data updated daily. Live balance refreshes on page load.
+    Chart data updated daily.
     <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener" class="text-brand-cyan hover:underline ml-1">View on Basescan →</a>
   </p>
 
@@ -215,10 +208,27 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   const BTN_OFF = 'chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40';
   const BTN_ON  = 'chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150';
 
+  function last90Days() {
+    if (valueAllTime.length === 0) return [];
+    const byDate = Object.fromEntries(valueAllTime.map(d => [d.date, d]));
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const result = [];
+    let last = null;
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      if (byDate[dateStr]) last = byDate[dateStr];
+      if (last) result.push({ ...last, date: dateStr });
+    }
+    return result;
+  }
+
   function showChart(mode) {
-    document.getElementById('btn-30d').className     = mode === '30d'     ? BTN_ON : BTN_OFF;
-    document.getElementById('btn-alltime').className = mode === 'alltime' ? BTN_ON : BTN_OFF;
-    renderChart(mode === '30d' ? valueLast30Days : valueAllTime);
+    document.getElementById('btn-30d').className = mode === '30d' ? BTN_ON : BTN_OFF;
+    document.getElementById('btn-90d').className = mode === '90d' ? BTN_ON : BTN_OFF;
+    renderChart(mode === '30d' ? valueLast30Days : last90Days());
   }
 
   // --- Live stat cards (balance + current price) ---
