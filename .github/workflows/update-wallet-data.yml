@@ -21,7 +21,7 @@ jobs:
           node-version: '20'
 
       - name: Fetch wallet data
-        run: node scripts/fetch-wallet-data.mjs
+        run: node scripts/fetch-wallet-data.mjs --incremental
 
       - name: Commit and push if changed
         run: |

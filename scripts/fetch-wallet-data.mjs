@@ -6,12 +6,14 @@
  * Data sources:
  *   - Blockscout Base API  — wallet transfer history
  *   - GeckoTerminal API    — DRB/WETH daily price history
- *   - CoinGecko free API   — ETH/USD daily price history
+ *   - Kraken public API    — ETH/USD daily price history
  *
- * Usage: node scripts/fetch-wallet-data.mjs
+ * Usage:
+ *   node scripts/fetch-wallet-data.mjs             # full historical rebuild
+ *   node scripts/fetch-wallet-data.mjs --incremental  # fast daily update (new transfers + last 8 days of prices)
  */
 
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -29,9 +31,9 @@ const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
 // Blockscout — transfer history
 // ---------------------------------------------------------------------------
 
-async function fetchAllTransfers(contractAddress) {
+async function fetchAllTransfers(contractAddress, fromBlock = 0) {
   const transfers = [];
-  let startBlock = 0;
+  let startBlock = fromBlock;
   const pageSize = 10000;
 
   while (true) {
@@ -51,7 +53,7 @@ async function fetchAllTransfers(contractAddress) {
     const data = await res.json();
 
     if (data.status === "0") {
-      if (data.message === "No transactions found") break;
+      if (data.message === "No transactions found" || data.message === "No token transfers found") break;
       throw new Error(`Blockscout API error: ${data.message} — ${data.result}`);
     }
 
@@ -71,8 +73,8 @@ async function fetchAllTransfers(contractAddress) {
  * GeckoTerminal daily OHLCV for the DRB/WETH pool.
  * Returns {date → priceUsd} map (close price — GeckoTerminal returns USD).
  */
-async function fetchDrbPriceHistory() {
-  const url = `https://api.geckoterminal.com/api/v2/networks/base/pools/${DRB_POOL}/ohlcv/day?limit=1000`;
+async function fetchDrbPriceHistory(limit = 1000) {
+  const url = `https://api.geckoterminal.com/api/v2/networks/base/pools/${DRB_POOL}/ohlcv/day?limit=${limit}`;
   const res = await fetch(url, { headers: { Accept: "application/json;version=20230302" } });
   if (!res.ok) throw new Error(`GeckoTerminal HTTP error: ${res.status}`);
   const data = await res.json();
@@ -92,8 +94,8 @@ async function fetchDrbPriceHistory() {
  * Kraken returns up to 720 candles; we fetch from 400 days ago to cover the
  * full DRB price history available from GeckoTerminal.
  */
-async function fetchEthPriceHistory() {
-  const since = Math.floor(Date.now() / 1000) - 400 * 86400;
+async function fetchEthPriceHistory(days = 400) {
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
   const url = `https://api.kraken.com/0/public/OHLC?pair=ETHUSD&interval=1440&since=${since}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Kraken HTTP error: ${res.status}`);
@@ -227,7 +229,7 @@ function last30DaysFrom(fullHistory) {
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Main — full rebuild
 // ---------------------------------------------------------------------------
 
 async function main() {
@@ -254,6 +256,10 @@ async function main() {
 
   console.log(`Value history: ${walletValueAllTime.length} days | 30d: ${walletValueLast30Days.length} days`);
 
+  // Store last seen block numbers so incremental runs can resume from there
+  const lastBlockDrb  = drbTransfers.length  ? parseInt(drbTransfers[drbTransfers.length - 1].blockNumber, 10)   : 0;
+  const lastBlockWeth = wethTransfers.length ? parseInt(wethTransfers[wethTransfers.length - 1].blockNumber, 10) : 0;
+
   const output = {
     lastUpdated: new Date().toISOString(),
     walletAddress: WALLET_ADDRESS,
@@ -261,6 +267,8 @@ async function main() {
     wethContract: WETH_CONTRACT,
     tokenSymbol: "DRB",
     tokenDecimals: TOKEN_DECIMALS,
+    lastBlockDrb,
+    lastBlockWeth,
     cumulativeDrbReceived: formatUnits(drb.totalIn),
     totalDrbTransactions: drb.countIn,
     cumulativeWethEarned: formatUnits(weth.totalIn),
@@ -273,7 +281,118 @@ async function main() {
   console.log("Written to", OUTPUT_PATH);
 }
 
-main().catch((err) => {
+// ---------------------------------------------------------------------------
+// Main — incremental update (--incremental flag)
+// Fetches only new transfers since the last known block, refreshes the last
+// 8 days of price data, then merges the deltas into the existing JSON.
+// ---------------------------------------------------------------------------
+
+async function mainIncremental() {
+  if (!existsSync(OUTPUT_PATH)) {
+    console.log("No existing wallet.json — falling back to full rebuild.");
+    return main();
+  }
+
+  const existing = JSON.parse(readFileSync(OUTPUT_PATH, "utf8"));
+  const fromBlockDrb  = (existing.lastBlockDrb  ?? 0) + 1;
+  const fromBlockWeth = (existing.lastBlockWeth ?? 0) + 1;
+
+  console.log(`Incremental update from blocks DRB=${fromBlockDrb} WETH=${fromBlockWeth}`);
+
+  // Fetch only new transfers + last 8 days of prices
+  const [newDrbTx, newWethTx, newDrbPrices, newEthPrices] = await Promise.all([
+    fetchAllTransfers(DRB_CONTRACT,  fromBlockDrb),
+    fetchAllTransfers(WETH_CONTRACT, fromBlockWeth),
+    fetchDrbPriceHistory(8).catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
+    fetchEthPriceHistory(8).catch(e => { console.warn("ETH price history failed:", e.message); return {}; }),
+  ]);
+
+  console.log(`New transfers — DRB: ${newDrbTx.length} | WETH: ${newWethTx.length}`);
+
+  // Rebuild cumulative maps: start from existing totals + apply new transfers
+  const walletLower = WALLET_ADDRESS.toLowerCase();
+  const divisor = BigInt(10) ** BigInt(TOKEN_DECIMALS);
+
+  function applyNewTransfers(existing, newTxs, incomingOnly) {
+    let totalIn  = BigInt(0);
+    let countIn  = incomingOnly ? (existing.totalWethTransactions ?? 0) : (existing.totalDrbTransactions ?? 0);
+    const balanceKey = incomingOnly ? "weth" : "drb";
+    // Seed cumByDate from existing history using the correct balance field
+    const cumByDate = Object.fromEntries(
+      (existing.walletValueAllTime ?? []).map(d => [d.date, d[balanceKey]])
+    );
+    // Last known balance as our running baseline
+    const allTime = existing.walletValueAllTime ?? [];
+    let runningFloat = allTime.length ? allTime[allTime.length - 1][balanceKey] : 0;
+
+    const dailyNet = {};
+    for (const tx of newTxs) {
+      const date  = toDateString(tx.timeStamp);
+      const value = BigInt(tx.value);
+      if (tx.to.toLowerCase() === walletLower) {
+        totalIn += value;
+        countIn++;
+        dailyNet[date] = (dailyNet[date] ?? 0) + Number(value / divisor) + Number(value % divisor) / Number(divisor);
+      } else if (!incomingOnly && tx.from.toLowerCase() === walletLower) {
+        dailyNet[date] = (dailyNet[date] ?? 0) - Number(value / divisor) - Number(value % divisor) / Number(divisor);
+      }
+    }
+
+    // Apply daily deltas to running balance, updating/adding entries in cumByDate
+    for (const date of Object.keys(dailyNet).sort()) {
+      runningFloat = Math.max(0, runningFloat + dailyNet[date]);
+      cumByDate[date] = runningFloat;
+    }
+
+    return { cumByDate, totalIn, countIn };
+  }
+
+  const drbResult  = applyNewTransfers(existing, newDrbTx,  false);
+  const wethResult = applyNewTransfers(existing, newWethTx, true);
+
+  // Merge new prices into existing price maps (built from existing walletValueAllTime)
+  const existingDrbPrices  = Object.fromEntries((existing.walletValueAllTime ?? []).map(d => [d.date, d.drbPrice]));
+  const existingEthPrices  = Object.fromEntries((existing.walletValueAllTime ?? []).map(d => [d.date, d.ethPrice]));
+  const mergedDrbPrices    = { ...existingDrbPrices, ...newDrbPrices };
+  const mergedEthPrices    = { ...existingEthPrices, ...newEthPrices };
+
+  const walletValueAllTime   = buildValueHistory(drbResult.cumByDate, wethResult.cumByDate, mergedDrbPrices, mergedEthPrices);
+  const walletValueLast30Days = last30DaysFrom(walletValueAllTime);
+
+  const lastBlockDrb  = newDrbTx.length  ? parseInt(newDrbTx[newDrbTx.length - 1].blockNumber, 10)    : (existing.lastBlockDrb  ?? 0);
+  const lastBlockWeth = newWethTx.length ? parseInt(newWethTx[newWethTx.length - 1].blockNumber, 10)  : (existing.lastBlockWeth ?? 0);
+
+  // Recalculate cumulative totals: existing + new
+  const existingDrbIn  = BigInt(Math.round(parseFloat(existing.cumulativeDrbReceived)  * 1e18));
+  const existingWethIn = BigInt(Math.round(parseFloat(existing.cumulativeWethEarned)   * 1e18));
+
+  const output = {
+    lastUpdated: new Date().toISOString(),
+    walletAddress: WALLET_ADDRESS,
+    tokenContract: DRB_CONTRACT,
+    wethContract: WETH_CONTRACT,
+    tokenSymbol: "DRB",
+    tokenDecimals: TOKEN_DECIMALS,
+    lastBlockDrb,
+    lastBlockWeth,
+    cumulativeDrbReceived:  formatUnits(existingDrbIn  + drbResult.totalIn),
+    totalDrbTransactions:   drbResult.countIn,
+    cumulativeWethEarned:   formatUnits(existingWethIn + wethResult.totalIn),
+    totalWethTransactions:  wethResult.countIn,
+    walletValueAllTime,
+    walletValueLast30Days,
+  };
+
+  writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2) + "\n");
+  console.log(`Incremental update complete. Value history: ${walletValueAllTime.length} days`);
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+
+const incremental = process.argv.includes("--incremental");
+(incremental ? mainIncremental : main)().catch((err) => {
   console.error(err);
   process.exit(1);
 });
