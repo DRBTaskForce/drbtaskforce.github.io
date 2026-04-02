@@ -120,10 +120,10 @@
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  h1, h2 { font-family: 'Syne', sans-serif; }
+  h1, h2 { font-family: 'Inter', sans-serif; }
 
   body {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 16px;
     background-color: var(--color-bg);
     color: var(--color-text);

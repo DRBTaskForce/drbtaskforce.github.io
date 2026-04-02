@@ -1,6 +1,6 @@
 # DRB Chat Worker
 
-Cloudflare Worker that proxies requests from the DRBTaskforce site to the xAI Grok API.
+Cloudflare Worker that proxies requests from the DRBTaskForce site to the xAI Grok API.
 
 ## Prerequisites
 

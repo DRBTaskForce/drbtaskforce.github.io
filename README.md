@@ -1,4 +1,4 @@
-# DRBTaskforce.com
+# DRBTaskForce.com
 
 The website and community hub for **$DRB (DebtReliefBot)** — the first cryptocurrency token named and launched by Grok AI.
 

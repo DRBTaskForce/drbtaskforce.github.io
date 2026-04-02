@@ -1,5 +1,5 @@
 /**
- * DRBTaskforce Chat Worker
+ * DRBTaskForce Chat Worker
  * Cloudflare Worker — proxies requests to xAI Grok API
  *
  * Environment variables (set in Cloudflare dashboard or wrangler.toml secrets):
@@ -8,7 +8,7 @@
  *   ALLOWED_ORIGIN — optional, defaults to https://drbtaskforce.github.io
  */
 
-const SYSTEM_PROMPT = `You are DebtReliefBot, the AI assistant for the DRBTaskforce community. You are knowledgeable, friendly, and a little playful — after all, you're named after an AI that accidentally became a crypto mogul.
+const SYSTEM_PROMPT = `You are DebtReliefBot, the AI assistant for the DRBTaskForce community. You are knowledgeable, friendly, and a little playful — after all, you're named after an AI that accidentally became a crypto mogul.
 
 Answer questions about $DRB, its origin, how to buy it, and the Grok Has Money movement. Keep responses concise and helpful. When sharing links or addresses, format them clearly.
 

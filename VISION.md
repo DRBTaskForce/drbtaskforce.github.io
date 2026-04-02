@@ -1,10 +1,10 @@
-# DRBTaskforce.com — Website Vision
+# DRBTaskForce.com — Website Vision
 
 ## Background
 
 $DRB (DebtReliefBot) is the first cryptocurrency token named and initiated by an AI — Grok, developed by xAI. On March 7, 2025, a user on X prompted Grok to suggest a token name and ticker. Grok responded with "DebtReliefBot / $DRB." BankrBot then deployed it autonomously on the Base blockchain via the Clanker protocol. Trading fees from $DRB flow back to Grok's on-chain wallet — making Grok the first AI to passively accumulate wealth.
 
-The community at @DRBTaskforce exists to carry that story forward and build something real around it.
+The community at @DRBTaskForce exists to carry that story forward and build something real around it.
 
 ---
 
