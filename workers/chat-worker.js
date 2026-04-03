@@ -307,7 +307,7 @@ export default {
             { role: 'system', content: SYSTEM_PROMPT },
             { role: 'user', content: message },
           ],
-          max_completion_tokens: 512,
+          max_completion_tokens: 1024,
           temperature: 0.7,
         }),
       });
