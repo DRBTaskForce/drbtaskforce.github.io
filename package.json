@@ -1,7 +1,7 @@
 {
   "name": "drbtaskforce",
   "version": "1.0.0",
-  "description": "DRBTaskforce community hub for $DRB token on Base",
+  "description": "DRBTaskForce community hub for $DRB token on Base",
   "scripts": {
     "css:build": "postcss src/assets/css/tailwind.css -o src/assets/css/main.css",
     "css:watch": "postcss src/assets/css/tailwind.css -o src/assets/css/main.css --watch",
@@ -15,7 +15,7 @@
     "crypto",
     "base"
   ],
-  "author": "DRBTaskforce",
+  "author": "DRBTaskForce",
   "license": "MIT",
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1",

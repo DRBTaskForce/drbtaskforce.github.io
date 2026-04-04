@@ -1,5 +1,5 @@
 /**
- * DRBTaskforce Chat Worker
+ * DRBTaskForce Chat Worker
  * Cloudflare Worker — proxies requests to xAI Grok API
  *
  * Environment variables (set in Cloudflare dashboard or wrangler.toml secrets):

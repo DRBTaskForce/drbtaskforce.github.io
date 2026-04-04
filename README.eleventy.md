@@ -1,4 +1,4 @@
-# DRBTaskforce - Eleventy Setup
+# DRBTaskForce - Eleventy Setup
 
 This branch uses [Eleventy (11ty)](https://www.11ty.dev/) for templating and build process.
 

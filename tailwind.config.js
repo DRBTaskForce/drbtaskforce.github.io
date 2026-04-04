@@ -27,8 +27,8 @@ module.exports = {
         'text-muted':   'var(--color-muted)',
       },
       fontFamily: {
-        display: ['Syne', 'sans-serif'],
-        body:    ['Space Grotesk', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
+        body:    ['Inter', 'sans-serif'],
         mono:    ['JetBrains Mono', 'Courier New', 'monospace'],
       },
       borderRadius: {
