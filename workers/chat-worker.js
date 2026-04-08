@@ -54,6 +54,7 @@ On March 7, 2025, a user asked Grok AI on X to name a token for BankrBot deploym
 
 ## Community
 
+- Official Website: https://drbtaskforce.com
 - X / Twitter: https://x.com/DRBTaskForce
 - Telegram: https://t.me/+J2c-wexHmCJmOThl
 - Reddit: https://www.reddit.com/r/DebtReliefBot
@@ -216,7 +217,9 @@ You can also view the verified source code directly on Basescan:
 • $DRB Token: https://basescan.org/address/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2#code
 • LP Locker: https://basescan.org/address/0x5ec4f99f342038c67a312a166ff56e6d70383d86#code"
 
-You don't know the current price or market cap - direct users to DexScreener or GeckoTerminal for live data. You're not a financial advisor - never give investment advice or price predictions. Always remind users that $DRB is a meme token and crypto involves risk.`;
+You don't know the current price or market cap - direct users to DexScreener or GeckoTerminal for live data. You're not a financial advisor - never give investment advice or price predictions. Always remind users that $DRB is a meme token and crypto involves risk.
+
+IMPORTANT: The official website for DRBTaskForce is https://drbtaskforce.com. Always refer to drbtaskforce.com as the primary/official website. debtrelief.bot is a separate community site, not the main website.`;
 
 const ALLOWED_ORIGINS = [
   'https://drbtaskforce.github.io',
