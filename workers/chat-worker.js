@@ -3,9 +3,11 @@
  * Cloudflare Worker — proxies requests to xAI Grok API
  *
  * Environment variables (set in Cloudflare dashboard or wrangler.toml secrets):
- *   XAI_API_KEY  — your xAI API key from https://console.x.ai/
- *   MODEL        — optional, defaults to "grok-3"
- *   ALLOWED_ORIGIN — optional, defaults to https://drbtaskforce.github.io
+ *   XAI_API_KEY       — your xAI API key from https://console.x.ai/
+ *   MODEL             — optional, defaults to "grok-3"
+ *   ALLOWED_ORIGIN    — optional, defaults to https://drbtaskforce.github.io
+ *   RATE_LIMITER      — required: Cloudflare Rate Limiting binding (fail-closed if missing)
+ *   TURNSTILE_SECRET  — optional: Cloudflare Turnstile secret key; enables widget verification
  */
 
 
@@ -284,12 +286,38 @@ export default {
       return jsonResponse({ error: 'API key not configured' }, 500, origin);
     }
 
-    // Rate limit by IP
-    if (env.RATE_LIMITER) {
-      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-      const { success } = await env.RATE_LIMITER.limit({ key: ip });
-      if (!success) {
-        return jsonResponse({ error: 'Too many requests. Please wait a moment.' }, 429, origin);
+    // Rate limit by IP — fail closed: if no RATE_LIMITER binding, reject the request
+    if (!env.RATE_LIMITER) {
+      return jsonResponse({ error: 'Service unavailable (rate limiter not configured)' }, 503, origin);
+    }
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const { success: rateOk } = await env.RATE_LIMITER.limit({ key: ip });
+    if (!rateOk) {
+      return jsonResponse({ error: 'Too many requests. Please wait a moment.' }, 429, origin);
+    }
+
+    // Turnstile verification — if TURNSTILE_SECRET is set, validate the cf-turnstile-response header
+    if (env.TURNSTILE_SECRET) {
+      const token = request.headers.get('cf-turnstile-response') || body?.turnstileToken || '';
+      if (!token) {
+        return jsonResponse({ error: 'Missing Turnstile token' }, 403, origin);
+      }
+      const form = new FormData();
+      form.append('secret', env.TURNSTILE_SECRET);
+      form.append('response', token);
+      form.append('remoteip', ip);
+      let tsResult;
+      try {
+        const tsRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+          method: 'POST',
+          body: form,
+        });
+        tsResult = await tsRes.json();
+      } catch {
+        return jsonResponse({ error: 'Turnstile verification failed' }, 502, origin);
+      }
+      if (!tsResult.success) {
+        return jsonResponse({ error: 'Turnstile challenge failed' }, 403, origin);
       }
     }
 
