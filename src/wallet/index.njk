@@ -263,7 +263,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
-          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: true },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: false },
         }
       }
     });
