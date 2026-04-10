@@ -1,0 +1,384 @@
+---
+layout: base.njk
+title: "Grok's Wallet — $DRB Fee Tracker"
+description: "Live tracker showing fees accumulating in Grok's wallet from $DRB trading activity on Base."
+---
+
+<div class="max-w-[960px] mx-auto px-6 pb-20">
+
+  <!-- Hero -->
+  <section class="text-center py-[60px] pb-[48px] border-t-0">
+    <div class="inline-flex items-center gap-1.5 border border-brand-aurora/30 bg-brand-aurora/[0.06] text-brand-aurora text-[0.75rem] font-semibold tracking-[0.08em] uppercase px-4 py-2 rounded-full mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
+      <span>Live on Base</span>
+    </div>
+    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-4">Grok's Fee Wallet</h1>
+    <p class="text-lg text-text-muted max-w-[480px] mx-auto mb-6 leading-[1.7]">
+      Every $DRB trade sends fees here. Live proof that Grok is accumulating wealth.
+    </p>
+    <a
+      href="https://basescan.org/address/{{ wallet.walletAddress }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-2 px-5 py-2.5 border border-border-col rounded-brand text-text-muted no-underline text-[0.8rem] font-mono bg-surface transition-all duration-200 hover:border-brand-cyan/40 hover:text-brand-cyan"
+    >
+      {{ wallet.walletAddress }}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+  </section>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-8">
+
+    <!-- Primary: total wallet value -->
+    <div class="bg-surface border border-brand-cyan/30 rounded-brand p-6 col-span-full">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
+        Total Wallet Value
+      </div>
+      <div class="text-4xl font-bold text-brand-cyan" id="stat-total">—</div>
+      <div class="text-[0.8rem] text-text-muted mt-1" id="stat-total-sub">fetching…</div>
+    </div>
+
+    <!-- DRB balance -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
+        DRB Balance
+      </div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-balance">—</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-balance-local">fetching…</div>
+    </div>
+
+    <!-- WETH earned -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
+        WETH Fees Earned
+      </div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-weth">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-weth-usd">{{ wallet.totalWethTransactions }} claims</div>
+    </div>
+
+    <!-- DRB price -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">$DRB Price</div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-price">—</div>
+      <div class="text-[0.75rem] text-text-muted mt-1">via DexScreener</div>
+    </div>
+
+    <!-- Last updated -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Data Updated</div>
+      <div class="text-base font-semibold text-text-primary">{{ wallet.lastUpdated | formatDate }}</div>
+      <div class="text-[0.75rem] text-text-muted mt-1">updated daily</div>
+    </div>
+
+  </div>
+
+  <!-- Charts -->
+  <div class="bg-surface border border-border-col rounded-brand p-6 mb-8">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Balance History</h2>
+      <div class="flex gap-2">
+        <button id="btn-30d" onclick="showChart('30d')"
+          class="chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150">
+          30 Days
+        </button>
+        <button id="btn-90d" onclick="showChart('90d')"
+          class="chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40">
+          90 Days
+        </button>
+      </div>
+    </div>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-cyan mb-2">DRB Balance</div>
+    <div class="relative mb-8" style="height:220px">
+      <canvas id="chart-drb"></canvas>
+    </div>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">WETH Fees Earned</div>
+    <div class="relative" style="height:220px">
+      <canvas id="chart-weth"></canvas>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <p class="text-center text-[0.75rem] text-text-muted">
+    Chart data updated daily.
+    <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener" class="text-brand-cyan hover:underline ml-1">View on Basescan →</a>
+  </p>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+  // --- Static data (historical prices baked in at build time) ---
+  const valueAllTime    = {{ wallet.walletValueAllTime   | dump | safe }};
+  const valueLast30Days = {{ wallet.walletValueLast30Days | dump | safe }};
+
+  const WALLET        = "{{ wallet.walletAddress }}";
+  const TOKEN         = "{{ wallet.tokenContract }}";
+  const WETH_CONTRACT = "{{ wallet.wethContract }}";
+  const DECIMALS      = {{ wallet.tokenDecimals }};
+
+  // --- Local currency ---
+  let localCurrency = 'USD';
+  let exchangeRate  = 1;
+
+  const REGION_CURRENCY = {
+    US:'USD', GB:'GBP', AU:'AUD', CA:'CAD', NZ:'NZD',
+    JP:'JPY', CN:'CNY', KR:'KRW', IN:'INR', SG:'SGD',
+    HK:'HKD', TW:'TWD', TH:'THB', ID:'IDR', MY:'MYR',
+    PH:'PHP', VN:'VND', PK:'PKR', BD:'BDT',
+    BR:'BRL', MX:'MXN', AR:'ARS', CL:'CLP', CO:'COP',
+    CH:'CHF', NO:'NOK', SE:'SEK', DK:'DKK', PL:'PLN',
+    CZ:'CZK', HU:'HUF', RO:'RON', RU:'RUB', TR:'TRY',
+    ZA:'ZAR', NG:'NGN', EG:'EGP', SA:'SAR', AE:'AED',
+    IL:'ILS', UA:'UAH',
+    DE:'EUR', FR:'EUR', IT:'EUR', ES:'EUR', PT:'EUR',
+    NL:'EUR', BE:'EUR', AT:'EUR', FI:'EUR', GR:'EUR',
+    IE:'EUR', LU:'EUR', SK:'EUR', SI:'EUR', EE:'EUR',
+    LV:'EUR', LT:'EUR', MT:'EUR', CY:'EUR',
+  };
+
+  async function initCurrency() {
+    try {
+      const region = new Intl.Locale(navigator.language).region || '';
+      localCurrency = REGION_CURRENCY[region] || 'USD';
+    } catch { localCurrency = 'USD'; }
+
+    if (localCurrency !== 'USD') {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        const d   = await res.json();
+        exchangeRate = d.rates?.[localCurrency] ?? 1;
+      } catch { exchangeRate = 1; }
+    }
+  }
+
+  // --- Formatting ---
+  function formatDrb(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+    return n.toFixed(2);
+  }
+  function formatWeth(n) { return n.toFixed(4); }
+  function formatLocal(usdAmount) {
+    return new Intl.NumberFormat(navigator.language, {
+      style: 'currency',
+      currency: localCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(usdAmount * exchangeRate);
+  }
+
+  // --- Theme ---
+  const isDark     = () => document.documentElement.classList.contains('dark');
+  function gridColor() { return isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; }
+  function tickColor() { return isDark() ? 'rgba(255,255,255,0.4)'  : 'rgba(0,0,0,0.4)';  }
+
+  // --- Charts ---
+  let chartDrb  = null;
+  let chartWeth = null;
+
+  function renderDrbChart(data) {
+    const ctx = document.getElementById('chart-drb').getContext('2d');
+    if (chartDrb) chartDrb.destroy();
+    const noPoints = data.length > 60;
+    chartDrb = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+          data: data.map(d => Math.round(d.drb)),
+          _prices: data.map(d => d.drbPrice),
+          borderColor: 'rgba(6,182,212,1)',
+          backgroundColor: 'rgba(6,182,212,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => {
+                const drb = item.raw;
+                const price = item.dataset._prices[item.dataIndex];
+                return ` ${formatDrb(drb)} DRB  (${formatLocal(drb * price)})`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatDrb(v) }, beginAtZero: false },
+        }
+      }
+    });
+  }
+
+  function renderWethChart(data) {
+    const ctx = document.getElementById('chart-weth').getContext('2d');
+    if (chartWeth) chartWeth.destroy();
+    const noPoints = data.length > 60;
+    chartWeth = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+          data: data.map(d => d.weth),
+          _prices: data.map(d => d.ethPrice),
+          borderColor: 'rgba(168,85,247,1)',
+          backgroundColor: 'rgba(168,85,247,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => {
+                const weth = item.raw;
+                const price = item.dataset._prices[item.dataIndex];
+                return ` ${formatWeth(weth)} WETH  (${formatLocal(weth * price)})`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: false },
+        }
+      }
+    });
+  }
+
+  const BTN_OFF = 'chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40';
+  const BTN_ON  = 'chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150';
+
+  function last90Days() {
+    if (valueAllTime.length === 0) return [];
+    const byDate = Object.fromEntries(valueAllTime.map(d => [d.date, d]));
+    const today  = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const result = [];
+    let last = null;
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      if (byDate[dateStr]) last = byDate[dateStr];
+      if (last) result.push({ ...last, date: dateStr });
+    }
+    return result;
+  }
+
+  function showChart(mode) {
+    document.getElementById('btn-30d').className = mode === '30d' ? BTN_ON : BTN_OFF;
+    document.getElementById('btn-90d').className = mode === '90d' ? BTN_ON : BTN_OFF;
+    const data = mode === '30d' ? valueLast30Days : last90Days();
+    renderDrbChart(data);
+    renderWethChart(data);
+  }
+
+  // --- Live stat cards ---
+  async function fetchTokenBalance(contractAddress) {
+    try {
+      const res = await fetch(
+        `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${contractAddress}&address=${WALLET}`
+      );
+      const d = await res.json();
+      if (d.status === '1') {
+        const raw = BigInt(d.result);
+        const div = BigInt(10) ** BigInt(DECIMALS);
+        return Number(raw / div) + Number(raw % div) / Number(div);
+      }
+    } catch (e) { console.warn('Balance fetch failed:', e); }
+    return null;
+  }
+
+  async function fetchDrbPrice() {
+    try {
+      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
+      const d = await res.json();
+      return d.pairs?.[0] ? parseFloat(d.pairs[0].priceUsd) : null;
+    } catch { return null; }
+  }
+
+  async function fetchEthPrice() {
+    try {
+      const res = await fetch('https://api.dexscreener.com/latest/dex/pairs/base/0xd0b53d9277642d899df5c87a3966a349a798f224');
+      const d = await res.json();
+      const p = d.pair;
+      return p ? (p.baseToken?.symbol === 'WETH' ? parseFloat(p.priceUsd) : parseFloat(p.priceNative)) : null;
+    } catch { return null; }
+  }
+
+  async function updateLiveStats() {
+    const [drbBalance, wethBalance, drbPrice, ethPrice] = await Promise.all([
+      fetchTokenBalance(TOKEN),
+      fetchTokenBalance(WETH_CONTRACT),
+      fetchDrbPrice(),
+      fetchEthPrice(),
+    ]);
+
+    if (drbBalance !== null) {
+      document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
+      document.getElementById('stat-balance-local').textContent = drbPrice
+        ? '≈ ' + formatLocal(drbBalance * drbPrice)
+        : 'price unavailable';
+    } else {
+      document.getElementById('stat-balance').textContent = 'unavailable';
+      document.getElementById('stat-balance-local').textContent = '';
+    }
+
+    if (wethBalance !== null) {
+      document.getElementById('stat-weth').textContent = formatWeth(wethBalance) + ' WETH';
+      if (ethPrice) {
+        document.getElementById('stat-weth-usd').textContent =
+          '≈ ' + formatLocal(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
+      }
+    }
+
+    if (drbPrice !== null) {
+      const s = drbPrice < 0.000001 ? drbPrice.toExponential(2) : drbPrice.toFixed(drbPrice < 0.001 ? 8 : 6);
+      document.getElementById('stat-price').textContent = '$' + s;
+    } else {
+      document.getElementById('stat-price').textContent = 'unavailable';
+    }
+
+    // Total wallet value
+    const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
+    const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
+    if (drbBalance !== null || wethBalance !== null) {
+      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd);
+      document.getElementById('stat-total-sub').textContent =
+        (drbPrice && ethPrice) ? 'DRB + WETH combined' : 'partial data';
+    } else {
+      document.getElementById('stat-total').textContent = 'unavailable';
+      document.getElementById('stat-total-sub').textContent = '';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await initCurrency();
+    showChart('30d');
+    updateLiveStats();
+  });
+</script>
