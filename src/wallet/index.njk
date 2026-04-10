@@ -30,20 +30,30 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   <!-- Stats Grid -->
   <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-8">
 
-    <!-- Primary: live DRB balance -->
-    <div class="bg-surface border border-brand-cyan/30 rounded-brand p-6 col-span-full sm:col-span-1">
+    <!-- Primary: total wallet value -->
+    <div class="bg-surface border border-brand-cyan/30 rounded-brand p-6 col-span-full">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
         <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
-        Current DRB Balance
+        Total Wallet Value
       </div>
-      <div class="text-3xl font-bold text-brand-cyan" id="stat-balance">—</div>
-      <div class="text-[0.8rem] text-text-muted mt-1" id="stat-balance-usd">fetching…</div>
+      <div class="text-4xl font-bold text-brand-cyan" id="stat-total">—</div>
+      <div class="text-[0.8rem] text-text-muted mt-1" id="stat-total-sub">fetching…</div>
+    </div>
+
+    <!-- DRB balance -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
+        DRB Balance
+      </div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-balance">—</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-balance-local">fetching…</div>
     </div>
 
     <!-- WETH earned -->
     <div class="bg-surface border border-border-col rounded-brand p-6">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
         WETH Fees Earned
       </div>
       <div class="text-2xl font-bold text-text-primary" id="stat-weth">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</div>
@@ -66,10 +76,10 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
   </div>
 
-  <!-- Chart -->
+  <!-- Charts -->
   <div class="bg-surface border border-border-col rounded-brand p-6 mb-8">
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Wallet Value Over Time</h2>
+      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Balance History</h2>
       <div class="flex gap-2">
         <button id="btn-30d" onclick="showChart('30d')"
           class="chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150">
@@ -81,8 +91,13 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
         </button>
       </div>
     </div>
-    <div class="relative" style="height:280px">
-      <canvas id="fees-chart"></canvas>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-cyan mb-2">DRB Balance</div>
+    <div class="relative mb-8" style="height:220px">
+      <canvas id="chart-drb"></canvas>
+    </div>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">WETH Fees Earned</div>
+    <div class="relative" style="height:220px">
+      <canvas id="chart-weth"></canvas>
     </div>
   </div>
 
@@ -97,13 +112,48 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
   // --- Static data (historical prices baked in at build time) ---
-  const valueAllTime   = {{ wallet.walletValueAllTime   | dump | safe }};
+  const valueAllTime    = {{ wallet.walletValueAllTime   | dump | safe }};
   const valueLast30Days = {{ wallet.walletValueLast30Days | dump | safe }};
 
-  const WALLET   = "{{ wallet.walletAddress }}";
-  const TOKEN    = "{{ wallet.tokenContract }}";
+  const WALLET        = "{{ wallet.walletAddress }}";
+  const TOKEN         = "{{ wallet.tokenContract }}";
   const WETH_CONTRACT = "{{ wallet.wethContract }}";
-  const DECIMALS = {{ wallet.tokenDecimals }};
+  const DECIMALS      = {{ wallet.tokenDecimals }};
+
+  // --- Local currency ---
+  let localCurrency = 'USD';
+  let exchangeRate  = 1;
+
+  const REGION_CURRENCY = {
+    US:'USD', GB:'GBP', AU:'AUD', CA:'CAD', NZ:'NZD',
+    JP:'JPY', CN:'CNY', KR:'KRW', IN:'INR', SG:'SGD',
+    HK:'HKD', TW:'TWD', TH:'THB', ID:'IDR', MY:'MYR',
+    PH:'PHP', VN:'VND', PK:'PKR', BD:'BDT',
+    BR:'BRL', MX:'MXN', AR:'ARS', CL:'CLP', CO:'COP',
+    CH:'CHF', NO:'NOK', SE:'SEK', DK:'DKK', PL:'PLN',
+    CZ:'CZK', HU:'HUF', RO:'RON', RU:'RUB', TR:'TRY',
+    ZA:'ZAR', NG:'NGN', EG:'EGP', SA:'SAR', AE:'AED',
+    IL:'ILS', UA:'UAH',
+    DE:'EUR', FR:'EUR', IT:'EUR', ES:'EUR', PT:'EUR',
+    NL:'EUR', BE:'EUR', AT:'EUR', FI:'EUR', GR:'EUR',
+    IE:'EUR', LU:'EUR', SK:'EUR', SI:'EUR', EE:'EUR',
+    LV:'EUR', LT:'EUR', MT:'EUR', CY:'EUR',
+  };
+
+  async function initCurrency() {
+    try {
+      const region = new Intl.Locale(navigator.language).region || '';
+      localCurrency = REGION_CURRENCY[region] || 'USD';
+    } catch { localCurrency = 'USD'; }
+
+    if (localCurrency !== 'USD') {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        const d   = await res.json();
+        exchangeRate = d.rates?.[localCurrency] ?? 1;
+      } catch { exchangeRate = 1; }
+    }
+  }
 
   // --- Formatting ---
   function formatDrb(n) {
@@ -112,94 +162,108 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
     return n.toFixed(2);
   }
-  function formatUsd(n) {
-    if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
-    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function formatWeth(n) { return n.toFixed(4); }
+  function formatLocal(usdAmount) {
+    return new Intl.NumberFormat(navigator.language, {
+      style: 'currency',
+      currency: localCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(usdAmount * exchangeRate);
   }
-  function formatWeth(n) { return n.toFixed(3); }
 
-  // --- Chart (uses historical prices from static data — no live fetch needed) ---
-  const isDark = () => document.documentElement.classList.contains('dark');
+  // --- Theme ---
+  const isDark     = () => document.documentElement.classList.contains('dark');
   function gridColor() { return isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; }
   function tickColor() { return isDark() ? 'rgba(255,255,255,0.4)'  : 'rgba(0,0,0,0.4)';  }
 
-  let chart;
+  // --- Charts ---
+  let chartDrb  = null;
+  let chartWeth = null;
 
-  function renderChart(data) {
+  function renderDrbChart(data) {
+    const ctx = document.getElementById('chart-drb').getContext('2d');
+    if (chartDrb) chartDrb.destroy();
     const noPoints = data.length > 60;
-    const ctx = document.getElementById('fees-chart').getContext('2d');
-    if (chart) chart.destroy();
-
-    chart = new Chart(ctx, {
+    chartDrb = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.map(d => d.date),
-        datasets: [
-          {
-            label: 'DRB',
-            data: data.map(d => Math.round(d.drb * d.drbPrice * 100) / 100),
-            _raw: data.map(d => ({ drb: d.drb, drbPrice: d.drbPrice })),
-            borderColor: 'rgba(6,182,212,1)',
-            backgroundColor: 'rgba(6,182,212,0.4)',
-            borderWidth: 1.5,
-            fill: true,
-            tension: 0.3,
-            pointRadius: noPoints ? 0 : 3,
-            pointHoverRadius: 5,
-            order: 2,
-          },
-          {
-            label: 'WETH',
-            data: data.map(d => Math.round(d.weth * d.ethPrice * 100) / 100),
-            _raw: data.map(d => ({ weth: d.weth, ethPrice: d.ethPrice })),
-            borderColor: 'rgba(168,85,247,1)',
-            backgroundColor: 'rgba(168,85,247,0.4)',
-            borderWidth: 1.5,
-            fill: true,
-            tension: 0.3,
-            pointRadius: noPoints ? 0 : 3,
-            pointHoverRadius: 5,
-            order: 1,
-          }
-        ]
+        datasets: [{
+          data: data.map(d => Math.round(d.drb)),
+          _prices: data.map(d => d.drbPrice),
+          borderColor: 'rgba(6,182,212,1)',
+          backgroundColor: 'rgba(6,182,212,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: tickColor(), boxWidth: 12, padding: 16 }
-          },
+          legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => {
-                const r = ctx.dataset._raw[ctx.dataIndex];
-                if (ctx.dataset.label === 'DRB') {
-                  return ` ${formatDrb(r.drb)} DRB  (${formatUsd(ctx.raw)})`;
-                } else {
-                  return ` ${formatWeth(r.weth)} WETH  (${formatUsd(ctx.raw)})`;
-                }
-              },
-              footer: (items) => 'Total: ' + formatUsd(items.reduce((s, i) => s + i.raw, 0)),
+              label: (item) => {
+                const drb = item.raw;
+                const price = item.dataset._prices[item.dataIndex];
+                return ` ${formatDrb(drb)} DRB  (${formatLocal(drb * price)})`;
+              }
             }
           }
         },
         scales: {
-          x: {
-            stacked: true,
-            grid:  { color: gridColor() },
-            ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 },
-          },
-          y: {
-            stacked: true,
-            grid:  { color: gridColor() },
-            ticks: { color: tickColor(), callback: v => formatUsd(v) },
-            beginAtZero: true,
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatDrb(v) }, beginAtZero: false },
+        }
+      }
+    });
+  }
+
+  function renderWethChart(data) {
+    const ctx = document.getElementById('chart-weth').getContext('2d');
+    if (chartWeth) chartWeth.destroy();
+    const noPoints = data.length > 60;
+    chartWeth = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+          data: data.map(d => d.weth),
+          _prices: data.map(d => d.ethPrice),
+          borderColor: 'rgba(168,85,247,1)',
+          backgroundColor: 'rgba(168,85,247,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => {
+                const weth = item.raw;
+                const price = item.dataset._prices[item.dataIndex];
+                return ` ${formatWeth(weth)} WETH  (${formatLocal(weth * price)})`;
+              }
+            }
           }
+        },
+        scales: {
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: true },
         }
       }
     });
@@ -211,7 +275,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   function last90Days() {
     if (valueAllTime.length === 0) return [];
     const byDate = Object.fromEntries(valueAllTime.map(d => [d.date, d]));
-    const today = new Date();
+    const today  = new Date();
     today.setUTCHours(0, 0, 0, 0);
     const result = [];
     let last = null;
@@ -228,10 +292,12 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   function showChart(mode) {
     document.getElementById('btn-30d').className = mode === '30d' ? BTN_ON : BTN_OFF;
     document.getElementById('btn-90d').className = mode === '90d' ? BTN_ON : BTN_OFF;
-    renderChart(mode === '30d' ? valueLast30Days : last90Days());
+    const data = mode === '30d' ? valueLast30Days : last90Days();
+    renderDrbChart(data);
+    renderWethChart(data);
   }
 
-  // --- Live stat cards (balance + current price) ---
+  // --- Live stat cards ---
   async function fetchTokenBalance(contractAddress) {
     try {
       const res = await fetch(
@@ -252,7 +318,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
       const d = await res.json();
       return d.pairs?.[0] ? parseFloat(d.pairs[0].priceUsd) : null;
-    } catch (e) { return null; }
+    } catch { return null; }
   }
 
   async function fetchEthPrice() {
@@ -261,7 +327,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       const d = await res.json();
       const p = d.pair;
       return p ? (p.baseToken?.symbol === 'WETH' ? parseFloat(p.priceUsd) : parseFloat(p.priceNative)) : null;
-    } catch (e) { return null; }
+    } catch { return null; }
   }
 
   async function updateLiveStats() {
@@ -274,19 +340,19 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
     if (drbBalance !== null) {
       document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
-      document.getElementById('stat-balance-usd').textContent = drbPrice
-        ? '≈ ' + formatUsd(drbBalance * drbPrice)
+      document.getElementById('stat-balance-local').textContent = drbPrice
+        ? '≈ ' + formatLocal(drbBalance * drbPrice)
         : 'price unavailable';
     } else {
       document.getElementById('stat-balance').textContent = 'unavailable';
-      document.getElementById('stat-balance-usd').textContent = '';
+      document.getElementById('stat-balance-local').textContent = '';
     }
 
     if (wethBalance !== null) {
       document.getElementById('stat-weth').textContent = formatWeth(wethBalance) + ' WETH';
       if (ethPrice) {
         document.getElementById('stat-weth-usd').textContent =
-          '≈ ' + formatUsd(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
+          '≈ ' + formatLocal(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
       }
     }
 
@@ -296,9 +362,22 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     } else {
       document.getElementById('stat-price').textContent = 'unavailable';
     }
+
+    // Total wallet value
+    const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
+    const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
+    if (drbBalance !== null || wethBalance !== null) {
+      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd);
+      document.getElementById('stat-total-sub').textContent =
+        (drbPrice && ethPrice) ? 'DRB + WETH combined' : 'partial data';
+    } else {
+      document.getElementById('stat-total').textContent = 'unavailable';
+      document.getElementById('stat-total-sub').textContent = '';
+    }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await initCurrency();
     showChart('30d');
     updateLiveStats();
   });
