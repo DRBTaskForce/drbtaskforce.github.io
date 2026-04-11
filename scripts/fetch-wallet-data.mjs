@@ -248,7 +248,7 @@ async function main() {
 
   // 2. Cumulative balance maps
   const drb  = buildCumulativeBalanceMap(drbTransfers,  false); // net (in - out)
-  const weth = buildCumulativeBalanceMap(wethTransfers, true);  // incoming only
+  const weth = buildCumulativeBalanceMap(wethTransfers, false); // net (in - out)
 
   // 3. Wallet USD value history
   const walletValueAllTime   = buildValueHistory(drb.cumByDate, weth.cumByDate, drbPriceUsd, ethPriceUsd);
@@ -313,10 +313,9 @@ async function mainIncremental() {
   const walletLower = WALLET_ADDRESS.toLowerCase();
   const divisor = BigInt(10) ** BigInt(TOKEN_DECIMALS);
 
-  function applyNewTransfers(existing, newTxs, incomingOnly) {
+  function applyNewTransfers(existing, newTxs, incomingOnly, balanceKey, countKey) {
     let totalIn  = BigInt(0);
-    let countIn  = incomingOnly ? (existing.totalWethTransactions ?? 0) : (existing.totalDrbTransactions ?? 0);
-    const balanceKey = incomingOnly ? "weth" : "drb";
+    let countIn  = existing[countKey] ?? 0;
     // Seed cumByDate from existing history using the correct balance field
     const cumByDate = Object.fromEntries(
       (existing.walletValueAllTime ?? []).map(d => [d.date, d[balanceKey]])
@@ -347,8 +346,8 @@ async function mainIncremental() {
     return { cumByDate, totalIn, countIn };
   }
 
-  const drbResult  = applyNewTransfers(existing, newDrbTx,  false);
-  const wethResult = applyNewTransfers(existing, newWethTx, true);
+  const drbResult  = applyNewTransfers(existing, newDrbTx,  false, "drb",  "totalDrbTransactions");
+  const wethResult = applyNewTransfers(existing, newWethTx, false, "weth", "totalWethTransactions");
 
   // Merge new prices into existing price maps (built from existing walletValueAllTime)
   const existingDrbPrices  = Object.fromEntries((existing.walletValueAllTime ?? []).map(d => [d.date, d.drbPrice]));
