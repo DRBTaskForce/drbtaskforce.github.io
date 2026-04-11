@@ -134,8 +134,8 @@
       </button>
     </div>
     <div id="drb-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 min-h-0"></div>
-    <!-- Turnstile invisible widget (rendered here so it inherits chat window z-index) -->
-    <div id="cf-turnstile-container" style="display:none"></div>
+    <!-- Turnstile widget (same z-index as chat) -->
+    <div id="cf-turnstile-container" class="px-3 py-2 shrink-0"></div>
     <div class="flex gap-2 px-3.5 py-3 border-t border-border-col shrink-0">
       <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off"
         class="flex-1 px-3.5 py-2.5 bg-[var(--chat-input-bg)] border border-border-col rounded-[10px] text-text-primary font-body text-[0.85rem] outline-none transition-colors duration-200 placeholder:text-text-muted focus:border-brand-cyan/40" />
@@ -170,7 +170,7 @@
           callback: onTurnstileToken,
           'error-callback': () => { if (turnstileResolve) { turnstileResolve(null); turnstileResolve = null; } },
           execution: 'execute',
-          size: 'invisible',
+          size: 'compact',
         });
       }
 
