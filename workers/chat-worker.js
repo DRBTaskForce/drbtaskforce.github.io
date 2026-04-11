@@ -7,7 +7,6 @@
  *   MODEL             — optional, defaults to "grok-3"
  *   ALLOWED_ORIGIN    — optional, defaults to https://drbtaskforce.github.io
  *   RATE_LIMITER      — required: Cloudflare Rate Limiting binding (fail-closed if missing)
- *   TURNSTILE_SECRET  — optional: Cloudflare Turnstile secret key; enables widget verification
  */
 
 
@@ -294,31 +293,6 @@ export default {
     const { success: rateOk } = await env.RATE_LIMITER.limit({ key: ip });
     if (!rateOk) {
       return jsonResponse({ error: 'Too many requests. Please wait a moment.' }, 429, origin);
-    }
-
-    // Turnstile verification — if TURNSTILE_SECRET is set, validate the cf-turnstile-response header
-    if (env.TURNSTILE_SECRET) {
-      const token = request.headers.get('cf-turnstile-response') || body?.turnstileToken || '';
-      if (!token) {
-        return jsonResponse({ error: 'Missing Turnstile token' }, 403, origin);
-      }
-      const form = new FormData();
-      form.append('secret', env.TURNSTILE_SECRET);
-      form.append('response', token);
-      form.append('remoteip', ip);
-      let tsResult;
-      try {
-        const tsRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-          method: 'POST',
-          body: form,
-        });
-        tsResult = await tsRes.json();
-      } catch {
-        return jsonResponse({ error: 'Turnstile verification failed' }, 502, origin);
-      }
-      if (!tsResult.success) {
-        return jsonResponse({ error: 'Turnstile challenge failed' }, 403, origin);
-      }
     }
 
     const model = env.MODEL || 'grok-3';
