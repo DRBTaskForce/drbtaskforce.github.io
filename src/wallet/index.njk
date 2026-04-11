@@ -64,7 +64,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     <div class="bg-surface border border-border-col rounded-brand p-6">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">$DRB Price</div>
       <div class="text-2xl font-bold text-text-primary" id="stat-price">—</div>
-      <div class="text-[0.75rem] text-text-muted mt-1">via DexScreener</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-price-sub">via DexScreener</div>
     </div>
 
     <!-- Last updated -->
@@ -357,8 +357,15 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     }
 
     if (drbPrice !== null) {
-      const s = drbPrice < 0.000001 ? drbPrice.toExponential(2) : drbPrice.toFixed(drbPrice < 0.001 ? 8 : 6);
-      document.getElementById('stat-price').textContent = '$' + s;
+      const localPrice = drbPrice * exchangeRate;
+      const decimals = localPrice < 0.000001 ? 8 : localPrice < 0.001 ? 6 : 4;
+      const s = localPrice < 0.000001
+        ? localPrice.toExponential(2)
+        : localPrice.toFixed(decimals);
+      const symbol = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: localCurrency })
+        .formatToParts(0).find(p => p.type === 'currency')?.value ?? localCurrency;
+      document.getElementById('stat-price').textContent = symbol + s;
+      document.getElementById('stat-price-sub').textContent = localCurrency + ' · via DexScreener';
     } else {
       document.getElementById('stat-price').textContent = 'unavailable';
     }
