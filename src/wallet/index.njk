@@ -27,6 +27,14 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     </a>
   </section>
 
+  <!-- Currency selector -->
+  <div class="flex justify-end items-center gap-2 mb-4 text-[0.75rem] text-text-muted">
+    <span>Display in</span>
+    <select id="currency-select" onchange="onCurrencyChange(this.value)"
+      class="bg-surface border border-border-col rounded-lg text-text-primary text-[0.8rem] px-2.5 py-1.5 outline-none cursor-pointer transition-colors duration-150 hover:border-brand-cyan/40 focus:border-brand-cyan/40">
+    </select>
+  </div>
+
   <!-- Stats Grid -->
   <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-8">
 
@@ -120,39 +128,75 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   const WETH_CONTRACT = "{{ wallet.wethContract }}";
   const DECIMALS      = {{ wallet.tokenDecimals }};
 
-  // --- Local currency ---
-  let localCurrency = 'USD';
-  let exchangeRate  = 1;
+  // --- Currency list ---
+  const CURRENCIES = [
+    ['USD','US Dollar'],['EUR','Euro'],['GBP','British Pound'],['JPY','Japanese Yen'],
+    ['CAD','Canadian Dollar'],['AUD','Australian Dollar'],['CHF','Swiss Franc'],
+    ['CNY','Chinese Yuan'],['KRW','South Korean Won'],['INR','Indian Rupee'],
+    ['BRL','Brazilian Real'],['MXN','Mexican Peso'],['SGD','Singapore Dollar'],
+    ['HKD','Hong Kong Dollar'],['NZD','New Zealand Dollar'],['NOK','Norwegian Krone'],
+    ['SEK','Swedish Krona'],['DKK','Danish Krone'],['PLN','Polish Zloty'],
+    ['CZK','Czech Koruna'],['HUF','Hungarian Forint'],['TRY','Turkish Lira'],
+    ['ZAR','South African Rand'],['AED','UAE Dirham'],['SAR','Saudi Riyal'],
+    ['TWD','Taiwan Dollar'],['THB','Thai Baht'],['MYR','Malaysian Ringgit'],
+    ['IDR','Indonesian Rupiah'],['PHP','Philippine Peso'],
+  ];
 
   const REGION_CURRENCY = {
     US:'USD', GB:'GBP', AU:'AUD', CA:'CAD', NZ:'NZD',
     JP:'JPY', CN:'CNY', KR:'KRW', IN:'INR', SG:'SGD',
     HK:'HKD', TW:'TWD', TH:'THB', ID:'IDR', MY:'MYR',
-    PH:'PHP', VN:'VND', PK:'PKR', BD:'BDT',
-    BR:'BRL', MX:'MXN', AR:'ARS', CL:'CLP', CO:'COP',
-    CH:'CHF', NO:'NOK', SE:'SEK', DK:'DKK', PL:'PLN',
-    CZ:'CZK', HU:'HUF', RO:'RON', RU:'RUB', TR:'TRY',
-    ZA:'ZAR', NG:'NGN', EG:'EGP', SA:'SAR', AE:'AED',
-    IL:'ILS', UA:'UAH',
+    PH:'PHP', BR:'BRL', MX:'MXN', CH:'CHF',
+    NO:'NOK', SE:'SEK', DK:'DKK', PL:'PLN', CZ:'CZK',
+    HU:'HUF', TR:'TRY', ZA:'ZAR', SA:'SAR', AE:'AED',
     DE:'EUR', FR:'EUR', IT:'EUR', ES:'EUR', PT:'EUR',
     NL:'EUR', BE:'EUR', AT:'EUR', FI:'EUR', GR:'EUR',
     IE:'EUR', LU:'EUR', SK:'EUR', SI:'EUR', EE:'EUR',
     LV:'EUR', LT:'EUR', MT:'EUR', CY:'EUR',
   };
 
+  let localCurrency = 'USD';
+  let exchangeRate  = 1;
+  let allRates      = { USD: 1 };
+  let liveData      = null;
+  let currentChartMode = '30d';
+
   async function initCurrency() {
+    // Populate select options
+    const sel = document.getElementById('currency-select');
+    CURRENCIES.forEach(([code, name]) => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `${code} — ${name}`;
+      sel.appendChild(opt);
+    });
+
+    // Detect default from locale, then check localStorage override
+    let detected = 'USD';
     try {
       const region = new Intl.Locale(navigator.language).region || '';
-      localCurrency = REGION_CURRENCY[region] || 'USD';
-    } catch { localCurrency = 'USD'; }
+      detected = REGION_CURRENCY[region] || 'USD';
+    } catch {}
+    const saved = localStorage.getItem('drb-currency');
+    localCurrency = (saved && CURRENCIES.find(c => c[0] === saved)) ? saved : detected;
+    sel.value = localCurrency;
 
-    if (localCurrency !== 'USD') {
-      try {
-        const res = await fetch('https://open.er-api.com/v6/latest/USD');
-        const d   = await res.json();
-        exchangeRate = d.rates?.[localCurrency] ?? 1;
-      } catch { exchangeRate = 1; }
-    }
+    // Fetch all rates in one call
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      const d   = await res.json();
+      allRates = { ...d.rates, USD: 1 };
+    } catch { allRates = { USD: 1 }; }
+
+    exchangeRate = allRates[localCurrency] ?? 1;
+  }
+
+  function onCurrencyChange(value) {
+    localCurrency = value;
+    exchangeRate  = allRates[localCurrency] ?? 1;
+    localStorage.setItem('drb-currency', value);
+    if (liveData) renderStats(liveData);
+    showChart(currentChartMode);
   }
 
   // --- Formatting ---
@@ -209,11 +253,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (item) => {
-                const drb = item.raw;
-                const price = item.dataset._prices[item.dataIndex];
-                return ` ${formatDrb(drb)} DRB  (${formatLocal(drb * price)})`;
-              }
+              label: (item) => ` ${formatDrb(item.raw)} DRB  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
           }
         },
@@ -253,11 +293,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (item) => {
-                const weth = item.raw;
-                const price = item.dataset._prices[item.dataIndex];
-                return ` ${formatWeth(weth)} WETH  (${formatLocal(weth * price)})`;
-              }
+              label: (item) => ` ${formatWeth(item.raw)} WETH  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
           }
         },
@@ -290,6 +326,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   }
 
   function showChart(mode) {
+    currentChartMode = mode;
     document.getElementById('btn-30d').className = mode === '30d' ? BTN_ON : BTN_OFF;
     document.getElementById('btn-90d').className = mode === '90d' ? BTN_ON : BTN_OFF;
     const data = mode === '30d' ? valueLast30Days : last90Days();
@@ -297,7 +334,51 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     renderWethChart(data);
   }
 
-  // --- Live stat cards ---
+  // --- Stats rendering (separated from fetching so currency changes can re-render) ---
+  function renderStats({ drbBalance, wethBalance, drbPrice, ethPrice }) {
+    if (drbBalance !== null) {
+      document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
+      document.getElementById('stat-balance-local').textContent = drbPrice
+        ? '≈ ' + formatLocal(drbBalance * drbPrice)
+        : 'price unavailable';
+    } else {
+      document.getElementById('stat-balance').textContent = 'unavailable';
+      document.getElementById('stat-balance-local').textContent = '';
+    }
+
+    if (wethBalance !== null) {
+      document.getElementById('stat-weth').textContent = formatWeth(wethBalance) + ' WETH';
+      if (ethPrice) {
+        document.getElementById('stat-weth-usd').textContent =
+          '≈ ' + formatLocal(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
+      }
+    }
+
+    if (drbPrice !== null) {
+      const localPrice = drbPrice * exchangeRate;
+      const decimals = localPrice < 0.000001 ? 8 : localPrice < 0.001 ? 6 : 4;
+      const s = localPrice < 0.000001 ? localPrice.toExponential(2) : localPrice.toFixed(decimals);
+      const symbol = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: localCurrency })
+        .formatToParts(0).find(p => p.type === 'currency')?.value ?? localCurrency;
+      document.getElementById('stat-price').textContent = symbol + s;
+      document.getElementById('stat-price-sub').textContent = localCurrency + ' · via DexScreener';
+    } else {
+      document.getElementById('stat-price').textContent = 'unavailable';
+    }
+
+    const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
+    const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
+    if (drbBalance !== null || wethBalance !== null) {
+      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd);
+      document.getElementById('stat-total-sub').textContent =
+        (drbPrice && ethPrice) ? 'DRB + WETH combined' : 'partial data';
+    } else {
+      document.getElementById('stat-total').textContent = 'unavailable';
+      document.getElementById('stat-total-sub').textContent = '';
+    }
+  }
+
+  // --- Live data fetch ---
   async function fetchTokenBalance(contractAddress) {
     try {
       const res = await fetch(
@@ -337,50 +418,8 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       fetchDrbPrice(),
       fetchEthPrice(),
     ]);
-
-    if (drbBalance !== null) {
-      document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
-      document.getElementById('stat-balance-local').textContent = drbPrice
-        ? '≈ ' + formatLocal(drbBalance * drbPrice)
-        : 'price unavailable';
-    } else {
-      document.getElementById('stat-balance').textContent = 'unavailable';
-      document.getElementById('stat-balance-local').textContent = '';
-    }
-
-    if (wethBalance !== null) {
-      document.getElementById('stat-weth').textContent = formatWeth(wethBalance) + ' WETH';
-      if (ethPrice) {
-        document.getElementById('stat-weth-usd').textContent =
-          '≈ ' + formatLocal(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
-      }
-    }
-
-    if (drbPrice !== null) {
-      const localPrice = drbPrice * exchangeRate;
-      const decimals = localPrice < 0.000001 ? 8 : localPrice < 0.001 ? 6 : 4;
-      const s = localPrice < 0.000001
-        ? localPrice.toExponential(2)
-        : localPrice.toFixed(decimals);
-      const symbol = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: localCurrency })
-        .formatToParts(0).find(p => p.type === 'currency')?.value ?? localCurrency;
-      document.getElementById('stat-price').textContent = symbol + s;
-      document.getElementById('stat-price-sub').textContent = localCurrency + ' · via DexScreener';
-    } else {
-      document.getElementById('stat-price').textContent = 'unavailable';
-    }
-
-    // Total wallet value
-    const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
-    const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
-    if (drbBalance !== null || wethBalance !== null) {
-      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd);
-      document.getElementById('stat-total-sub').textContent =
-        (drbPrice && ethPrice) ? 'DRB + WETH combined' : 'partial data';
-    } else {
-      document.getElementById('stat-total').textContent = 'unavailable';
-      document.getElementById('stat-total-sub').textContent = '';
-    }
+    liveData = { drbBalance, wethBalance, drbPrice, ethPrice };
+    renderStats(liveData);
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
