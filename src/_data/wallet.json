@@ -1,14 +1,14 @@
 {
-  "lastUpdated": "2026-04-25T03:54:48.228Z",
+  "lastUpdated": "2026-04-26T04:26:16.934Z",
   "walletAddress": "0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9",
   "tokenContract": "0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2",
   "wethContract": "0x4200000000000000000000000000000000000006",
   "tokenSymbol": "DRB",
   "tokenDecimals": 18,
-  "lastBlockDrb": 45099219,
+  "lastBlockDrb": 45183409,
   "lastBlockWeth": 45099219,
-  "cumulativeDrbReceived": "4346240705.141812398772977664",
-  "totalDrbTransactions": 1001,
+  "cumulativeDrbReceived": "4347240705.141812398772977664",
+  "totalDrbTransactions": 1002,
   "cumulativeWethEarned": "141.376865168438542336",
   "totalWethTransactions": 1964,
   "walletValueAllTime": [
@@ -1574,22 +1574,22 @@
     },
     {
       "date": "2026-04-25",
-      "usd": 584013.28,
-      "drb": 3166956743,
+      "usd": 583222.85,
+      "drb": 3167956743,
       "weth": 136.0239,
-      "drbPrice": 0.0000848183424580276,
-      "ethPrice": 2318.69
+      "drbPrice": 0.000084493543361281,
+      "ethPrice": 2319.82
+    },
+    {
+      "date": "2026-04-26",
+      "usd": 579822.27,
+      "drb": 3167956743,
+      "weth": 136.0239,
+      "drbPrice": 0.0000837880867695812,
+      "ethPrice": 2311.25
     }
   ],
   "walletValueLast30Days": [
-    {
-      "date": "2026-03-27",
-      "usd": 499516.47,
-      "drb": 3138517219,
-      "weth": 134.8569,
-      "drbPrice": 0.0000735784972458155,
-      "ethPrice": 1991.66
-    },
     {
       "date": "2026-03-28",
       "usd": 499755.63,
@@ -1816,11 +1816,19 @@
     },
     {
       "date": "2026-04-25",
-      "usd": 584013.28,
-      "drb": 3166956743,
+      "usd": 583222.85,
+      "drb": 3167956743,
       "weth": 136.0239,
-      "drbPrice": 0.0000848183424580276,
-      "ethPrice": 2318.69
+      "drbPrice": 0.000084493543361281,
+      "ethPrice": 2319.82
+    },
+    {
+      "date": "2026-04-26",
+      "usd": 579822.27,
+      "drb": 3167956743,
+      "weth": 136.0239,
+      "drbPrice": 0.0000837880867695812,
+      "ethPrice": 2311.25
     }
   ]
 }
