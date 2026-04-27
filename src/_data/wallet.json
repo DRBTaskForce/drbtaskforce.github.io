@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-26T04:26:16.934Z",
+  "lastUpdated": "2026-04-27T04:34:12.190Z",
   "walletAddress": "0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9",
   "tokenContract": "0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2",
   "wethContract": "0x4200000000000000000000000000000000000006",
@@ -7,7 +7,7 @@
   "tokenDecimals": 18,
   "lastBlockDrb": 45183409,
   "lastBlockWeth": 45099219,
-  "cumulativeDrbReceived": "4347240705.141812398772977664",
+  "cumulativeDrbReceived": "4347240705.141812477676224512",
   "totalDrbTransactions": 1002,
   "cumulativeWethEarned": "141.376865168438542336",
   "totalWethTransactions": 1964,
@@ -1582,22 +1582,22 @@
     },
     {
       "date": "2026-04-26",
-      "usd": 579822.27,
+      "usd": 593245.16,
       "drb": 3167956743,
       "weth": 136.0239,
-      "drbPrice": 0.0000837880867695812,
-      "ethPrice": 2311.25
+      "drbPrice": 0.0000855240622394725,
+      "ethPrice": 2369.5
+    },
+    {
+      "date": "2026-04-27",
+      "usd": 605771.73,
+      "drb": 3167956743,
+      "weth": 136.0239,
+      "drbPrice": 0.0000886739917943471,
+      "ethPrice": 2388.23
     }
   ],
   "walletValueLast30Days": [
-    {
-      "date": "2026-03-28",
-      "usd": 499755.63,
-      "drb": 3138517219,
-      "weth": 134.8569,
-      "drbPrice": 0.0000735666119661185,
-      "ethPrice": 1993.71
-    },
     {
       "date": "2026-03-29",
       "usd": 485496.74,
@@ -1824,11 +1824,19 @@
     },
     {
       "date": "2026-04-26",
-      "usd": 579822.27,
+      "usd": 593245.16,
       "drb": 3167956743,
       "weth": 136.0239,
-      "drbPrice": 0.0000837880867695812,
-      "ethPrice": 2311.25
+      "drbPrice": 0.0000855240622394725,
+      "ethPrice": 2369.5
+    },
+    {
+      "date": "2026-04-27",
+      "usd": 605771.73,
+      "drb": 3167956743,
+      "weth": 136.0239,
+      "drbPrice": 0.0000886739917943471,
+      "ethPrice": 2388.23
     }
   ]
 }
