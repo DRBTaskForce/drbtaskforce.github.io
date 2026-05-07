@@ -197,13 +197,29 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   // prompt Grok into instructing Bankr to transfer funds. 80% returned; 20% pending.
   const HACK_DATE = '2026-05-04';
 
-  function hackAnnotation() {
+  // Returns annotation config positioned by numeric index so the line appears even when
+  // HACK_DATE isn't an exact label (e.g. wallet.json was last updated before the event).
+  function hackAnnotation(data) {
+    if (!data || data.length < 2) return { annotations: {} };
+
+    let xVal;
+    const exactIdx = data.findIndex(d => d.date === HACK_DATE);
+    if (exactIdx !== -1) {
+      xVal = exactIdx;
+    } else {
+      const afterIdx = data.findIndex(d => d.date > HACK_DATE);
+      if (afterIdx <= 0) return { annotations: {} }; // date outside chart range
+      const t = (new Date(HACK_DATE) - new Date(data[afterIdx - 1].date)) /
+                (new Date(data[afterIdx].date)  - new Date(data[afterIdx - 1].date));
+      xVal = afterIdx - 1 + t;
+    }
+
     return {
       annotations: {
         hackEvent: {
           type: 'line',
-          xMin: HACK_DATE,
-          xMax: HACK_DATE,
+          xMin: xVal,
+          xMax: xVal,
           borderColor: 'rgba(239,68,68,0.65)',
           borderWidth: 1.5,
           borderDash: [4, 4],
@@ -322,7 +338,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
               label: (item) => ` ${formatDrb(item.raw)} DRB  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
           },
-          annotation: hackAnnotation(),
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
@@ -363,7 +379,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
               label: (item) => ` ${formatWeth(item.raw)} WETH  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
           },
-          annotation: hackAnnotation(),
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
@@ -404,7 +420,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
               label: (item) => ` ${formatWeth(item.raw)} ETH  (${formatLocal(item.raw * (item.dataset._prices[item.dataIndex] ?? 0))})`
             }
           },
-          annotation: hackAnnotation(),
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
@@ -444,7 +460,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
               label: (item) => ` ${item.raw.toFixed(2)} USDC  (${formatLocal(item.raw)})`
             }
           },
-          annotation: hackAnnotation(),
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
