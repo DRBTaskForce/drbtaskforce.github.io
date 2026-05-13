@@ -4,6 +4,48 @@ title: "Grok Has Money — $DRB Movement"
 description: "Top posts about $DRB and the Grok Has Money movement from the last 24 hours."
 ---
 
+{% macro postCard(post) %}
+<a href="{{ post.url }}" target="_blank" rel="noopener noreferrer"
+  class="group bg-surface border border-border-col rounded-brand p-5 flex flex-col gap-3 no-underline transition-all duration-200 hover:border-brand-aurora/40 hover:shadow-[0_0_16px_rgba(168,85,247,0.1)]">
+
+  <div class="flex items-center gap-3">
+    {% if post.authorAvatar %}
+      <img src="{{ post.authorAvatar }}" alt="{{ post.authorName }}"
+        width="40" height="40"
+        class="w-10 h-10 rounded-full object-cover shrink-0 bg-surface border border-border-col" />
+    {% else %}
+      <div class="w-10 h-10 rounded-full bg-brand-aurora/10 border border-border-col shrink-0 flex items-center justify-center text-brand-aurora font-bold text-sm">
+        {{ post.authorName[0] | upper }}
+      </div>
+    {% endif %}
+    <div class="min-w-0">
+      <div class="font-semibold text-sm text-text-primary truncate">{{ post.authorName }}</div>
+      <div class="text-[0.72rem] text-text-muted truncate">@{{ post.authorUsername }}</div>
+    </div>
+    <div class="ml-auto text-[0.7rem] text-text-muted shrink-0" data-ts="{{ post.createdAt }}"></div>
+  </div>
+
+  <p class="text-[0.875rem] text-text-primary leading-relaxed m-0 flex-1">{{ post.text }}</p>
+
+  <div class="flex items-center gap-4 text-[0.75rem] text-text-muted pt-1 border-t border-border-col">
+    <span class="flex items-center gap-1">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      {{ post.likes }}
+    </span>
+    <span class="flex items-center gap-1">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      {{ post.retweets }}
+    </span>
+    <span class="flex items-center gap-1">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      {{ post.replies }}
+    </span>
+    <span class="ml-auto text-brand-aurora text-[0.7rem] font-semibold group-hover:underline">View on X →</span>
+  </div>
+
+</a>
+{% endmacro %}
+
 <div class="max-w-[960px] mx-auto px-6 pb-20">
 
   <!-- Hero -->
@@ -27,60 +69,44 @@ description: "Top posts about $DRB and the Grok Has Money movement from the last
 
   {% if movement.posts.length %}
 
-    <!-- Post grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {% for post in movement.posts %}
-        <a href="{{ post.url }}" target="_blank" rel="noopener noreferrer"
-          class="group bg-surface border border-border-col rounded-brand p-5 flex flex-col gap-3 no-underline transition-all duration-200 hover:border-brand-aurora/40 hover:shadow-[0_0_16px_rgba(168,85,247,0.1)]">
+  <!-- Top section: leaderboard left, first 5 posts right -->
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.25fr] gap-8 items-start">
 
-          <!-- Author -->
-          <div class="flex items-center gap-3">
-            {% if post.authorAvatar %}
-              <img src="{{ post.authorAvatar }}" alt="{{ post.authorName }}"
-                width="40" height="40"
-                class="w-10 h-10 rounded-full object-cover shrink-0 bg-surface border border-border-col" />
-            {% else %}
-              <div class="w-10 h-10 rounded-full bg-brand-aurora/10 border border-border-col shrink-0 flex items-center justify-center text-brand-aurora font-bold text-sm">
-                {{ post.authorName[0] | upper }}
-              </div>
-            {% endif %}
-            <div class="min-w-0">
-              <div class="font-semibold text-sm text-text-primary truncate">{{ post.authorName }}</div>
-              <div class="text-[0.72rem] text-text-muted truncate">@{{ post.authorUsername }}</div>
-            </div>
-            <div class="ml-auto text-[0.7rem] text-text-muted shrink-0" data-ts="{{ post.createdAt }}"></div>
-          </div>
-
-          <!-- Tweet text -->
-          <p class="text-[0.875rem] text-text-primary leading-relaxed m-0 flex-1">{{ post.text }}</p>
-
-          <!-- Metrics -->
-          <div class="flex items-center gap-4 text-[0.75rem] text-text-muted pt-1 border-t border-border-col">
-            <span class="flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              {{ post.likes }}
-            </span>
-            <span class="flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-              {{ post.retweets }}
-            </span>
-            <span class="flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              {{ post.replies }}
-            </span>
-            <span class="ml-auto text-brand-aurora text-[0.7rem] font-semibold group-hover:underline">View on X →</span>
-          </div>
-
-        </a>
-      {% endfor %}
+    <div>
+      {% include "community-leaderboard.njk" %}
     </div>
+
+    <div>
+      <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Top Posts</div>
+      <div class="grid grid-cols-1 gap-4">
+        {% for post in movement.posts %}
+          {% if loop.index <= 5 %}
+            {{ postCard(post) }}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Remaining posts fill both columns equally -->
+  {% if movement.posts.length > 5 %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+    {% for post in movement.posts %}
+      {% if loop.index > 5 %}
+        {{ postCard(post) }}
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
 
   {% else %}
 
-    <!-- Empty state -->
-    <div class="text-center py-20 border border-border-col rounded-brand bg-surface">
-      <div class="text-text-muted text-[0.875rem]">No posts yet — check back after the first data fetch.</div>
-    </div>
+  {% include "community-leaderboard.njk" %}
+
+  <div class="mt-10 text-center py-20 border border-border-col rounded-brand bg-surface">
+    <div class="text-text-muted text-[0.875rem]">No posts yet — check back after the first data fetch.</div>
+  </div>
 
   {% endif %}
 
@@ -95,7 +121,6 @@ description: "Top posts about $DRB and the Grok Has Money movement from the last
 </div>
 
 <script>
-  // Relative timestamps
   function relativeTime(isoStr) {
     const diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
     if (diff < 60)   return diff + 's ago';

@@ -8,7 +8,8 @@
     "dev": "npm run css:build && eleventy --serve & npm run css:watch",
     "build": "npm run css:build && eleventy",
     "clean": "rm -rf _site",
-    "fetch-wallet-data": "node scripts/fetch-wallet-data.mjs"
+    "fetch-wallet-data": "node scripts/fetch-wallet-data.mjs",
+    "fetch-creators-data": "node scripts/fetch-creators-data.mjs"
   },
   "keywords": [
     "drb",

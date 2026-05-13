@@ -1,0 +1,289 @@
+{% if creators and creators.daily and creators.daily.length > 0 %}
+<div class="leaderboard-wrap">
+
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-1.5">Attention Leaders</div>
+      <h2 class="text-[1.2rem] font-bold">$DRB Top Voices on X</h2>
+    </div>
+    <span id="lb-updated" class="text-[0.72rem] text-text-muted"></span>
+  </div>
+
+  <div class="flex gap-2 mb-4">
+    <button onclick="switchLbTab('daily')"   id="lb-tab-daily"   class="text-[0.78rem] font-semibold px-4 py-1.5 rounded-full border cursor-pointer transition-all duration-200 bg-brand-cyan/10 text-brand-cyan border-brand-cyan/30">24h</button>
+    <button onclick="switchLbTab('weekly')"  id="lb-tab-weekly"  class="text-[0.78rem] font-semibold px-4 py-1.5 rounded-full border cursor-pointer transition-all duration-200 bg-white/[0.04] text-text-muted border-border-col">7 Day</button>
+    <button onclick="switchLbTab('monthly')" id="lb-tab-monthly" class="text-[0.78rem] font-semibold px-4 py-1.5 rounded-full border cursor-pointer transition-all duration-200 bg-white/[0.04] text-text-muted border-border-col">30 Day</button>
+  </div>
+
+  <!-- Treemap — all 15, top 3 glow -->
+  <div class="flex justify-end mb-1">
+    <span class="text-[0.65rem] text-text-muted opacity-60 select-none">Hover/click to enlarge</span>
+  </div>
+  <div id="lb-treemap"
+       class="w-full relative rounded-brand border border-border-col bg-black/[0.02] dark:bg-white/[0.015] mb-4"
+       style="height:360px;overflow:visible"></div>
+
+  <!-- Full ranked list #1–15 -->
+  <div id="lb-list" class="space-y-0.5"></div>
+
+</div>
+
+<script>
+(function () {
+  var DATA = {
+    daily:              {{ creators.daily   | dump | safe }},
+    weekly:             {{ creators.weekly  | dump | safe }},
+    monthly:            {{ creators.monthly | dump | safe }},
+    lastUpdatedDaily:   {{ creators.lastUpdatedDaily   | dump | safe }},
+    lastUpdatedWeekly:  {{ creators.lastUpdatedWeekly  | dump | safe }},
+    lastUpdatedMonthly: {{ creators.lastUpdatedMonthly | dump | safe }}
+  };
+
+  var GLOW = [
+    '0 0 24px rgba(2,132,199,0.75),  0 0 48px rgba(2,132,199,0.35)',
+    '0 0 18px rgba(124,58,237,0.65), 0 0 36px rgba(124,58,237,0.28)',
+    '0 0 14px rgba(5,150,105,0.55),  0 0 28px rgba(5,150,105,0.22)'
+  ];
+  var BG = [
+    'rgba(2,132,199,0.13)',
+    'rgba(124,58,237,0.11)',
+    'rgba(5,150,105,0.09)'
+  ];
+  var BORDER = [
+    'rgba(2,132,199,0.38)',
+    'rgba(124,58,237,0.32)',
+    'rgba(5,150,105,0.28)'
+  ];
+
+  var currentTab = 'daily';
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    return 'Updated ' + new Date(iso).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+    });
+  }
+
+  function renderTreemap(leaders) {
+    var wrap = document.getElementById('lb-treemap');
+    wrap.innerHTML = '';
+    if (!leaders || !leaders.length) {
+      wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:0.875rem;opacity:0.5">No data yet</div>';
+      return;
+    }
+
+    var W = wrap.offsetWidth || 500;
+    var H = 360;
+
+    // Shared hover tooltip
+    var tip = document.createElement('div');
+    tip.style.cssText = [
+      'position:absolute',
+      'pointer-events:none',
+      'z-index:50',
+      'display:none',
+      'flex-direction:column',
+      'align-items:center',
+      'gap:7px',
+      'padding:12px 16px',
+      'background:rgba(8,10,18,0.97)',
+      'border-radius:12px',
+      'box-sizing:border-box',
+      'min-width:130px',
+      'text-align:center'
+    ].join(';');
+    wrap.appendChild(tip);
+
+    var touchActiveEl = null;
+    var isHoverDevice = window.matchMedia('(hover: hover)').matches;
+
+    function showTip(node, cw, l, avatarSrc, tipBorder, tipGlow) {
+      tip.style.border    = '1.5px solid ' + tipBorder;
+      tip.style.boxShadow = tipGlow;
+      tip.innerHTML =
+        '<img src="' + avatarSrc + '" alt="' + l.author + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ' + tipBorder + '">' +
+        '<span style="font-size:13px;font-weight:600;color:var(--color-text);white-space:nowrap">@' + l.author + '</span>' +
+        '<span style="font-size:14px;font-weight:700;color:var(--color-text)">' + l.pct + '%</span>';
+      tip.style.display = 'flex';
+      var tw   = tip.offsetWidth  || 140;
+      var th   = tip.offsetHeight || 110;
+      var cx   = node.x0 + cw / 2;
+      var left = Math.max(0, Math.min(cx - tw / 2, W - tw));
+      var top  = node.y0 - th - 8;
+      if (top < 0) top = node.y1 + 8;
+      tip.style.left = left + 'px';
+      tip.style.top  = top  + 'px';
+    }
+
+    function highlightEl(el, tipBorder, isTop3, i) {
+      el.style.borderColor = tipBorder;
+      el.style.background  = isTop3 ? BG[i] : 'rgba(2,132,199,0.08)';
+      el.style.boxShadow   = isTop3 ? GLOW[i].replace(/0\.(75|65|55)/g, '1') : '0 0 12px rgba(2,132,199,0.35)';
+      el.style.zIndex      = '20';
+    }
+
+    function resetEl(el, border, bg, glow) {
+      el.style.borderColor = border;
+      el.style.background  = bg;
+      el.style.boxShadow   = glow;
+      el.style.zIndex      = '1';
+    }
+
+    // Dismiss tooltip when tapping outside the treemap on touch devices
+    document.addEventListener('touchstart', function(e) {
+      if (touchActiveEl && !wrap.contains(e.target)) {
+        resetEl(touchActiveEl, touchActiveEl._border, touchActiveEl._bg, touchActiveEl._glow);
+        touchActiveEl = null;
+        tip.style.display = 'none';
+      }
+    }, { passive: true });
+
+    var root = d3.hierarchy({ name: 'root', children: leaders.map(function(l) {
+      return { name: l.author, value: l.pct, l: l };
+    })}).sum(function(d) { return d.value; });
+    d3.treemap().size([W, H]).padding(3)(root);
+
+    root.leaves().forEach(function(node, i) {
+      var l      = node.data.l;
+      var cw     = node.x1 - node.x0;
+      var ch     = node.y1 - node.y0;
+      var isTop3 = i < 3;
+      var av     = Math.min(40, Math.floor(Math.min(cw, ch) * 0.28));
+
+      var bg     = isTop3 ? BG[i]     : 'rgba(255,255,255,0.03)';
+      var border = isTop3 ? BORDER[i] : 'rgba(255,255,255,0.07)';
+      var glow   = isTop3 ? GLOW[i]   : 'none';
+
+      var tipBorder = isTop3 ? BORDER[i] : 'rgba(2,132,199,0.4)';
+      var tipGlow   = isTop3 ? GLOW[i]   : '0 0 18px rgba(2,132,199,0.35)';
+
+      var el = document.createElement('div');
+      // Store reset values so the dismiss handler can access them
+      el._border = border; el._bg = bg; el._glow = glow;
+
+      el.style.cssText = [
+        'position:absolute',
+        'left:'   + node.x0 + 'px',
+        'top:'    + node.y0 + 'px',
+        'width:'  + cw + 'px',
+        'height:' + ch + 'px',
+        'background:' + bg,
+        'border:1.5px solid ' + border,
+        'box-shadow:' + glow,
+        'border-radius:8px',
+        'display:flex',
+        'flex-direction:column',
+        'align-items:center',
+        'justify-content:center',
+        'gap:3px',
+        'padding:6px',
+        'box-sizing:border-box',
+        'cursor:pointer',
+        'overflow:hidden',
+        'transition:border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease',
+        'user-select:none',
+        'z-index:1'
+      ].join(';');
+
+      var avatarSrc  = l.avatar || ('https://unavatar.io/twitter/' + l.author);
+      var showAvatar = cw > 38 && ch > 38;
+      var showHandle = cw > 65 && ch > 52;
+      var showPct    = cw > 28 && ch > 28;
+
+      el.innerHTML =
+        (showAvatar ? '<img src="' + avatarSrc + '" alt="' + l.author + '" loading="lazy" style="width:' + av + 'px;height:' + av + 'px;border-radius:50%;object-fit:cover;border:1.5px solid ' + border + ';flex-shrink:0" />' : '') +
+        (showHandle ? '<span style="font-size:' + Math.min(12, Math.max(9, cw * 0.06)) + 'px;font-weight:600;color:var(--color-text);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:94%">@' + l.author + '</span>' : '') +
+        (showPct    ? '<span style="font-size:' + Math.min(13, Math.max(9, cw * 0.065)) + 'px;font-weight:700;color:var(--color-text)">' + l.pct + '%</span>' : '');
+
+      // Desktop: hover shows/hides tooltip, click navigates directly
+      if (isHoverDevice) {
+        el.addEventListener('mouseenter', function() {
+          highlightEl(el, tipBorder, isTop3, i);
+          showTip(node, cw, l, avatarSrc, tipBorder, tipGlow);
+        });
+        el.addEventListener('mouseleave', function() {
+          resetEl(el, border, bg, glow);
+          tip.style.display = 'none';
+        });
+        el.addEventListener('click', function() {
+          window.open('https://x.com/' + l.author, '_blank', 'noopener');
+        });
+
+      // Touch: first tap shows tooltip, second tap navigates
+      } else {
+        el.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (touchActiveEl === el) {
+            // Second tap — navigate
+            window.open('https://x.com/' + l.author, '_blank', 'noopener');
+            resetEl(el, border, bg, glow);
+            tip.style.display = 'none';
+            touchActiveEl = null;
+          } else {
+            // Reset any previously active cell
+            if (touchActiveEl) {
+              resetEl(touchActiveEl, touchActiveEl._border, touchActiveEl._bg, touchActiveEl._glow);
+            }
+            touchActiveEl = el;
+            highlightEl(el, tipBorder, isTop3, i);
+            showTip(node, cw, l, avatarSrc, tipBorder, tipGlow);
+          }
+        });
+      }
+
+      wrap.appendChild(el);
+    });
+  }
+
+  function renderList(leaders) {
+    var list = document.getElementById('lb-list');
+    list.innerHTML = '';
+    if (!leaders || !leaders.length) return;
+
+    leaders.forEach(function(l, i) {
+      var row = document.createElement('a');
+      row.href      = 'https://x.com/' + l.author;
+      row.target    = '_blank';
+      row.rel       = 'noopener';
+      row.className = 'group flex items-center gap-3 py-2 px-3 rounded-brand border border-transparent hover:border-brand-cyan/20 hover:bg-brand-cyan/[0.03] transition-all duration-200 no-underline';
+      var avatarSrc = l.avatar || ('https://unavatar.io/twitter/' + l.author);
+      row.innerHTML =
+        '<span class="text-[0.72rem] font-bold text-text-muted w-5 shrink-0 text-right">' + (i + 1) + '</span>' +
+        '<img src="' + avatarSrc + '" alt="' + l.author + '" loading="lazy" class="w-7 h-7 rounded-full shrink-0 object-cover">' +
+        '<span class="flex-1 text-[0.85rem] font-medium text-text-primary group-hover:text-brand-cyan transition-colors duration-200">@' + l.author + '</span>' +
+        '<span class="text-[0.78rem] font-semibold text-text-muted shrink-0">' + l.pct + '%</span>';
+      list.appendChild(row);
+    });
+  }
+
+  function render(tab) {
+    var leaders    = DATA[tab] || [];
+    var updatedKey = tab === 'daily' ? 'lastUpdatedDaily' : tab === 'weekly' ? 'lastUpdatedWeekly' : 'lastUpdatedMonthly';
+    document.getElementById('lb-updated').textContent = fmtDate(DATA[updatedKey]);
+    renderTreemap(leaders);
+    renderList(leaders);
+  }
+
+  window.switchLbTab = function(tab) {
+    currentTab = tab;
+    ['daily', 'weekly', 'monthly'].forEach(function(t) {
+      var btn    = document.getElementById('lb-tab-' + t);
+      var active = t === tab;
+      btn.className = (active
+        ? 'bg-brand-cyan/10 text-brand-cyan border-brand-cyan/30'
+        : 'bg-white/[0.04] text-text-muted border-border-col hover:border-brand-cyan/25'
+      ) + ' text-[0.78rem] font-semibold px-4 py-1.5 rounded-full border cursor-pointer transition-all duration-200';
+    });
+    render(tab);
+  };
+
+  function init() {
+    if (typeof d3 === 'undefined') { setTimeout(init, 50); return; }
+    window.switchLbTab('daily');
+  }
+
+  window.addEventListener('load', init);
+  window.addEventListener('resize', function() { render(currentTab); });
+})();
+</script>
+{% endif %}
