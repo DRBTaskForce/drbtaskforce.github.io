@@ -98,11 +98,10 @@ function buildLeaderboard(posts, usersById) {
     byAuthor[key].posts       += 1;
   }
 
-  const sorted = Object.values(byAuthor)
-    .sort((a, b) => b.impressions - a.impressions)
-    .slice(0, TOP_N);
+  const all    = Object.values(byAuthor).sort((a, b) => b.impressions - a.impressions);
+  const total  = all.reduce((s, a) => s + a.impressions, 0);
+  const sorted = all.slice(0, TOP_N);
 
-  const total = sorted.reduce((s, a) => s + a.impressions, 0);
   return sorted.map(a => ({
     ...a,
     pct: total > 0 ? Math.round((a.impressions / total) * 1000) / 10 : 0,
@@ -133,11 +132,10 @@ function buildRollup(history, days) {
     }
   }
 
-  const sorted = Object.values(byAuthor)
-    .sort((a, b) => b.impressions - a.impressions)
-    .slice(0, TOP_N);
+  const all    = Object.values(byAuthor).sort((a, b) => b.impressions - a.impressions);
+  const total  = all.reduce((s, a) => s + a.impressions, 0);
+  const sorted = all.slice(0, TOP_N);
 
-  const total = sorted.reduce((s, a) => s + a.impressions, 0);
   return sorted.map(a => ({
     ...a,
     pct: total > 0 ? Math.round((a.impressions / total) * 1000) / 10 : 0,
