@@ -24,7 +24,7 @@ if (!BEARER_TOKEN) {
 }
 
 // Search for the last 24 hours of $DRB / Grok Has Money tweets
-const QUERY = '("Grok has money" OR "$DRB" OR "DebtReliefBot") -is:retweet -is:reply lang:en';
+const QUERY = '("Grok has money" OR $DRB OR "DebtReliefBot") -is:retweet -is:reply lang:en';
 const MAX_RESULTS = 100;
 const TOP_N = 20;
 
