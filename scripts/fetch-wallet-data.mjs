@@ -35,8 +35,8 @@ const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
 
 async function fetchAllTransfers(contractAddress, fromBlock = 0) {
   const transfers = [];
-  let startBlock = fromBlock;
   const pageSize = 10000;
+  let page = 1;
 
   while (true) {
     const url = new URL(BLOCKSCOUT_API);
@@ -44,11 +44,11 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
     url.searchParams.set("action", "tokentx");
     url.searchParams.set("contractaddress", contractAddress);
     url.searchParams.set("address", WALLET_ADDRESS);
-    url.searchParams.set("startblock", startBlock);
+    url.searchParams.set("startblock", fromBlock);
     url.searchParams.set("endblock", "latest");
     url.searchParams.set("sort", "asc");
     url.searchParams.set("offset", pageSize);
-    url.searchParams.set("page", "1");
+    url.searchParams.set("page", page);
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
@@ -61,7 +61,7 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
 
     transfers.push(...data.result);
     if (data.result.length < pageSize) break;
-    startBlock = parseInt(data.result[data.result.length - 1].blockNumber, 10) + 1;
+    page++;
   }
 
   return transfers;
@@ -73,19 +73,19 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
 
 async function fetchAllEthTxs(action, fromBlock = 0) {
   const txs = [];
-  let startBlock = fromBlock;
   const pageSize = 10000;
+  let page = 1;
 
   while (true) {
     const url = new URL(BLOCKSCOUT_API);
     url.searchParams.set("module", "account");
     url.searchParams.set("action", action); // "txlist" or "txlistinternal"
     url.searchParams.set("address", WALLET_ADDRESS);
-    url.searchParams.set("startblock", startBlock);
+    url.searchParams.set("startblock", fromBlock);
     url.searchParams.set("endblock", "latest");
     url.searchParams.set("sort", "asc");
     url.searchParams.set("offset", pageSize);
-    url.searchParams.set("page", "1");
+    url.searchParams.set("page", page);
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
@@ -98,7 +98,7 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
 
     txs.push(...data.result);
     if (data.result.length < pageSize) break;
-    startBlock = parseInt(data.result[data.result.length - 1].blockNumber, 10) + 1;
+    page++;
   }
 
   return txs;
@@ -354,9 +354,10 @@ async function main() {
   const lastBlockWeth = wethTransfers.length ? parseInt(wethTransfers[wethTransfers.length - 1].blockNumber, 10) : 0;
   const lastBlockUsdc = usdcTransfers.length ? parseInt(usdcTransfers[usdcTransfers.length - 1].blockNumber, 10) : 0;
   const allEthTxs     = [...ethNormalTxs, ...ethInternalTxs];
-  const lastBlockEth  = allEthTxs.length
-    ? Math.max(...allEthTxs.map(t => parseInt(t.blockNumber, 10)))
-    : 0;
+  const lastBlockEth  = allEthTxs.reduce((max, t) => {
+    const b = parseInt(t.blockNumber, 10);
+    return b > max ? b : max;
+  }, 0);
 
   const output = {
     lastUpdated: new Date().toISOString(),
@@ -521,9 +522,10 @@ async function mainIncremental() {
   const lastBlockWeth = newWethTx.length ? parseInt(newWethTx[newWethTx.length - 1].blockNumber, 10) : (existing.lastBlockWeth ?? 0);
   const lastBlockUsdc = newUsdcTx.length ? parseInt(newUsdcTx[newUsdcTx.length - 1].blockNumber, 10) : (existing.lastBlockUsdc ?? 0);
   const allNewEthTxs  = [...newEthNormalTxs, ...newEthInternalTxs];
-  const lastBlockEth  = allNewEthTxs.length
-    ? Math.max(...allNewEthTxs.map(t => parseInt(t.blockNumber, 10)))
-    : (existing.lastBlockEth ?? 0);
+  const lastBlockEth  = allNewEthTxs.reduce((max, t) => {
+    const b = parseInt(t.blockNumber, 10);
+    return b > max ? b : max;
+  }, existing.lastBlockEth ?? 0);
 
   // Recalculate cumulative totals: existing + new
   const existingDrbIn  = BigInt(Math.round(parseFloat(existing.cumulativeDrbReceived)  * 1e18));
