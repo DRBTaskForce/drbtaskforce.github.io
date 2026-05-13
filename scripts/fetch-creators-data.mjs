@@ -22,7 +22,7 @@ const __dirname   = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '../src/_data/creators.json');
 
 const BEARER_TOKEN  = process.env.TWITTER_BEARER_TOKEN;
-const QUERY         = '$DRB -is:retweet';
+const QUERY         = '$DRB';
 const TOP_N         = 15;
 const MIN_REACTIONS = 5;
 const MAX_HISTORY   = 30;
