@@ -102,8 +102,8 @@
       tip.style.boxShadow = tipGlow;
       tip.innerHTML =
         '<img src="' + avatarSrc + '" alt="' + l.author + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ' + tipBorder + '">' +
-        '<span style="font-size:13px;font-weight:600;color:var(--color-text);white-space:nowrap">@' + l.author + '</span>' +
-        '<span style="font-size:14px;font-weight:700;color:var(--color-text)">' + l.pct + '%</span>';
+        '<span style="font-size:13px;font-weight:600;color:#f1f5f9;white-space:nowrap">@' + l.author + '</span>' +
+        '<span style="font-size:14px;font-weight:700;color:#f1f5f9">' + l.pct + '%</span>';
       tip.style.display = 'flex';
       var tw   = tip.offsetWidth  || 140;
       var th   = tip.offsetHeight || 110;
@@ -148,7 +148,7 @@
       var cw     = node.x1 - node.x0;
       var ch     = node.y1 - node.y0;
       var isTop3 = i < 3;
-      var av     = Math.min(40, Math.floor(Math.min(cw, ch) * 0.28));
+      var av     = Math.max(16, Math.min(40, Math.floor(Math.min(cw, ch) * 0.35)));
 
       var bg     = isTop3 ? BG[i]     : 'var(--color-surface)';
       var border = isTop3 ? BORDER[i] : 'var(--color-border)';
@@ -186,7 +186,7 @@
       ].join(';');
 
       var avatarSrc  = l.avatar || ('https://unavatar.io/twitter/' + l.author);
-      var showAvatar = cw > 38 && ch > 38;
+      var showAvatar = cw > 20 && ch > 20;
       var showHandle = cw > 65 && ch > 52;
       var showPct    = cw > 28 && ch > 28;
 
