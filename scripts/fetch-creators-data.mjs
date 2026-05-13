@@ -100,9 +100,8 @@ function buildLeaderboard(posts, usersById) {
 
   const all    = Object.values(byAuthor).sort((a, b) => b.impressions - a.impressions);
   const total  = all.reduce((s, a) => s + a.impressions, 0);
-  const sorted = all.slice(0, TOP_N);
 
-  return sorted.map(a => ({
+  return all.map(a => ({
     ...a,
     pct: total > 0 ? Math.round((a.impressions / total) * 1000) / 10 : 0,
   }));
@@ -134,9 +133,8 @@ function buildRollup(history, days) {
 
   const all    = Object.values(byAuthor).sort((a, b) => b.impressions - a.impressions);
   const total  = all.reduce((s, a) => s + a.impressions, 0);
-  const sorted = all.slice(0, TOP_N);
 
-  return sorted.map(a => ({
+  return all.map(a => ({
     ...a,
     pct: total > 0 ? Math.round((a.impressions / total) * 1000) / 10 : 0,
   }));
@@ -152,8 +150,9 @@ async function main() {
   const { posts, usersById } = await fetchPosts();
   console.log(`Retrieved ${posts.length} posts`);
 
-  const daily = buildLeaderboard(posts, usersById);
-  console.log(`${daily.length} qualifying authors`);
+  const allAuthors = buildLeaderboard(posts, usersById);
+  const daily      = allAuthors.slice(0, TOP_N);
+  console.log(`${allAuthors.length} qualifying authors, showing top ${daily.length}`);
 
   let existing = {
     daily: [], weekly: [], monthly: [],
@@ -164,7 +163,7 @@ async function main() {
     existing = JSON.parse(readFileSync(OUTPUT_PATH, 'utf8'));
   }
 
-  const history   = { ...(existing.dailyHistory ?? {}), [today]: daily };
+  const history   = { ...(existing.dailyHistory ?? {}), [today]: allAuthors };
   const allDates  = Object.keys(history).sort();
   if (allDates.length > MAX_HISTORY) delete history[allDates[0]];
 
