@@ -150,8 +150,8 @@
       var isTop3 = i < 3;
       var av     = Math.min(40, Math.floor(Math.min(cw, ch) * 0.28));
 
-      var bg     = isTop3 ? BG[i]     : 'rgba(255,255,255,0.03)';
-      var border = isTop3 ? BORDER[i] : 'rgba(255,255,255,0.07)';
+      var bg     = isTop3 ? BG[i]     : 'var(--color-surface)';
+      var border = isTop3 ? BORDER[i] : 'var(--color-border)';
       var glow   = isTop3 ? GLOW[i]   : 'none';
 
       var tipBorder = isTop3 ? BORDER[i] : 'rgba(2,132,199,0.4)';
