@@ -187,12 +187,12 @@
 
       var avatarSrc  = l.avatar || ('https://unavatar.io/twitter/' + l.author);
       var showAvatar = cw > 20 && ch > 20;
-      var showHandle = cw > 65 && ch > 52;
+      var showHandle = cw > 65 && ch > 68;
       var showPct    = cw > 28 && ch > 28;
 
       el.innerHTML =
         (showAvatar ? '<img src="' + avatarSrc + '" alt="' + l.author + '" loading="lazy" style="width:' + av + 'px;height:' + av + 'px;border-radius:50%;object-fit:cover;border:1.5px solid ' + border + ';flex-shrink:0" />' : '') +
-        (showHandle ? '<span style="font-size:' + Math.min(12, Math.max(9, cw * 0.06)) + 'px;font-weight:600;color:var(--color-text);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:94%">@' + l.author + '</span>' : '') +
+        (showHandle ? '<span style="font-size:' + Math.min(12, Math.max(9, cw * 0.06)) + 'px;font-weight:600;color:var(--color-text);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:94%">@' + l.author + '</span>' : '') +
         (showPct    ? '<span style="font-size:' + Math.min(13, Math.max(9, cw * 0.065)) + 'px;font-weight:700;color:var(--color-text)">' + l.pct + '%</span>' : '');
 
       // Desktop: hover shows/hides tooltip, click navigates directly
