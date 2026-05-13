@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   workflow_run:
-    workflows: ["Update Wallet Data"]
+    workflows: ["Update Wallet Data", "Update Movement Data"]
     types: [completed]
     branches: [main]
 
