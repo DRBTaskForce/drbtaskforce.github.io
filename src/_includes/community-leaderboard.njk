@@ -95,7 +95,7 @@
     wrap.appendChild(tip);
 
     var touchActiveEl = null;
-    var isHoverDevice = window.matchMedia('(hover: hover)').matches;
+    var isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     function showTip(node, cw, l, avatarSrc, tipBorder, tipGlow) {
       tip.style.border    = '1.5px solid ' + tipBorder;
