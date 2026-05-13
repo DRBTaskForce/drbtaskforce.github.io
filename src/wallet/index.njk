@@ -68,6 +68,26 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       <div class="text-[0.75rem] text-text-muted mt-1" id="stat-weth-usd">{{ wallet.totalWethTransactions }} claims</div>
     </div>
 
+    <!-- ETH balance -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
+        ETH Balance
+      </div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-eth">—</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-eth-usd">fetching…</div>
+    </div>
+
+    <!-- USDC balance -->
+    <div class="bg-surface border border-border-col rounded-brand p-6">
+      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+        USDC Balance
+      </div>
+      <div class="text-2xl font-bold text-text-primary" id="stat-usdc">—</div>
+      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-usdc-sub">fetching…</div>
+    </div>
+
     <!-- DRB price -->
     <div class="bg-surface border border-border-col rounded-brand p-6">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">$DRB Price</div>
@@ -104,8 +124,16 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       <canvas id="chart-drb"></canvas>
     </div>
     <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">WETH Fees Earned</div>
-    <div class="relative" style="height:220px">
+    <div class="relative mb-8" style="height:220px">
       <canvas id="chart-weth"></canvas>
+    </div>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">ETH Balance</div>
+    <div class="relative mb-8" style="height:220px">
+      <canvas id="chart-eth"></canvas>
+    </div>
+    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-green-400 mb-2">USDC Balance</div>
+    <div class="relative" style="height:220px">
+      <canvas id="chart-usdc"></canvas>
     </div>
   </div>
 
@@ -117,7 +145,8 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js" integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY" crossorigin="anonymous"></script>
 <script>
   // --- Static data (historical prices baked in at build time) ---
   const valueAllTime    = {{ wallet.walletValueAllTime   | dump | safe }};
@@ -126,7 +155,9 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   const WALLET        = "{{ wallet.walletAddress }}";
   const TOKEN         = "{{ wallet.tokenContract }}";
   const WETH_CONTRACT = "{{ wallet.wethContract }}";
+  const USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
   const DECIMALS      = {{ wallet.tokenDecimals }};
+  const USDC_DECIMALS = 6;
 
   // --- Currency list ---
   const CURRENCIES = [
@@ -160,6 +191,56 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   let allRates      = { USD: 1 };
   let liveData      = null;
   let currentChartMode = '30d';
+
+  // 2026-05-04: LLM-on-LLM prompt injection drained 3B DRB (~$170K). Root cause: Bankr's
+  // hardcoded block on Grok replies was dropped in an agent rewrite, letting an attacker
+  // prompt Grok into instructing Bankr to transfer funds. 80% returned; 20% pending.
+  const HACK_DATE = '2026-05-04';
+
+  // Returns annotation config positioned by numeric index so the line appears even when
+  // HACK_DATE isn't an exact label (e.g. wallet.json was last updated before the event).
+  function hackAnnotation(data) {
+    if (!data || data.length < 2) return { annotations: {} };
+
+    let xVal;
+    const exactIdx = data.findIndex(d => d.date === HACK_DATE);
+    if (exactIdx !== -1) {
+      xVal = HACK_DATE; // use label string so CategoryScale resolves it correctly
+    } else {
+      const afterIdx = data.findIndex(d => d.date > HACK_DATE);
+      if (afterIdx <= 0) return { annotations: {} }; // date outside chart range
+      const t = (new Date(HACK_DATE) - new Date(data[afterIdx - 1].date)) /
+                (new Date(data[afterIdx].date)  - new Date(data[afterIdx - 1].date));
+      xVal = afterIdx - 1 + t;
+    }
+
+    return {
+      annotations: {
+        hackEvent: {
+          type: 'line',
+          xScaleID: 'x',
+          xMin: xVal,
+          xMax: xVal,
+          borderColor: 'rgba(239,68,68,0.65)',
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          click: () => window.open('https://x.com/0xdeployer/status/2051315834212303334', '_blank', 'noopener'),
+          enter: () => { document.body.style.cursor = 'pointer'; },
+          leave: () => { document.body.style.cursor = 'default'; },
+          label: {
+            content: '⚠ Prompt injection attack ↗',
+            display: true,
+            position: 'center',
+            yAdjust: 0,
+            color: 'rgb(239,68,68)',
+            backgroundColor: 'rgba(0,0,0,0.82)',
+            font: { size: 11, weight: 'bold' },
+            padding: { x: 6, y: 3 },
+          }
+        }
+      }
+    };
+  }
 
   async function initCurrency() {
     // Populate select options
@@ -224,6 +305,8 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   // --- Charts ---
   let chartDrb  = null;
   let chartWeth = null;
+  let chartEth  = null;
+  let chartUsdc = null;
 
   function renderDrbChart(data) {
     const ctx = document.getElementById('chart-drb').getContext('2d');
@@ -255,7 +338,8 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
             callbacks: {
               label: (item) => ` ${formatDrb(item.raw)} DRB  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
-          }
+          },
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
@@ -295,11 +379,93 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
             callbacks: {
               label: (item) => ` ${formatWeth(item.raw)} WETH  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
             }
-          }
+          },
+          annotation: hackAnnotation(data),
         },
         scales: {
           x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
           y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: false },
+        }
+      }
+    });
+  }
+
+  function renderEthChart(data) {
+    const ctx = document.getElementById('chart-eth').getContext('2d');
+    if (chartEth) chartEth.destroy();
+    const noPoints = data.length > 60;
+    chartEth = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+          data: data.map(d => d.eth ?? 0),
+          _prices: data.map(d => d.ethPrice),
+          borderColor: 'rgba(168,85,247,1)',
+          backgroundColor: 'rgba(168,85,247,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => ` ${formatWeth(item.raw)} ETH  (${formatLocal(item.raw * (item.dataset._prices[item.dataIndex] ?? 0))})`
+            }
+          },
+          annotation: hackAnnotation(data),
+        },
+        scales: {
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: true },
+        }
+      }
+    });
+  }
+
+  function renderUsdcChart(data) {
+    const ctx = document.getElementById('chart-usdc').getContext('2d');
+    if (chartUsdc) chartUsdc.destroy();
+    const noPoints = data.length > 60;
+    chartUsdc = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+          data: data.map(d => d.usdc ?? 0),
+          borderColor: 'rgba(74,222,128,1)',
+          backgroundColor: 'rgba(74,222,128,0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: noPoints ? 0 : 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => ` ${item.raw.toFixed(2)} USDC  (${formatLocal(item.raw)})`
+            }
+          },
+          annotation: hackAnnotation(data),
+        },
+        scales: {
+          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
+          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => v.toFixed(0) }, beginAtZero: true },
         }
       }
     });
@@ -332,10 +498,12 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     const data = mode === '30d' ? valueLast30Days : last90Days();
     renderDrbChart(data);
     renderWethChart(data);
+    renderEthChart(data);
+    renderUsdcChart(data);
   }
 
   // --- Stats rendering (separated from fetching so currency changes can re-render) ---
-  function renderStats({ drbBalance, wethBalance, drbPrice, ethPrice }) {
+  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice }) {
     if (drbBalance !== null) {
       document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
       document.getElementById('stat-balance-local').textContent = drbPrice
@@ -354,6 +522,24 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       }
     }
 
+    if (ethBalance !== null) {
+      document.getElementById('stat-eth').textContent = formatWeth(ethBalance) + ' ETH';
+      document.getElementById('stat-eth-usd').textContent = ethPrice
+        ? '≈ ' + formatLocal(ethBalance * ethPrice)
+        : 'price unavailable';
+    } else {
+      document.getElementById('stat-eth').textContent = 'unavailable';
+      document.getElementById('stat-eth-usd').textContent = '';
+    }
+
+    if (usdcBalance !== null) {
+      document.getElementById('stat-usdc').textContent = usdcBalance.toFixed(2) + ' USDC';
+      document.getElementById('stat-usdc-sub').textContent = '≈ ' + formatLocal(usdcBalance);
+    } else {
+      document.getElementById('stat-usdc').textContent = 'unavailable';
+      document.getElementById('stat-usdc-sub').textContent = '';
+    }
+
     if (drbPrice !== null) {
       const localPrice = drbPrice * exchangeRate;
       const decimals = localPrice < 0.000001 ? 8 : localPrice < 0.001 ? 6 : 4;
@@ -368,10 +554,12 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
     const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
     const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
-    if (drbBalance !== null || wethBalance !== null) {
-      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd);
+    const ethUsd  = (ethBalance  !== null && ethPrice !== null) ? ethBalance  * ethPrice : 0;
+    const usdcUsd = usdcBalance !== null ? usdcBalance : 0;
+    if (drbBalance !== null || wethBalance !== null || ethBalance !== null || usdcBalance !== null) {
+      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd + ethUsd + usdcUsd);
       document.getElementById('stat-total-sub').textContent =
-        (drbPrice && ethPrice) ? 'DRB + WETH combined' : 'partial data';
+        (drbPrice && ethPrice) ? 'DRB + WETH + ETH + USDC combined' : 'partial data';
     } else {
       document.getElementById('stat-total').textContent = 'unavailable';
       document.getElementById('stat-total-sub').textContent = '';
@@ -411,14 +599,46 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     } catch { return null; }
   }
 
+  async function fetchNativeEthBalance() {
+    try {
+      const res = await fetch(
+        `https://base.blockscout.com/api?module=account&action=balance&address=${WALLET}`
+      );
+      const d = await res.json();
+      if (d.status === '1') {
+        const raw = BigInt(d.result);
+        const div = BigInt(10) ** BigInt(18);
+        return Number(raw / div) + Number(raw % div) / Number(div);
+      }
+    } catch (e) { console.warn('ETH balance fetch failed:', e); }
+    return null;
+  }
+
+  async function fetchUsdcBalance() {
+    try {
+      const res = await fetch(
+        `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${USDC_CONTRACT}&address=${WALLET}`
+      );
+      const d = await res.json();
+      if (d.status === '1') {
+        const raw = BigInt(d.result);
+        const div = BigInt(10) ** BigInt(USDC_DECIMALS);
+        return Number(raw / div) + Number(raw % div) / Number(div);
+      }
+    } catch (e) { console.warn('USDC balance fetch failed:', e); }
+    return null;
+  }
+
   async function updateLiveStats() {
-    const [drbBalance, wethBalance, drbPrice, ethPrice] = await Promise.all([
+    const [drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice] = await Promise.all([
       fetchTokenBalance(TOKEN),
       fetchTokenBalance(WETH_CONTRACT),
+      fetchNativeEthBalance(),
+      fetchUsdcBalance(),
       fetchDrbPrice(),
       fetchEthPrice(),
     ]);
-    liveData = { drbBalance, wethBalance, drbPrice, ethPrice };
+    liveData = { drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice };
     renderStats(liveData);
   }
 
