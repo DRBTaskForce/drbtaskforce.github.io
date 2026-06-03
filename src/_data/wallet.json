@@ -1,19 +1,19 @@
 {
-  "lastUpdated": "2026-06-02T05:54:59.320Z",
+  "lastUpdated": "2026-06-03T06:08:31.200Z",
   "walletAddress": "0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9",
   "tokenContract": "0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2",
   "wethContract": "0x4200000000000000000000000000000000000006",
   "usdcContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   "tokenSymbol": "DRB",
   "tokenDecimals": 18,
-  "lastBlockDrb": 46477753,
-  "lastBlockWeth": 46477753,
+  "lastBlockDrb": 46818538,
+  "lastBlockWeth": 46818538,
   "lastBlockUsdc": 45549811,
   "lastBlockEth": 45549893,
-  "cumulativeDrbReceived": "4444269261.643283934623039488",
-  "totalDrbTransactions": 1035,
-  "cumulativeWethEarned": "143.654089991094714368",
-  "totalWethTransactions": 1998,
+  "cumulativeDrbReceived": "4452997671.02910499415433384",
+  "totalDrbTransactions": 1037,
+  "cumulativeWethEarned": "143.847347998891711924",
+  "totalWethTransactions": 2000,
   "cumulativeUsdcReceived": "88826.013522",
   "totalUsdcTransactions": 12,
   "cumulativeEthReceived": "14.395795562424952832",
@@ -2021,26 +2021,26 @@
     },
     {
       "date": "2026-06-02",
-      "usd": 403044.51,
-      "drb": 264985299,
-      "weth": 138.3011,
+      "usd": 383147.47,
+      "drb": 273713708,
+      "weth": 138.4944,
       "usdc": 88826.01,
       "eth": 14.3445,
-      "drbPrice": 0.0000428663132040804,
-      "ethPrice": 1984.07
+      "drbPrice": 0.0000382372948841111,
+      "ethPrice": 1857.22
+    },
+    {
+      "date": "2026-06-03",
+      "usd": 385515.75,
+      "drb": 273713708,
+      "weth": 138.4944,
+      "usdc": 88826.01,
+      "eth": 14.3445,
+      "drbPrice": 0.000039764654450284,
+      "ethPrice": 1869.98
     }
   ],
   "walletValueLast30Days": [
-    {
-      "date": "2026-05-04",
-      "usd": 456653.13,
-      "drb": 208793845,
-      "weth": 136.9878,
-      "usdc": 88826.01,
-      "eth": 14.3445,
-      "drbPrice": 0.0000614423259308605,
-      "ethPrice": 2345.82
-    },
     {
       "date": "2026-05-05",
       "usd": 458075.49,
@@ -2323,13 +2323,23 @@
     },
     {
       "date": "2026-06-02",
-      "usd": 403044.51,
-      "drb": 264985299,
-      "weth": 138.3011,
+      "usd": 383147.47,
+      "drb": 273713708,
+      "weth": 138.4944,
       "usdc": 88826.01,
       "eth": 14.3445,
-      "drbPrice": 0.0000428663132040804,
-      "ethPrice": 1984.07
+      "drbPrice": 0.0000382372948841111,
+      "ethPrice": 1857.22
+    },
+    {
+      "date": "2026-06-03",
+      "usd": 385515.75,
+      "drb": 273713708,
+      "weth": 138.4944,
+      "usdc": 88826.01,
+      "eth": 14.3445,
+      "drbPrice": 0.000039764654450284,
+      "ethPrice": 1869.98
     }
   ]
 }
