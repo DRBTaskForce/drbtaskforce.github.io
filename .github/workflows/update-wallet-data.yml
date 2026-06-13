@@ -30,5 +30,6 @@ jobs:
           git add src/_data/wallet.json
           git diff --staged --quiet && echo "No changes to wallet data." || (
             git commit -m "chore: update wallet data $(date -u +%Y-%m-%d)" &&
+            git pull --rebase &&
             git push
           )
