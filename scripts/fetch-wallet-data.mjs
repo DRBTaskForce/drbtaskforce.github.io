@@ -30,6 +30,36 @@ const BLOCKSCOUT_API = "https://base.blockscout.com/api";
 const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
 
 // ---------------------------------------------------------------------------
+// Resilient fetch — retries transient 5xx / 429 / network errors with
+// exponential backoff + jitter. Permanent errors (4xx) are returned as-is so
+// the existing `if (!res.ok) throw` checks still surface them.
+// ---------------------------------------------------------------------------
+
+async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000 } = {}) {
+  const label = typeof url === "string" ? url : url.toString();
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if ((res.status >= 500 || res.status === 429) && attempt < retries) {
+        const delay = baseDelay * 2 ** attempt + Math.floor(Math.random() * 500);
+        console.warn(`HTTP ${res.status} from ${label} — retry ${attempt + 1}/${retries} in ${delay}ms`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt < retries) {
+        const delay = baseDelay * 2 ** attempt + Math.floor(Math.random() * 500);
+        console.warn(`Fetch failed for ${label}: ${err.message} — retry ${attempt + 1}/${retries} in ${delay}ms`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Blockscout — token transfer history
 // ---------------------------------------------------------------------------
 
@@ -50,7 +80,7 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
     url.searchParams.set("offset", pageSize);
     url.searchParams.set("page", page);
 
-    const res = await fetch(url.toString());
+    const res = await fetchWithRetry(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
     const data = await res.json();
 
@@ -87,7 +117,7 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
     url.searchParams.set("offset", pageSize);
     url.searchParams.set("page", page);
 
-    const res = await fetch(url.toString());
+    const res = await fetchWithRetry(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
     const data = await res.json();
 
@@ -114,7 +144,7 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
  */
 async function fetchDrbPriceHistory(limit = 1000) {
   const url = `https://api.geckoterminal.com/api/v2/networks/base/pools/${DRB_POOL}/ohlcv/day?limit=${limit}`;
-  const res = await fetch(url, { headers: { Accept: "application/json;version=20230302" } });
+  const res = await fetchWithRetry(url, { headers: { Accept: "application/json;version=20230302" } });
   if (!res.ok) throw new Error(`GeckoTerminal HTTP error: ${res.status}`);
   const data = await res.json();
   const candles = data.data?.attributes?.ohlcv_list ?? [];
@@ -134,7 +164,7 @@ async function fetchDrbPriceHistory(limit = 1000) {
 async function fetchEthPriceHistory(days = 400) {
   const since = Math.floor(Date.now() / 1000) - days * 86400;
   const url = `https://api.kraken.com/0/public/OHLC?pair=ETHUSD&interval=1440&since=${since}`;
-  const res = await fetch(url);
+  const res = await fetchWithRetry(url);
   if (!res.ok) throw new Error(`Kraken HTTP error: ${res.status}`);
   const data = await res.json();
   if (data.error?.length) throw new Error(`Kraken API error: ${data.error.join(", ")}`);
