@@ -8,12 +8,18 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-creators-data
+  cancel-in-progress: false
+
 jobs:
   update-creators-data:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -32,5 +38,6 @@ jobs:
           git add src/_data/creators.json
           git diff --staged --quiet && echo "No changes to creators data." || (
             git commit -m "chore: update creators data $(date -u +%Y-%m-%d)" &&
+            git pull --rebase origin main &&
             git push
           )
