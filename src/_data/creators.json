@@ -1,84 +1,76 @@
 {
   "daily": [
     {
-      "author": "_DaBull",
-      "avatar": "https://pbs.twimg.com/profile_images/1922446580059189249/_LRZOnOn_200x200.jpg",
-      "impressions": 1189,
-      "reactions": 55,
-      "posts": 3,
-      "pct": 28.4
+      "author": "3SlashM",
+      "avatar": "https://pbs.twimg.com/profile_images/1948467422811295744/ylwkmQjv_200x200.jpg",
+      "impressions": 1760,
+      "reactions": 59,
+      "posts": 2,
+      "pct": 31.9
     },
     {
-      "author": "DRBMaxi",
-      "avatar": "https://pbs.twimg.com/profile_images/1989019131509608448/E5ahAm06_200x200.jpg",
-      "impressions": 1016,
-      "reactions": 71,
-      "posts": 2,
-      "pct": 24.3
+      "author": "Basedforreal",
+      "avatar": "https://pbs.twimg.com/profile_images/2016585720111013889/xrRfpf13_200x200.jpg",
+      "impressions": 1145,
+      "reactions": 69,
+      "posts": 1,
+      "pct": 20.7
     },
     {
       "author": "MemesOnBase_",
       "avatar": "https://pbs.twimg.com/profile_images/2071628850719805440/CJ-ilkHC_200x200.jpg",
-      "impressions": 835,
-      "reactions": 27,
+      "impressions": 856,
+      "reactions": 19,
       "posts": 1,
-      "pct": 19.9
+      "pct": 15.5
     },
     {
-      "author": "wfacts_x",
-      "avatar": "https://pbs.twimg.com/profile_images/2073152117028663296/1X_7rzMB_200x200.jpg",
-      "impressions": 664,
-      "reactions": 40,
-      "posts": 1,
-      "pct": 15.9
-    },
-    {
-      "author": "_TwentyX",
-      "avatar": "https://pbs.twimg.com/profile_images/1971978188688384000/uLcTqNF0_200x200.jpg",
-      "impressions": 181,
-      "reactions": 12,
-      "posts": 2,
-      "pct": 4.3
-    },
-    {
-      "author": "atzebase",
-      "avatar": "https://pbs.twimg.com/profile_images/2017749679186845697/q_XIguvO_200x200.jpg",
-      "impressions": 116,
-      "reactions": 7,
-      "posts": 1,
-      "pct": 2.8
-    },
-    {
-      "author": "AdeKh337629",
-      "avatar": "https://pbs.twimg.com/profile_images/2079100605121941504/gJ3cBo6M_200x200.jpg",
-      "impressions": 67,
-      "reactions": 5,
-      "posts": 1,
-      "pct": 1.6
-    },
-    {
-      "author": "refik09212918",
-      "avatar": "https://pbs.twimg.com/profile_images/2027118286983368704/SkHwP6LC_200x200.jpg",
-      "impressions": 49,
+      "author": "thedonhu",
+      "avatar": "https://pbs.twimg.com/profile_images/1946757446841651201/aPEjUn7W_200x200.jpg",
+      "impressions": 527,
       "reactions": 9,
       "posts": 1,
-      "pct": 1.2
+      "pct": 9.5
     },
     {
-      "author": "NatKingColeIC3",
-      "avatar": "https://pbs.twimg.com/profile_images/1856823873284542464/yAuWI6S0_200x200.jpg",
-      "impressions": 36,
-      "reactions": 5,
+      "author": "bitcoinbrianx",
+      "avatar": "https://pbs.twimg.com/profile_images/2077360377189347329/bmFO8Uf3_200x200.jpg",
+      "impressions": 526,
+      "reactions": 15,
       "posts": 1,
-      "pct": 0.9
+      "pct": 9.5
     },
     {
-      "author": "NikoIN3",
-      "avatar": "https://pbs.twimg.com/profile_images/1177843965959249922/WMUm0j7z_200x200.jpg",
-      "impressions": 36,
+      "author": "_DaBull",
+      "avatar": "https://pbs.twimg.com/profile_images/1922446580059189249/_LRZOnOn_200x200.jpg",
+      "impressions": 314,
+      "reactions": 30,
+      "posts": 1,
+      "pct": 5.7
+    },
+    {
+      "author": "MLeeJr",
+      "avatar": "https://pbs.twimg.com/profile_images/1601094719525855232/aOkAPHtC_200x200.png",
+      "impressions": 167,
+      "reactions": 7,
+      "posts": 1,
+      "pct": 3
+    },
+    {
+      "author": "Salamander_x_",
+      "avatar": "https://pbs.twimg.com/profile_images/2063484830080524288/438RtTec_200x200.jpg",
+      "impressions": 112,
+      "reactions": 17,
+      "posts": 1,
+      "pct": 2
+    },
+    {
+      "author": "CryptoStylesUSA",
+      "avatar": "https://pbs.twimg.com/profile_images/1920991660361551872/wfvACP-m_200x200.jpg",
+      "impressions": 112,
       "reactions": 10,
       "posts": 1,
-      "pct": 0.9
+      "pct": 2
     }
   ],
   "weekly": [
@@ -1245,44 +1237,10 @@
       "pct": 0
     }
   ],
-  "lastUpdatedDaily": "2026-07-22T15:26:32.614Z",
+  "lastUpdatedDaily": "2026-07-23T15:49:28.773Z",
   "lastUpdatedWeekly": "2026-07-22T15:26:32.614Z",
   "lastUpdatedMonthly": "2026-07-01T16:20:52.930Z",
   "dailyHistory": {
-    "2026-06-23": [
-      {
-        "author": "CryptoStylesUSA",
-        "avatar": "https://pbs.twimg.com/profile_images/1920991660361551872/wfvACP-m_200x200.jpg",
-        "impressions": 2355,
-        "reactions": 45,
-        "posts": 3,
-        "pct": 55.3
-      },
-      {
-        "author": "BasedDRB",
-        "avatar": "https://pbs.twimg.com/profile_images/2017251122788855808/iwrBLNu0_200x200.jpg",
-        "impressions": 1651,
-        "reactions": 44,
-        "posts": 1,
-        "pct": 38.8
-      },
-      {
-        "author": "wfacts_x",
-        "avatar": "https://pbs.twimg.com/profile_images/2057180850949664768/yqDi6wxn_200x200.jpg",
-        "impressions": 170,
-        "reactions": 20,
-        "posts": 1,
-        "pct": 4
-      },
-      {
-        "author": "Sommguy_TO",
-        "avatar": "https://pbs.twimg.com/profile_images/2062702001608069120/MTyoPTWe_200x200.jpg",
-        "impressions": 80,
-        "reactions": 5,
-        "posts": 1,
-        "pct": 1.9
-      }
-    ],
     "2026-06-24": [
       {
         "author": "dracodotbase",
@@ -3459,6 +3417,80 @@
         "reactions": 10,
         "posts": 1,
         "pct": 0.9
+      }
+    ],
+    "2026-07-23": [
+      {
+        "author": "3SlashM",
+        "avatar": "https://pbs.twimg.com/profile_images/1948467422811295744/ylwkmQjv_200x200.jpg",
+        "impressions": 1760,
+        "reactions": 59,
+        "posts": 2,
+        "pct": 31.9
+      },
+      {
+        "author": "Basedforreal",
+        "avatar": "https://pbs.twimg.com/profile_images/2016585720111013889/xrRfpf13_200x200.jpg",
+        "impressions": 1145,
+        "reactions": 69,
+        "posts": 1,
+        "pct": 20.7
+      },
+      {
+        "author": "MemesOnBase_",
+        "avatar": "https://pbs.twimg.com/profile_images/2071628850719805440/CJ-ilkHC_200x200.jpg",
+        "impressions": 856,
+        "reactions": 19,
+        "posts": 1,
+        "pct": 15.5
+      },
+      {
+        "author": "thedonhu",
+        "avatar": "https://pbs.twimg.com/profile_images/1946757446841651201/aPEjUn7W_200x200.jpg",
+        "impressions": 527,
+        "reactions": 9,
+        "posts": 1,
+        "pct": 9.5
+      },
+      {
+        "author": "bitcoinbrianx",
+        "avatar": "https://pbs.twimg.com/profile_images/2077360377189347329/bmFO8Uf3_200x200.jpg",
+        "impressions": 526,
+        "reactions": 15,
+        "posts": 1,
+        "pct": 9.5
+      },
+      {
+        "author": "_DaBull",
+        "avatar": "https://pbs.twimg.com/profile_images/1922446580059189249/_LRZOnOn_200x200.jpg",
+        "impressions": 314,
+        "reactions": 30,
+        "posts": 1,
+        "pct": 5.7
+      },
+      {
+        "author": "MLeeJr",
+        "avatar": "https://pbs.twimg.com/profile_images/1601094719525855232/aOkAPHtC_200x200.png",
+        "impressions": 167,
+        "reactions": 7,
+        "posts": 1,
+        "pct": 3
+      },
+      {
+        "author": "Salamander_x_",
+        "avatar": "https://pbs.twimg.com/profile_images/2063484830080524288/438RtTec_200x200.jpg",
+        "impressions": 112,
+        "reactions": 17,
+        "posts": 1,
+        "pct": 2
+      },
+      {
+        "author": "CryptoStylesUSA",
+        "avatar": "https://pbs.twimg.com/profile_images/1920991660361551872/wfvACP-m_200x200.jpg",
+        "impressions": 112,
+        "reactions": 10,
+        "posts": 1,
+        "pct": 2
       }
     ]
   }
