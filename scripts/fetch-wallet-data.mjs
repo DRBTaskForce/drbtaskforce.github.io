@@ -60,6 +60,21 @@ async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000
 }
 
 // ---------------------------------------------------------------------------
+// Blockscout rate-limited fetch — enforces a minimum gap between requests,
+// then delegates to fetchWithRetry for 5xx/429/network resilience.
+// ---------------------------------------------------------------------------
+
+const BLOCKSCOUT_MIN_GAP_MS = 500;
+let lastBlockscoutCallAt = 0;
+
+async function blockscoutFetch(url) {
+  const gap = BLOCKSCOUT_MIN_GAP_MS - (Date.now() - lastBlockscoutCallAt);
+  if (gap > 0) await new Promise(r => setTimeout(r, gap));
+  lastBlockscoutCallAt = Date.now();
+  return fetchWithRetry(url);
+}
+
+// ---------------------------------------------------------------------------
 // Blockscout — token transfer history
 // ---------------------------------------------------------------------------
 
@@ -80,7 +95,7 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
     url.searchParams.set("offset", pageSize);
     url.searchParams.set("page", page);
 
-    const res = await fetchWithRetry(url.toString());
+    const res = await blockscoutFetch(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
     const data = await res.json();
 
@@ -117,7 +132,7 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
     url.searchParams.set("offset", pageSize);
     url.searchParams.set("page", page);
 
-    const res = await fetchWithRetry(url.toString());
+    const res = await blockscoutFetch(url.toString());
     if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
     const data = await res.json();
 
@@ -357,12 +372,15 @@ function last30DaysFrom(fullHistory) {
 async function main() {
   console.log("Fetching wallet data for:", WALLET_ADDRESS);
 
-  const [drbTransfers, wethTransfers, usdcTransfers, ethNormalTxs, ethInternalTxs, drbPriceUsd, ethPriceUsd] = await Promise.all([
-    fetchAllTransfers(DRB_CONTRACT),
-    fetchAllTransfers(WETH_CONTRACT),
-    fetchAllTransfers(USDC_CONTRACT),
-    fetchAllEthTxs("txlist"),
-    fetchAllEthTxs("txlistinternal"),
+  // Blockscout calls run sequentially to stay within rate limits.
+  const drbTransfers      = await fetchAllTransfers(DRB_CONTRACT);
+  const wethTransfers     = await fetchAllTransfers(WETH_CONTRACT);
+  const usdcTransfers     = await fetchAllTransfers(USDC_CONTRACT);
+  const ethNormalTxs      = await fetchAllEthTxs("txlist");
+  const ethInternalTxs    = await fetchAllEthTxs("txlistinternal");
+
+  // Price APIs are independent — fetch in parallel.
+  const [drbPriceUsd, ethPriceUsd] = await Promise.all([
     fetchDrbPriceHistory().catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
     fetchEthPriceHistory().catch(e => { console.warn("ETH price history failed:", e.message); return {}; }),
   ]);
@@ -437,15 +455,31 @@ async function mainIncremental() {
 
   console.log(`Incremental update from blocks DRB=${fromBlockDrb} WETH=${fromBlockWeth} USDC=${fromBlockUsdc} ETH=${fromBlockEth}`);
 
-  const [newDrbTx, newWethTx, newUsdcTx, newEthNormalTxs, newEthInternalTxs, newDrbPrices, newEthPrices] = await Promise.all([
-    fetchAllTransfers(DRB_CONTRACT,  fromBlockDrb),
-    fetchAllTransfers(WETH_CONTRACT, fromBlockWeth),
-    fetchAllTransfers(USDC_CONTRACT, fromBlockUsdc),
-    fetchAllEthTxs("txlist",         fromBlockEth),
-    fetchAllEthTxs("txlistinternal", fromBlockEth),
+  // Blockscout calls run sequentially to stay within rate limits.
+  // On rate-limit failure we fall back to existing balance data.
+  let newDrbTx = [], newWethTx = [], newUsdcTx = [], newEthNormalTxs = [], newEthInternalTxs = [];
+  let blockscoutAvailable = true;
+  try {
+    newDrbTx         = await fetchAllTransfers(DRB_CONTRACT,  fromBlockDrb);
+    newWethTx        = await fetchAllTransfers(WETH_CONTRACT, fromBlockWeth);
+    newUsdcTx        = await fetchAllTransfers(USDC_CONTRACT, fromBlockUsdc);
+    newEthNormalTxs  = await fetchAllEthTxs("txlist",         fromBlockEth);
+    newEthInternalTxs = await fetchAllEthTxs("txlistinternal", fromBlockEth);
+  } catch (err) {
+    console.warn("Blockscout unavailable — using existing balance data:", err.message);
+    blockscoutAvailable = false;
+  }
+
+  // Price APIs are independent — fetch in parallel.
+  const [newDrbPrices, newEthPrices] = await Promise.all([
     fetchDrbPriceHistory(8).catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
     fetchEthPriceHistory(8).catch(e => { console.warn("ETH price history failed:", e.message); return {}; }),
   ]);
+
+  if (!blockscoutAvailable && Object.keys(newDrbPrices).length === 0 && Object.keys(newEthPrices).length === 0) {
+    console.warn("No new data available from any source. Skipping update.");
+    return;
+  }
 
   console.log(`New transfers — DRB: ${newDrbTx.length} | WETH: ${newWethTx.length} | USDC: ${newUsdcTx.length}`);
   console.log(`New ETH txs — normal: ${newEthNormalTxs.length} | internal: ${newEthInternalTxs.length}`);

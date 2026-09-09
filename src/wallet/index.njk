@@ -99,7 +99,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     <div class="bg-surface border border-border-col rounded-brand p-6">
       <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Data Updated</div>
       <div class="text-base font-semibold text-text-primary">{{ wallet.lastUpdated | formatDate }}</div>
-      <div class="text-[0.75rem] text-text-muted mt-1">updated daily</div>
+      <div id="stat-updated-sub" class="text-[0.75rem] text-text-muted mt-1">updated daily</div>
     </div>
 
   </div>
@@ -503,7 +503,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
   }
 
   // --- Stats rendering (separated from fetching so currency changes can re-render) ---
-  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice }) {
+  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice, usingCached }) {
     if (drbBalance !== null) {
       document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
       document.getElementById('stat-balance-local').textContent = drbPrice
@@ -564,18 +564,43 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
       document.getElementById('stat-total').textContent = 'unavailable';
       document.getElementById('stat-total-sub').textContent = '';
     }
+
+    // Surface a hint when live Blockscout data is unavailable and we fell back to static data.
+    const updatedSub = document.querySelector('#stat-updated-sub');
+    if (updatedSub) {
+      updatedSub.textContent = usingCached ? 'live fetch unavailable — showing cached' : 'updated daily';
+    }
+  }
+
+  // --- Blockscout rate-limited fetch ---
+  // Enforces a minimum gap between calls and retries once on HTTP 429.
+  const BS_GAP_MS = 400;
+  let lastBsFetchAt = 0;
+
+  async function blockscoutGet(url) {
+    const gap = BS_GAP_MS - (Date.now() - lastBsFetchAt);
+    if (gap > 0) await new Promise(r => setTimeout(r, gap));
+    lastBsFetchAt = Date.now();
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const res = await fetch(url);
+      if (res.status !== 429) return res;
+      console.warn(`Blockscout rate limited (attempt ${attempt}/2)`);
+      await new Promise(r => setTimeout(r, 8000));
+      lastBsFetchAt = Date.now();
+    }
+    throw new Error('Blockscout rate limited');
   }
 
   // --- Live data fetch ---
-  async function fetchTokenBalance(contractAddress) {
+  async function fetchTokenBalance(contractAddress, decimals = DECIMALS) {
     try {
-      const res = await fetch(
+      const res = await blockscoutGet(
         `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${contractAddress}&address=${WALLET}`
       );
       const d = await res.json();
       if (d.status === '1') {
         const raw = BigInt(d.result);
-        const div = BigInt(10) ** BigInt(DECIMALS);
+        const div = BigInt(10) ** BigInt(decimals);
         return Number(raw / div) + Number(raw % div) / Number(div);
       }
     } catch (e) { console.warn('Balance fetch failed:', e); }
@@ -601,7 +626,7 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
 
   async function fetchNativeEthBalance() {
     try {
-      const res = await fetch(
+      const res = await blockscoutGet(
         `https://base.blockscout.com/api?module=account&action=balance&address=${WALLET}`
       );
       const d = await res.json();
@@ -614,31 +639,29 @@ description: "Live tracker showing fees accumulating in Grok's wallet from $DRB 
     return null;
   }
 
-  async function fetchUsdcBalance() {
-    try {
-      const res = await fetch(
-        `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${USDC_CONTRACT}&address=${WALLET}`
-      );
-      const d = await res.json();
-      if (d.status === '1') {
-        const raw = BigInt(d.result);
-        const div = BigInt(10) ** BigInt(USDC_DECIMALS);
-        return Number(raw / div) + Number(raw % div) / Number(div);
-      }
-    } catch (e) { console.warn('USDC balance fetch failed:', e); }
-    return null;
-  }
-
   async function updateLiveStats() {
-    const [drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice] = await Promise.all([
-      fetchTokenBalance(TOKEN),
-      fetchTokenBalance(WETH_CONTRACT),
-      fetchNativeEthBalance(),
-      fetchUsdcBalance(),
-      fetchDrbPrice(),
-      fetchEthPrice(),
-    ]);
-    liveData = { drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice };
+    // Last baked-in data point as fallback for rate-limited responses.
+    const lastStatic = valueAllTime.length ? valueAllTime[valueAllTime.length - 1] : null;
+
+    // Blockscout calls run sequentially to avoid rate limiting.
+    const drbBalance  = await fetchTokenBalance(TOKEN);
+    const wethBalance = await fetchTokenBalance(WETH_CONTRACT);
+    const ethBalance  = await fetchNativeEthBalance();
+    const usdcBalance = await fetchTokenBalance(USDC_CONTRACT, USDC_DECIMALS);
+
+    // Price APIs are independent — fetch in parallel.
+    const [drbPrice, ethPrice] = await Promise.all([fetchDrbPrice(), fetchEthPrice()]);
+
+    const usingCached = drbBalance === null || wethBalance === null || ethBalance === null || usdcBalance === null;
+    liveData = {
+      drbBalance:  drbBalance  ?? lastStatic?.drb  ?? null,
+      wethBalance: wethBalance ?? lastStatic?.weth ?? null,
+      ethBalance:  ethBalance  ?? lastStatic?.eth  ?? null,
+      usdcBalance: usdcBalance ?? lastStatic?.usdc ?? null,
+      drbPrice:    drbPrice    ?? lastStatic?.drbPrice ?? null,
+      ethPrice:    ethPrice    ?? lastStatic?.ethPrice ?? null,
+      usingCached,
+    };
     renderStats(liveData);
   }
 
