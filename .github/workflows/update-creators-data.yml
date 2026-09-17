@@ -27,15 +27,22 @@ jobs:
           node-version: '24'
 
       - name: Fetch creators data
+        id: fetch_creators
         env:
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
         run: node scripts/fetch-creators-data.mjs
 
       - name: Commit and push if changed
+        # Keep attempted/final checkpoints even if a lookup fails, so a rerun
+        # cannot silently repeat a paid final check. The fetch job stays failed.
+        if: ${{ always() && steps.fetch_creators.outcome != 'skipped' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/_data/creators.json
+          if [ -f data/creator-post-cache.json ]; then
+            git add data/creator-post-cache.json
+          fi
           git diff --staged --quiet && echo "No changes to creators data." || (
             git commit -m "chore: update creators data $(date -u +%Y-%m-%d)" &&
             git pull --rebase origin main &&
