@@ -3,9 +3,9 @@
  * Fetches $DRB attention leaders from X API v2, writes to src/_data/creators.json.
  *
  * Schedule (GitHub Actions — update-creators-data.yml):
- *   Daily  08:00 CST (14:00 UTC)  → 24h snapshot stored
- *   Wednesday 08:00 CST            → also computes 7-day rollup
- *   1st of month 08:00 CST         → also computes 30-day rollup
+ *   Daily at 14:00 UTC: store a 24h snapshot and refresh both rollups.
+ *   Rollups use available snapshots from the last 7/30 UTC calendar dates.
+ *   Missing dates are not backfilled with older snapshots.
  *
  * Ranking: sorted by impressions, minimum 5 reactions to qualify.
  * Attention %: author impressions / total impressions × 100.
@@ -17,12 +17,15 @@
 import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { fetchRecentPosts } from './x-search.mjs';
+import { readPostCache, savePostCache, updatePostCache, postCacheSnapshots } from './creator-post-cache.mjs';
 
 const __dirname   = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '../src/_data/creators.json');
+const CACHE_PATH  = join(__dirname, '../data/creator-post-cache.json');
 
 const BEARER_TOKEN  = process.env.TWITTER_BEARER_TOKEN;
-const QUERY         = '$DRB';
+const QUERY         = '($DRB OR "debtreliefbot:native" OR "DebtReliefBot")';
 const TOP_N         = 15;
 const MIN_REACTIONS = 5;
 const MAX_HISTORY   = 30;
@@ -34,46 +37,33 @@ if (!BEARER_TOKEN) {
 
 async function fetchPosts() {
   const startTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const posts     = [];
-  const usersById = {};
-  let nextToken   = null;
-
-  do {
-    const params = new URLSearchParams({
+  const params = new URLSearchParams({
       query:          QUERY,
       max_results:    '100',
       start_time:     startTime,
-      'tweet.fields': 'public_metrics,author_id,created_at',
+      'tweet.fields': 'public_metrics,author_id,created_at,note_tweet,referenced_tweets',
       'user.fields':  'username,profile_image_url',
       expansions:     'author_id',
-    });
-    if (nextToken) params.set('pagination_token', nextToken);
+  });
+  const data = await fetchRecentPosts(params, BEARER_TOKEN);
+  return {
+    posts: data.data,
+    usersById: Object.fromEntries(data.includes.users.map(user => [user.id, user])),
+  };
+}
 
-    const res = await fetch(`https://api.twitter.com/2/tweets/search/recent?${params}`, {
-      headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-    });
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`X API ${res.status}: ${body}`);
-    }
-
-    const data = await res.json();
-
-    for (const user of data.includes?.users ?? []) {
-      usersById[user.id] = user;
-    }
-    posts.push(...(data.data ?? []));
-    nextToken = data.meta?.next_token ?? null;
-  } while (nextToken);
-
-  return { posts, usersById };
+function hasEligibleOwnText(post) {
+  // Only quotes need this guard; other search results retain their eligibility.
+  if (!post.referenced_tweets?.some(ref => ref.type === 'quoted')) return true;
+  return /(?:\$DRB\b|\bDebtReliefBot\b)/i.test(post.note_tweet?.text ?? post.text ?? '');
 }
 
 function buildLeaderboard(posts, usersById) {
   const byAuthor = {};
 
   for (const post of posts) {
+    if (!hasEligibleOwnText(post)) continue;
+
     const m         = post.public_metrics ?? {};
     const reactions = (m.like_count ?? 0) + (m.retweet_count ?? 0) +
                       (m.reply_count ?? 0) + (m.quote_count ?? 0);
@@ -107,8 +97,15 @@ function buildLeaderboard(posts, usersById) {
   }));
 }
 
-function buildRollup(history, days) {
-  const dates    = Object.keys(history).sort().slice(-days);
+function historyDates(history, days, today) {
+  const start = new Date(`${today}T00:00:00.000Z`);
+  start.setUTCDate(start.getUTCDate() - days + 1);
+  const firstDate = start.toISOString().slice(0, 10);
+  return Object.keys(history).filter(date => date >= firstDate && date <= today).sort();
+}
+
+function buildRollup(history, days, today) {
+  const dates    = historyDates(history, days, today);
   const byAuthor = {};
 
   for (const date of dates) {
@@ -143,16 +140,11 @@ function buildRollup(history, days) {
 async function main() {
   const now   = new Date();
   const today = now.toISOString().slice(0, 10);
-  const isWed = now.getUTCDay() === 3;
-  const is1st = now.getUTCDate() === 1;
+  const cache = readPostCache(CACHE_PATH);
 
   console.log(`Fetching $DRB posts for ${today}...`);
   const { posts, usersById } = await fetchPosts();
   console.log(`Retrieved ${posts.length} posts`);
-
-  const allAuthors = buildLeaderboard(posts, usersById);
-  const daily      = allAuthors.slice(0, TOP_N);
-  console.log(`${allAuthors.length} qualifying authors, showing top ${daily.length}`);
 
   let existing = {
     daily: [], weekly: [], monthly: [],
@@ -163,26 +155,33 @@ async function main() {
     existing = JSON.parse(readFileSync(OUTPUT_PATH, 'utf8'));
   }
 
-  const history   = { ...(existing.dailyHistory ?? {}), [today]: allAuthors };
-  const allDates  = Object.keys(history).sort();
-  if (allDates.length > MAX_HISTORY) delete history[allDates[0]];
+  await updatePostCache(cache, posts.filter(hasEligibleOwnText), usersById, now, BEARER_TOKEN,
+    value => savePostCache(CACHE_PATH, value));
+  const history = { ...(existing.dailyHistory ?? {}) };
+  for (const [date, snapshot] of Object.entries(postCacheSnapshots(cache))) {
+    history[date] = buildLeaderboard(snapshot.posts, snapshot.usersById);
+  }
+  const daily = history[today].slice(0, TOP_N);
+  console.log(`${history[today].length} qualifying authors, showing top ${daily.length}`);
+  const retainedDates = new Set(historyDates(history, MAX_HISTORY, today));
+  for (const date of Object.keys(history)) {
+    if (!retainedDates.has(date)) delete history[date];
+  }
 
-  const weekly  = isWed ? buildRollup(history, 7)  : (existing.weekly  ?? []);
-  const monthly = is1st ? buildRollup(history, 30) : (existing.monthly ?? []);
+  const weekly  = buildRollup(history, 7, today);
+  const monthly = buildRollup(history, 30, today);
 
   writeFileSync(OUTPUT_PATH, JSON.stringify({
     daily,
     weekly,
     monthly,
     lastUpdatedDaily:   now.toISOString(),
-    lastUpdatedWeekly:  isWed ? now.toISOString() : (existing.lastUpdatedWeekly  ?? null),
-    lastUpdatedMonthly: is1st ? now.toISOString() : (existing.lastUpdatedMonthly ?? null),
+    lastUpdatedWeekly:  now.toISOString(),
+    lastUpdatedMonthly: now.toISOString(),
     dailyHistory: history,
   }, null, 2) + '\n');
 
   console.log(`Done. Daily: ${daily.length}, Weekly: ${weekly.length}, Monthly: ${monthly.length}`);
-  if (isWed) console.log('Wednesday — weekly rollup computed.');
-  if (is1st) console.log('1st of month — monthly rollup computed.');
 }
 
 main().catch(err => { console.error(err.message); process.exit(1); });
