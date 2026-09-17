@@ -1,0 +1,261 @@
+  name: Check DRB Search Coverage
+
+  on:
+    workflow_dispatch:
+
+  permissions: {}
+
+  jobs:
+    compare:
+      runs-on: ubuntu-latest
+      timeout-minutes: 6
+      steps:
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '24'
+
+        - name: Compare MLeeJr searches without updating rankings
+          env:
+            TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          shell: bash
+          run: |
+            node --input-type=module <<'NODE'
+            import { appendFileSync } from 'node:fs';
+
+            const token = process.env.TWITTER_BEARER_TOKEN;
+            const report = {
+              status: 'INCONCLUSIVE',
+              account: 'MLeeJr',
+              searches: [],
+            };
+
+            // All searches use the same six-day window.
+            // Leave ten minutes for X to index recent posts.
+            const end = new Date(Date.now() - 10 * 60 * 1000);
+            report.window = {
+              start: new Date(end.getTime() - 6 * 86400000).toISOString(),
+              end: end.toISOString(),
+            };
+
+            const queries = [
+              ['plain', 'from:MLeeJr $DRB -is:retweet'],
+              ['linked', 'from:MLeeJr "debtreliefbot:native" -is:retweet'],
+              ['name', 'from:MLeeJr "DebtReliefBot" -is:retweet'],
+            ];
+
+            async function search(label, query) {
+              const posts = new Map();
+              const cursors = new Set();
+              let cursor;
+
+              // Maximum: nine requests across all three searches.
+              // No automatic retries.
+              for (let page = 0; page < 3; page++) {
+                const params = new URLSearchParams({
+                  query,
+                  max_results: '100',
+                  sort_order: 'recency',
+                  start_time: report.window.start,
+                  end_time: report.window.end,
+                  'tweet.fields': 'text,created_at,public_metrics,entities,note_tweet,referenced_tweets,author_id',
+                });
+
+                if (cursor) params.set('next_token', cursor);
+
+                let response;
+                try {
+                  response = await fetch(
+                    `https://api.x.com/2/tweets/search/recent?${params}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                      signal: AbortSignal.timeout(30000),
+                    }
+                  );
+                } catch {
+                  throw new Error(
+                    `${label}: network request failed; no retry made.`
+                  );
+                }
+
+                if (!response.ok) {
+                  throw new Error(
+                    `${label}: X API HTTP ${response.status}; no retry made.`
+                  );
+                }
+
+                let body;
+                try {
+                  body = await response.json();
+                } catch {
+                  throw new Error(`${label}: invalid JSON response.`);
+                }
+
+                if (
+                  !body ||
+                  typeof body !== 'object' ||
+                  body.errors?.length ||
+                  (
+                    !Array.isArray(body.data) &&
+                    !(
+                      body.data === undefined &&
+                      body.meta?.result_count === 0
+                    )
+                  )
+                ) {
+                  throw new Error(`${label}: incomplete API response.`);
+                }
+
+                for (const post of body.data ?? []) {
+                  if (
+                    !post ||
+                    !/^\d+$/.test(post.id) ||
+                    typeof post.text !== 'string' ||
+                    typeof post.author_id !== 'string' ||
+                    !post.public_metrics ||
+                    typeof post.public_metrics !== 'object' ||
+                    Array.isArray(post.public_metrics)
+                  ) {
+                    throw new Error(`${label}: incomplete post data.`);
+                  }
+
+                  // Only public post fields go into the report.
+                  posts.set(post.id, {
+                    id: post.id,
+                    url: `https://x.com/MLeeJr/status/${post.id}`,
+                    text: post.text,
+                    created_at: post.created_at,
+                    entities: post.entities,
+                    note_tweet: post.note_tweet,
+                    public_metrics: post.public_metrics,
+                    referenced_tweets: post.referenced_tweets,
+                  });
+                }
+
+                cursor = body.meta?.next_token;
+
+                if (!cursor) {
+                  return {
+                    label,
+                    query,
+                    complete: true,
+                    posts: [...posts.values()],
+                  };
+                }
+
+                if (
+                  typeof cursor !== 'string' ||
+                  cursors.has(cursor)
+                ) {
+                  throw new Error(`${label}: invalid pagination cursor.`);
+                }
+
+                cursors.add(cursor);
+              }
+
+              throw new Error(
+                `${label}: request limit reached; comparison is incomplete. No retry made.`
+              );
+            }
+
+            try {
+              if (!token) {
+                throw new Error(
+                  'TWITTER_BEARER_TOKEN is unavailable to this workflow.'
+                );
+              }
+
+              for (const [label, query] of queries) {
+                report.searches.push(await search(label, query));
+              }
+
+              const plainIds = new Set(
+                report.searches[0].posts.map(post => post.id)
+              );
+
+              const otherPosts = new Map(
+                report.searches
+                  .slice(1)
+                  .flatMap(search => search.posts)
+                  .map(post => [post.id, post])
+              );
+
+              const evidence = [...otherPosts.values()].map(post => {
+                const text = post.note_tweet?.text ?? post.text;
+                const metrics = post.public_metrics;
+                const reactionFields = [
+                  'like_count',
+                  'retweet_count',
+                  'reply_count',
+                  'quote_count',
+                ];
+
+                const reactions = reactionFields.every(
+                  key => Number.isFinite(metrics[key]) && metrics[key] >= 0
+                )
+                  ? reactionFields.reduce(
+                      (sum, key) => sum + metrics[key],
+                      0
+                    )
+                  : null;
+
+                return {
+                  id: post.id,
+                  url: post.url,
+                  linkedText: /\bdebtreliefbot:native\b/i.test(text),
+                  plainText: /\$drb\b/i.test(text),
+                  returnedByCurrentQuery: plainIds.has(post.id),
+                  reactions,
+                  meetsFiveReactions:
+                    reactions === null ? null : reactions >= 5,
+                  impressions:
+                    Number.isFinite(metrics.impression_count)
+                      ? metrics.impression_count
+                      : null,
+                };
+              });
+
+              report.comparison = evidence;
+
+              const linkedOnly = evidence.filter(
+                post => post.linkedText && !post.plainText
+              );
+
+              report.linkedOnlySampleCount = linkedOnly.length;
+              report.linkedOnlyMissingFromCurrentQuery = linkedOnly.filter(
+                post => !post.returnedByCurrentQuery
+              );
+
+              report.status = !linkedOnly.length
+                ? 'INCONCLUSIVE_NO_LINKED_ONLY_SAMPLE'
+                : report.linkedOnlyMissingFromCurrentQuery.length
+                  ? 'LINKED_POSTS_MISSING_FROM_CURRENT_QUERY'
+                  : 'CURRENT_QUERY_RETURNED_ALL_LINKED_ONLY_POSTS_IN_THIS_SAMPLE';
+
+              report.limits =
+                'This compares retrieval for one account and window, not every post on X. Reaction counts are captured
+                now, not at historical ranking time. Missing impressions remain null. Quoted originals are not added to
+                author text.';
+            } catch (error) {
+              report.error = error.message;
+              process.exitCode = 1;
+            }
+
+            let output = JSON.stringify(report, null, 2);
+
+            if (token) {
+              output = output.split(token).join('[REDACTED]');
+            }
+
+            // Write results to the summary, never request headers or credentials.
+            appendFileSync(
+              process.env.GITHUB_STEP_SUMMARY,
+              `# DRB search comparison\n\n\`\`\`json\n${output}\n\`\`\`\n`
+            );
+
+            console.log(
+              'Comparison report written to the workflow Summary. No project data changed.'
+            );
+            NODE
+
