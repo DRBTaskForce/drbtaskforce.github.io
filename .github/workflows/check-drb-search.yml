@@ -233,10 +233,13 @@
                   ? 'LINKED_POSTS_MISSING_FROM_CURRENT_QUERY'
                   : 'CURRENT_QUERY_RETURNED_ALL_LINKED_ONLY_POSTS_IN_THIS_SAMPLE';
 
-              report.limits =
-                'This compares retrieval for one account and window, not every post on X. Reaction counts are captured
-                now, not at historical ranking time. Missing impressions remain null. Quoted originals are not added to
-                author text.';
+              
+              report.limits = [
+                  'This compares one account and window.',
+                  'Reaction counts are current, not historical.',
+                  'Missing impressions remain null.',
+                  'Quoted originals are excluded from author text.'
+                ].join(' ');
             } catch (error) {
               report.error = error.message;
               process.exitCode = 1;
