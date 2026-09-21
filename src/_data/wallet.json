@@ -3441,5 +3441,30 @@
       "drbPrice": 0.000198872832601276,
       "ethPrice": 2668.43
     }
-  ]
+  ],
+  "currentSnapshot": {
+    "date": "2026-09-21",
+    "observedAt": "2026-09-21T10:37:12.746Z",
+    "blockNumber": 51598842,
+    "blockHash": "0xf55fefe10093a9cc8ff5e154f5e6c5f44958dd763c1aae367bbf46ac75d9bdc8",
+    "source": "Base RPC",
+    "rawBalances": {
+      "drb": "607109823637161120395114920",
+      "weth": "156190300163036155573",
+      "usdc": "88826013903",
+      "eth": "16046966693443903298"
+    },
+    "drb": 607109823.6371611,
+    "weth": 156.19030016303614,
+    "usdc": 88826.013903,
+    "eth": 16.046966693443903,
+    "drbPrice": 0.000215,
+    "ethPrice": 2712.92,
+    "usd": 686620.55
+  },
+  "historyStatus": {
+    "state": "pending",
+    "checkedAt": "2026-09-21T10:37:22.651Z",
+    "reason": "Blockscout is still indexing internal transactions. Saved history has been retained."
+  }
 }
