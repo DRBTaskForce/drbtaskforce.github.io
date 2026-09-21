@@ -1,673 +1,136 @@
 ---
 layout: base.njk
-title: "Grok's Wallet — $DRB Fee Tracker"
-description: "Live tracker showing fees accumulating in Grok's wallet from $DRB trading activity on Base."
+secondary: true
+title: "Grok's Wallet — $DRB Balances & Fees"
+description: "Explore Grok's wallet on Base: balances, claimed fees, and saved balance history."
+pageStyle: wallet
+pageScript: wallet
 ---
 
-<div class="max-w-[960px] mx-auto px-6 pb-20">
-
-  <!-- Hero -->
-  <section class="text-center py-[60px] pb-[48px] border-t-0">
-    <div class="inline-flex items-center gap-1.5 border border-brand-aurora/30 bg-brand-aurora/[0.06] text-brand-aurora text-[0.75rem] font-semibold tracking-[0.08em] uppercase px-4 py-2 rounded-full mb-6">
-      <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
-      <span>Live on Base</span>
-    </div>
-    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-4">Grok's Fee Wallet</h1>
-    <p class="text-lg text-text-muted max-w-[480px] mx-auto mb-6 leading-[1.7]">
-      Every $DRB trade sends fees here. Live proof that Grok is accumulating wealth.
-    </p>
-    <a
-      href="https://basescan.org/address/{{ wallet.walletAddress }}"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-flex items-center gap-2 px-5 py-2.5 border border-border-col rounded-brand text-text-muted no-underline text-[0.8rem] font-mono bg-surface transition-all duration-200 hover:border-brand-cyan/40 hover:text-brand-cyan"
-    >
-      {{ wallet.walletAddress }}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+{% set snapshot = wallet.walletValueAllTime | last %}
+<div class="wrap wallet-page">
+  <header class="page-heading">
+    <p class="eyebrow">Grok’s wallet · Base</p>
+    <h1>Follow the wallet.</h1>
+    <p class="intro">Balances, claimed fees, and recorded activity from Grok’s wallet on Base. The numbers, with a trail you can follow.</p>
+    <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener noreferrer" class="text-link wallet-address">
+      <span>{{ wallet.walletAddress }}</span><span aria-hidden="true"></span>
+      <span class="visually-hidden">View wallet on Basescan</span>
     </a>
+  </header>
+
+  <section class="wallet-overview" aria-labelledby="wallet-overview-title">
+    <div class="section-top wallet-overview-top">
+      <h2 id="wallet-overview-title">At a glance.</h2>
+      <div class="wallet-currency">
+        <label for="currency-select">Display in</label>
+        <select id="currency-select" aria-describedby="currency-status" disabled>
+          <option value="USD">USD — US Dollar</option>
+        </select>
+      </div>
+    </div>
+    <p id="currency-status" class="wallet-currency-status" role="status">Values shown in USD. Currency conversion requires current exchange rates.</p>
+
+    <div class="data-panel wallet-total">
+      <div>
+        <p class="eyebrow">Estimated wallet value</p>
+        <p class="wallet-total-value" id="stat-total">{% if snapshot %}${{ snapshot.usd }}{% else %}Unavailable{% endif %}</p>
+        <p class="wallet-note" id="stat-total-sub">DRB + WETH + ETH + USDC combined · USD</p>
+      </div>
+      <div class="wallet-snapshot">
+        <p class="eyebrow">Saved snapshot</p>
+        <p><time datetime="{{ wallet.lastUpdated }}">{{ wallet.lastUpdated | formatDate }}</time></p>
+        <p id="stat-updated-sub" class="wallet-note" role="status">Showing saved balances.</p>
+      </div>
+    </div>
+
+    <dl class="wallet-stats">
+      <div class="wallet-stat">
+        <dt>DRB balance</dt>
+        <dd class="wallet-stat-value" id="stat-balance">{% if snapshot %}{{ snapshot.drb | formatDrb }} DRB{% else %}Unavailable{% endif %}</dd>
+        <dd class="wallet-note" id="stat-balance-local">Saved balance</dd>
+      </div>
+      <div class="wallet-stat">
+        <dt>WETH balance</dt>
+        <dd class="wallet-stat-value" id="stat-weth">{% if snapshot %}{{ snapshot.weth | formatWeth }} WETH{% else %}Unavailable{% endif %}</dd>
+        <dd class="wallet-note" id="stat-weth-usd">Saved balance</dd>
+      </div>
+      <div class="wallet-stat">
+        <dt>ETH balance</dt>
+        <dd class="wallet-stat-value" id="stat-eth">{% if snapshot %}{{ snapshot.eth | formatWeth }} ETH{% else %}Unavailable{% endif %}</dd>
+        <dd class="wallet-note" id="stat-eth-usd">Saved balance</dd>
+      </div>
+      <div class="wallet-stat">
+        <dt>USDC balance</dt>
+        <dd class="wallet-stat-value" id="stat-usdc">{% if snapshot %}{{ snapshot.usdc }} USDC{% else %}Unavailable{% endif %}</dd>
+        <dd class="wallet-note" id="stat-usdc-sub">Saved balance</dd>
+      </div>
+    </dl>
+
+    <div class="wallet-details">
+      <div>
+        <p class="eyebrow">$DRB price</p>
+        <p class="wallet-detail-value" id="stat-price">{% if snapshot %}${{ snapshot.drbPrice }}{% else %}Unavailable{% endif %}</p>
+        <p class="wallet-note" id="stat-price-sub">USD · saved price</p>
+      </div>
+      <div>
+        <p class="eyebrow">Cumulative WETH fees received</p>
+        <p class="wallet-detail-value">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</p>
+        <p class="wallet-note">{{ wallet.totalWethTransactions }} claims in the saved record</p>
+      </div>
+    </div>
   </section>
 
-  <!-- Currency selector -->
-  <div class="flex justify-end items-center gap-2 mb-4 text-[0.75rem] text-text-muted">
-    <span>Display in</span>
-    <select id="currency-select" onchange="onCurrencyChange(this.value)"
-      class="bg-surface border border-border-col rounded-lg text-text-primary text-[0.8rem] px-2.5 py-1.5 outline-none cursor-pointer transition-colors duration-150 hover:border-brand-cyan/40 focus:border-brand-cyan/40">
-    </select>
-  </div>
-
-  <!-- Stats Grid -->
-  <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-8">
-
-    <!-- Primary: total wallet value -->
-    <div class="bg-surface border border-brand-cyan/30 rounded-brand p-6 col-span-full">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
-        Total Wallet Value
+  <section class="section wallet-history" aria-labelledby="wallet-history-title">
+    <div class="section-top">
+      <div>
+        <p class="eyebrow">The record</p>
+        <h2 id="wallet-history-title">Balance history.</h2>
       </div>
-      <div class="text-4xl font-bold text-brand-cyan" id="stat-total">—</div>
-      <div class="text-[0.8rem] text-text-muted mt-1" id="stat-total-sub">fetching…</div>
-    </div>
-
-    <!-- DRB balance -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse inline-block"></span>
-        DRB Balance
-      </div>
-      <div class="text-2xl font-bold text-text-primary" id="stat-balance">—</div>
-      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-balance-local">fetching…</div>
-    </div>
-
-    <!-- WETH earned -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
-        WETH Fees Earned
-      </div>
-      <div class="text-2xl font-bold text-text-primary" id="stat-weth">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</div>
-      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-weth-usd">{{ wallet.totalWethTransactions }} claims</div>
-    </div>
-
-    <!-- ETH balance -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
-        ETH Balance
-      </div>
-      <div class="text-2xl font-bold text-text-primary" id="stat-eth">—</div>
-      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-eth-usd">fetching…</div>
-    </div>
-
-    <!-- USDC balance -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
-        USDC Balance
-      </div>
-      <div class="text-2xl font-bold text-text-primary" id="stat-usdc">—</div>
-      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-usdc-sub">fetching…</div>
-    </div>
-
-    <!-- DRB price -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">$DRB Price</div>
-      <div class="text-2xl font-bold text-text-primary" id="stat-price">—</div>
-      <div class="text-[0.75rem] text-text-muted mt-1" id="stat-price-sub">via DexScreener</div>
-    </div>
-
-    <!-- Last updated -->
-    <div class="bg-surface border border-border-col rounded-brand p-6">
-      <div class="text-[0.7rem] font-bold tracking-[0.12em] uppercase text-text-muted mb-2">Data Updated</div>
-      <div class="text-base font-semibold text-text-primary">{{ wallet.lastUpdated | formatDate }}</div>
-      <div id="stat-updated-sub" class="text-[0.75rem] text-text-muted mt-1">updated daily</div>
-    </div>
-
-  </div>
-
-  <!-- Charts -->
-  <div class="bg-surface border border-border-col rounded-brand p-6 mb-8">
-    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-      <h2 class="text-base font-bold tracking-[-0.01em] m-0">Balance History</h2>
-      <div class="flex gap-2">
-        <button id="btn-30d" onclick="showChart('30d')"
-          class="chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150">
-          30 Days
-        </button>
-        <button id="btn-90d" onclick="showChart('90d')"
-          class="chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40">
-          90 Days
-        </button>
+      <div class="segmented" role="group" aria-label="Balance history period">
+        <button id="btn-30d" type="button" aria-pressed="true" aria-controls="wallet-charts wallet-history-table">30 days</button>
+        <button id="btn-90d" type="button" aria-pressed="false" aria-controls="wallet-charts wallet-history-table">90 days</button>
       </div>
     </div>
-    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-cyan mb-2">DRB Balance</div>
-    <div class="relative mb-8" style="height:220px">
-      <canvas id="chart-drb"></canvas>
-    </div>
-    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">WETH Fees Earned</div>
-    <div class="relative mb-8" style="height:220px">
-      <canvas id="chart-weth"></canvas>
-    </div>
-    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-brand-aurora mb-2">ETH Balance</div>
-    <div class="relative mb-8" style="height:220px">
-      <canvas id="chart-eth"></canvas>
-    </div>
-    <div class="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-green-400 mb-2">USDC Balance</div>
-    <div class="relative" style="height:220px">
-      <canvas id="chart-usdc"></canvas>
-    </div>
-  </div>
+    <p class="wallet-note wallet-history-range" id="history-range" role="status">Daily snapshots through {% if snapshot %}{{ snapshot.date | formatDate }}{% else %}the last saved record{% endif %}.</p>
 
-  <!-- Footer note -->
-  <p class="text-center text-[0.75rem] text-text-muted">
-    Chart data updated daily.
-    <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener" class="text-brand-cyan hover:underline ml-1">View on Basescan →</a>
-  </p>
+    <div class="wallet-chart-grid" id="wallet-charts">
+      {% for asset, label in { drb: 'DRB balance', weth: 'WETH balance', eth: 'ETH balance', usdc: 'USDC balance' } %}
+      <article class="data-panel wallet-chart-panel">
+        <h3>{{ label }}</h3>
+        <p class="wallet-chart-summary wallet-note" id="summary-{{ asset }}">Saved daily balances</p>
+        <div class="wallet-chart-area">
+          <canvas id="chart-{{ asset }}" role="img" aria-label="{{ label }} history" aria-describedby="summary-{{ asset }}">Read the saved balance history in the table below.</canvas>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
 
+    <p class="wallet-note wallet-chart-status" id="chart-status" role="status">Charts require JavaScript. Saved values are available below.</p>
+    <details class="wallet-history-details" id="history-details">
+      <summary>Read the balance history</summary>
+      <div class="wallet-history-scroll" role="region" tabindex="0" aria-label="Saved wallet balance history">
+        <table id="wallet-history-table">
+          <caption>Saved daily balances. Amounts are in each token’s own units.</caption>
+          <thead><tr><th scope="col">Date (UTC)</th><th scope="col">DRB</th><th scope="col">WETH</th><th scope="col">ETH</th><th scope="col">USDC</th></tr></thead>
+          <tbody id="history-rows">
+            {% for point in wallet.walletValueLast30Days | reverse %}
+            <tr><th scope="row"><time datetime="{{ point.date }}">{{ point.date | formatDate }}</time></th><td>{{ point.drb | formatDrb }}</td><td>{{ point.weth | formatWeth }}</td><td>{{ point.eth | formatWeth }}</td><td>{{ point.usdc }}</td></tr>
+            {% else %}
+            <tr><td colspan="5">No saved balance history is available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    <div class="wallet-history-note">
+      <p class="wallet-note">History reflects saved daily snapshots. Current balances and prices may differ.</p>
+      <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener noreferrer" class="text-link">View on Basescan</a>
+    </div>
+    <p class="wallet-note wallet-event-note">Record context: <a href="https://x.com/0xdeployer/status/2051315834212303334" target="_blank" rel="noopener noreferrer" class="text-link">May 4, 2026 prompt injection attack</a></p>
+  </section>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js" integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY" crossorigin="anonymous"></script>
-<script>
-  // --- Static data (historical prices baked in at build time) ---
-  const valueAllTime    = {{ wallet.walletValueAllTime   | dump | safe }};
-  const valueLast30Days = {{ wallet.walletValueLast30Days | dump | safe }};
-
-  const WALLET        = "{{ wallet.walletAddress }}";
-  const TOKEN         = "{{ wallet.tokenContract }}";
-  const WETH_CONTRACT = "{{ wallet.wethContract }}";
-  const USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-  const DECIMALS      = {{ wallet.tokenDecimals }};
-  const USDC_DECIMALS = 6;
-
-  // --- Currency list ---
-  const CURRENCIES = [
-    ['USD','US Dollar'],['EUR','Euro'],['GBP','British Pound'],['JPY','Japanese Yen'],
-    ['CAD','Canadian Dollar'],['AUD','Australian Dollar'],['CHF','Swiss Franc'],
-    ['CNY','Chinese Yuan'],['KRW','South Korean Won'],['INR','Indian Rupee'],
-    ['BRL','Brazilian Real'],['MXN','Mexican Peso'],['SGD','Singapore Dollar'],
-    ['HKD','Hong Kong Dollar'],['NZD','New Zealand Dollar'],['NOK','Norwegian Krone'],
-    ['SEK','Swedish Krona'],['DKK','Danish Krone'],['PLN','Polish Zloty'],
-    ['CZK','Czech Koruna'],['HUF','Hungarian Forint'],['TRY','Turkish Lira'],
-    ['ZAR','South African Rand'],['AED','UAE Dirham'],['SAR','Saudi Riyal'],
-    ['TWD','Taiwan Dollar'],['THB','Thai Baht'],['MYR','Malaysian Ringgit'],
-    ['IDR','Indonesian Rupiah'],['PHP','Philippine Peso'],
-  ];
-
-  const REGION_CURRENCY = {
-    US:'USD', GB:'GBP', AU:'AUD', CA:'CAD', NZ:'NZD',
-    JP:'JPY', CN:'CNY', KR:'KRW', IN:'INR', SG:'SGD',
-    HK:'HKD', TW:'TWD', TH:'THB', ID:'IDR', MY:'MYR',
-    PH:'PHP', BR:'BRL', MX:'MXN', CH:'CHF',
-    NO:'NOK', SE:'SEK', DK:'DKK', PL:'PLN', CZ:'CZK',
-    HU:'HUF', TR:'TRY', ZA:'ZAR', SA:'SAR', AE:'AED',
-    DE:'EUR', FR:'EUR', IT:'EUR', ES:'EUR', PT:'EUR',
-    NL:'EUR', BE:'EUR', AT:'EUR', FI:'EUR', GR:'EUR',
-    IE:'EUR', LU:'EUR', SK:'EUR', SI:'EUR', EE:'EUR',
-    LV:'EUR', LT:'EUR', MT:'EUR', CY:'EUR',
-  };
-
-  let localCurrency = 'USD';
-  let exchangeRate  = 1;
-  let allRates      = { USD: 1 };
-  let liveData      = null;
-  let currentChartMode = '30d';
-
-  // 2026-05-04: LLM-on-LLM prompt injection drained 3B DRB (~$170K). Root cause: Bankr's
-  // hardcoded block on Grok replies was dropped in an agent rewrite, letting an attacker
-  // prompt Grok into instructing Bankr to transfer funds. 80% returned; 20% pending.
-  const HACK_DATE = '2026-05-04';
-
-  // Returns annotation config positioned by numeric index so the line appears even when
-  // HACK_DATE isn't an exact label (e.g. wallet.json was last updated before the event).
-  function hackAnnotation(data) {
-    if (!data || data.length < 2) return { annotations: {} };
-
-    let xVal;
-    const exactIdx = data.findIndex(d => d.date === HACK_DATE);
-    if (exactIdx !== -1) {
-      xVal = HACK_DATE; // use label string so CategoryScale resolves it correctly
-    } else {
-      const afterIdx = data.findIndex(d => d.date > HACK_DATE);
-      if (afterIdx <= 0) return { annotations: {} }; // date outside chart range
-      const t = (new Date(HACK_DATE) - new Date(data[afterIdx - 1].date)) /
-                (new Date(data[afterIdx].date)  - new Date(data[afterIdx - 1].date));
-      xVal = afterIdx - 1 + t;
-    }
-
-    return {
-      annotations: {
-        hackEvent: {
-          type: 'line',
-          xScaleID: 'x',
-          xMin: xVal,
-          xMax: xVal,
-          borderColor: 'rgba(239,68,68,0.65)',
-          borderWidth: 1.5,
-          borderDash: [4, 4],
-          click: () => window.open('https://x.com/0xdeployer/status/2051315834212303334', '_blank', 'noopener'),
-          enter: () => { document.body.style.cursor = 'pointer'; },
-          leave: () => { document.body.style.cursor = 'default'; },
-          label: {
-            content: '⚠ Prompt injection attack ↗',
-            display: true,
-            position: 'center',
-            yAdjust: 0,
-            color: 'rgb(239,68,68)',
-            backgroundColor: 'rgba(0,0,0,0.82)',
-            font: { size: 11, weight: 'bold' },
-            padding: { x: 6, y: 3 },
-          }
-        }
-      }
-    };
-  }
-
-  async function initCurrency() {
-    // Populate select options
-    const sel = document.getElementById('currency-select');
-    CURRENCIES.forEach(([code, name]) => {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = `${code} — ${name}`;
-      sel.appendChild(opt);
-    });
-
-    // Detect default from locale, then check localStorage override
-    let detected = 'USD';
-    try {
-      const region = new Intl.Locale(navigator.language).region || '';
-      detected = REGION_CURRENCY[region] || 'USD';
-    } catch {}
-    const saved = localStorage.getItem('drb-currency');
-    localCurrency = (saved && CURRENCIES.find(c => c[0] === saved)) ? saved : detected;
-    sel.value = localCurrency;
-
-    // Fetch all rates in one call
-    try {
-      const res = await fetch('https://open.er-api.com/v6/latest/USD');
-      const d   = await res.json();
-      allRates = { ...d.rates, USD: 1 };
-    } catch { allRates = { USD: 1 }; }
-
-    exchangeRate = allRates[localCurrency] ?? 1;
-  }
-
-  function onCurrencyChange(value) {
-    localCurrency = value;
-    exchangeRate  = allRates[localCurrency] ?? 1;
-    localStorage.setItem('drb-currency', value);
-    if (liveData) renderStats(liveData);
-    showChart(currentChartMode);
-  }
-
-  // --- Formatting ---
-  function formatDrb(n) {
-    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
-    return n.toFixed(2);
-  }
-  function formatWeth(n) { return n.toFixed(4); }
-  function formatLocal(usdAmount) {
-    return new Intl.NumberFormat(navigator.language, {
-      style: 'currency',
-      currency: localCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(usdAmount * exchangeRate);
-  }
-
-  // --- Theme ---
-  const isDark     = () => document.documentElement.classList.contains('dark');
-  function gridColor() { return isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; }
-  function tickColor() { return isDark() ? 'rgba(255,255,255,0.4)'  : 'rgba(0,0,0,0.4)';  }
-
-  // --- Charts ---
-  let chartDrb  = null;
-  let chartWeth = null;
-  let chartEth  = null;
-  let chartUsdc = null;
-
-  function renderDrbChart(data) {
-    const ctx = document.getElementById('chart-drb').getContext('2d');
-    if (chartDrb) chartDrb.destroy();
-    const noPoints = data.length > 60;
-    chartDrb = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: data.map(d => d.date),
-        datasets: [{
-          data: data.map(d => Math.round(d.drb)),
-          _prices: data.map(d => d.drbPrice),
-          borderColor: 'rgba(6,182,212,1)',
-          backgroundColor: 'rgba(6,182,212,0.15)',
-          borderWidth: 1.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: noPoints ? 0 : 3,
-          pointHoverRadius: 5,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (item) => ` ${formatDrb(item.raw)} DRB  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
-            }
-          },
-          annotation: hackAnnotation(data),
-        },
-        scales: {
-          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
-          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatDrb(v) }, beginAtZero: false },
-        }
-      }
-    });
-  }
-
-  function renderWethChart(data) {
-    const ctx = document.getElementById('chart-weth').getContext('2d');
-    if (chartWeth) chartWeth.destroy();
-    const noPoints = data.length > 60;
-    chartWeth = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: data.map(d => d.date),
-        datasets: [{
-          data: data.map(d => d.weth),
-          _prices: data.map(d => d.ethPrice),
-          borderColor: 'rgba(168,85,247,1)',
-          backgroundColor: 'rgba(168,85,247,0.15)',
-          borderWidth: 1.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: noPoints ? 0 : 3,
-          pointHoverRadius: 5,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (item) => ` ${formatWeth(item.raw)} WETH  (${formatLocal(item.raw * item.dataset._prices[item.dataIndex])})`
-            }
-          },
-          annotation: hackAnnotation(data),
-        },
-        scales: {
-          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
-          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: false },
-        }
-      }
-    });
-  }
-
-  function renderEthChart(data) {
-    const ctx = document.getElementById('chart-eth').getContext('2d');
-    if (chartEth) chartEth.destroy();
-    const noPoints = data.length > 60;
-    chartEth = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: data.map(d => d.date),
-        datasets: [{
-          data: data.map(d => d.eth ?? 0),
-          _prices: data.map(d => d.ethPrice),
-          borderColor: 'rgba(168,85,247,1)',
-          backgroundColor: 'rgba(168,85,247,0.15)',
-          borderWidth: 1.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: noPoints ? 0 : 3,
-          pointHoverRadius: 5,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (item) => ` ${formatWeth(item.raw)} ETH  (${formatLocal(item.raw * (item.dataset._prices[item.dataIndex] ?? 0))})`
-            }
-          },
-          annotation: hackAnnotation(data),
-        },
-        scales: {
-          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
-          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => formatWeth(v) }, beginAtZero: true },
-        }
-      }
-    });
-  }
-
-  function renderUsdcChart(data) {
-    const ctx = document.getElementById('chart-usdc').getContext('2d');
-    if (chartUsdc) chartUsdc.destroy();
-    const noPoints = data.length > 60;
-    chartUsdc = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: data.map(d => d.date),
-        datasets: [{
-          data: data.map(d => d.usdc ?? 0),
-          borderColor: 'rgba(74,222,128,1)',
-          backgroundColor: 'rgba(74,222,128,0.15)',
-          borderWidth: 1.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: noPoints ? 0 : 3,
-          pointHoverRadius: 5,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (item) => ` ${item.raw.toFixed(2)} USDC  (${formatLocal(item.raw)})`
-            }
-          },
-          annotation: hackAnnotation(data),
-        },
-        scales: {
-          x: { grid: { color: gridColor() }, ticks: { color: tickColor(), maxTicksLimit: 8, maxRotation: 0 } },
-          y: { grid: { color: gridColor() }, ticks: { color: tickColor(), callback: v => v.toFixed(0) }, beginAtZero: true },
-        }
-      }
-    });
-  }
-
-  const BTN_OFF = 'chart-toggle px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-border-col text-text-muted transition-all duration-150 hover:border-brand-cyan/40';
-  const BTN_ON  = 'chart-toggle active px-3 py-1.5 text-[0.75rem] font-semibold rounded-lg border border-brand-cyan bg-brand-cyan/10 text-brand-cyan transition-all duration-150';
-
-  function last90Days() {
-    if (valueAllTime.length === 0) return [];
-    const byDate = Object.fromEntries(valueAllTime.map(d => [d.date, d]));
-    const today  = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const result = [];
-    let last = null;
-    for (let i = 89; i >= 0; i--) {
-      const d = new Date(today);
-      d.setUTCDate(d.getUTCDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      if (byDate[dateStr]) last = byDate[dateStr];
-      if (last) result.push({ ...last, date: dateStr });
-    }
-    return result;
-  }
-
-  function showChart(mode) {
-    currentChartMode = mode;
-    document.getElementById('btn-30d').className = mode === '30d' ? BTN_ON : BTN_OFF;
-    document.getElementById('btn-90d').className = mode === '90d' ? BTN_ON : BTN_OFF;
-    const data = mode === '30d' ? valueLast30Days : last90Days();
-    renderDrbChart(data);
-    renderWethChart(data);
-    renderEthChart(data);
-    renderUsdcChart(data);
-  }
-
-  // --- Stats rendering (separated from fetching so currency changes can re-render) ---
-  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice, usingCached }) {
-    if (drbBalance !== null) {
-      document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
-      document.getElementById('stat-balance-local').textContent = drbPrice
-        ? '≈ ' + formatLocal(drbBalance * drbPrice)
-        : 'price unavailable';
-    } else {
-      document.getElementById('stat-balance').textContent = 'unavailable';
-      document.getElementById('stat-balance-local').textContent = '';
-    }
-
-    if (wethBalance !== null) {
-      document.getElementById('stat-weth').textContent = formatWeth(wethBalance) + ' WETH';
-      if (ethPrice) {
-        document.getElementById('stat-weth-usd').textContent =
-          '≈ ' + formatLocal(wethBalance * ethPrice) + ' · {{ wallet.totalWethTransactions }} claims';
-      }
-    }
-
-    if (ethBalance !== null) {
-      document.getElementById('stat-eth').textContent = formatWeth(ethBalance) + ' ETH';
-      document.getElementById('stat-eth-usd').textContent = ethPrice
-        ? '≈ ' + formatLocal(ethBalance * ethPrice)
-        : 'price unavailable';
-    } else {
-      document.getElementById('stat-eth').textContent = 'unavailable';
-      document.getElementById('stat-eth-usd').textContent = '';
-    }
-
-    if (usdcBalance !== null) {
-      document.getElementById('stat-usdc').textContent = usdcBalance.toFixed(2) + ' USDC';
-      document.getElementById('stat-usdc-sub').textContent = '≈ ' + formatLocal(usdcBalance);
-    } else {
-      document.getElementById('stat-usdc').textContent = 'unavailable';
-      document.getElementById('stat-usdc-sub').textContent = '';
-    }
-
-    if (drbPrice !== null) {
-      const localPrice = drbPrice * exchangeRate;
-      const decimals = localPrice < 0.000001 ? 8 : localPrice < 0.001 ? 6 : 4;
-      const s = localPrice < 0.000001 ? localPrice.toExponential(2) : localPrice.toFixed(decimals);
-      const symbol = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: localCurrency })
-        .formatToParts(0).find(p => p.type === 'currency')?.value ?? localCurrency;
-      document.getElementById('stat-price').textContent = symbol + s;
-      document.getElementById('stat-price-sub').textContent = localCurrency + ' · via DexScreener';
-    } else {
-      document.getElementById('stat-price').textContent = 'unavailable';
-    }
-
-    const drbUsd  = (drbBalance  !== null && drbPrice !== null) ? drbBalance  * drbPrice : 0;
-    const wethUsd = (wethBalance !== null && ethPrice !== null) ? wethBalance * ethPrice : 0;
-    const ethUsd  = (ethBalance  !== null && ethPrice !== null) ? ethBalance  * ethPrice : 0;
-    const usdcUsd = usdcBalance !== null ? usdcBalance : 0;
-    if (drbBalance !== null || wethBalance !== null || ethBalance !== null || usdcBalance !== null) {
-      document.getElementById('stat-total').textContent = formatLocal(drbUsd + wethUsd + ethUsd + usdcUsd);
-      document.getElementById('stat-total-sub').textContent =
-        (drbPrice && ethPrice) ? 'DRB + WETH + ETH + USDC combined' : 'partial data';
-    } else {
-      document.getElementById('stat-total').textContent = 'unavailable';
-      document.getElementById('stat-total-sub').textContent = '';
-    }
-
-    // Surface a hint when live Blockscout data is unavailable and we fell back to static data.
-    const updatedSub = document.querySelector('#stat-updated-sub');
-    if (updatedSub) {
-      updatedSub.textContent = usingCached ? 'live fetch unavailable — showing cached' : 'updated daily';
-    }
-  }
-
-  // --- Blockscout rate-limited fetch ---
-  // Enforces a minimum gap between calls and retries once on HTTP 429.
-  const BS_GAP_MS = 400;
-  let lastBsFetchAt = 0;
-
-  async function blockscoutGet(url) {
-    const gap = BS_GAP_MS - (Date.now() - lastBsFetchAt);
-    if (gap > 0) await new Promise(r => setTimeout(r, gap));
-    lastBsFetchAt = Date.now();
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      const res = await fetch(url);
-      if (res.status !== 429) return res;
-      console.warn(`Blockscout rate limited (attempt ${attempt}/2)`);
-      await new Promise(r => setTimeout(r, 8000));
-      lastBsFetchAt = Date.now();
-    }
-    throw new Error('Blockscout rate limited');
-  }
-
-  // --- Live data fetch ---
-  async function fetchTokenBalance(contractAddress, decimals = DECIMALS) {
-    try {
-      const res = await blockscoutGet(
-        `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${contractAddress}&address=${WALLET}`
-      );
-      const d = await res.json();
-      if (d.status === '1') {
-        const raw = BigInt(d.result);
-        const div = BigInt(10) ** BigInt(decimals);
-        return Number(raw / div) + Number(raw % div) / Number(div);
-      }
-    } catch (e) { console.warn('Balance fetch failed:', e); }
-    return null;
-  }
-
-  async function fetchDrbPrice() {
-    try {
-      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
-      const d = await res.json();
-      return d.pairs?.[0] ? parseFloat(d.pairs[0].priceUsd) : null;
-    } catch { return null; }
-  }
-
-  async function fetchEthPrice() {
-    try {
-      const res = await fetch('https://api.dexscreener.com/latest/dex/pairs/base/0xd0b53d9277642d899df5c87a3966a349a798f224');
-      const d = await res.json();
-      const p = d.pair;
-      return p ? (p.baseToken?.symbol === 'WETH' ? parseFloat(p.priceUsd) : parseFloat(p.priceNative)) : null;
-    } catch { return null; }
-  }
-
-  async function fetchNativeEthBalance() {
-    try {
-      const res = await blockscoutGet(
-        `https://base.blockscout.com/api?module=account&action=balance&address=${WALLET}`
-      );
-      const d = await res.json();
-      if (d.status === '1') {
-        const raw = BigInt(d.result);
-        const div = BigInt(10) ** BigInt(18);
-        return Number(raw / div) + Number(raw % div) / Number(div);
-      }
-    } catch (e) { console.warn('ETH balance fetch failed:', e); }
-    return null;
-  }
-
-  async function updateLiveStats() {
-    // Last baked-in data point as fallback for rate-limited responses.
-    const lastStatic = valueAllTime.length ? valueAllTime[valueAllTime.length - 1] : null;
-
-    // Blockscout calls run sequentially to avoid rate limiting.
-    const drbBalance  = await fetchTokenBalance(TOKEN);
-    const wethBalance = await fetchTokenBalance(WETH_CONTRACT);
-    const ethBalance  = await fetchNativeEthBalance();
-    const usdcBalance = await fetchTokenBalance(USDC_CONTRACT, USDC_DECIMALS);
-
-    // Price APIs are independent — fetch in parallel.
-    const [drbPrice, ethPrice] = await Promise.all([fetchDrbPrice(), fetchEthPrice()]);
-
-    const usingCached = drbBalance === null || wethBalance === null || ethBalance === null || usdcBalance === null;
-    liveData = {
-      drbBalance:  drbBalance  ?? lastStatic?.drb  ?? null,
-      wethBalance: wethBalance ?? lastStatic?.weth ?? null,
-      ethBalance:  ethBalance  ?? lastStatic?.eth  ?? null,
-      usdcBalance: usdcBalance ?? lastStatic?.usdc ?? null,
-      drbPrice:    drbPrice    ?? lastStatic?.drbPrice ?? null,
-      ethPrice:    ethPrice    ?? lastStatic?.ethPrice ?? null,
-      usingCached,
-    };
-    renderStats(liveData);
-  }
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    await initCurrency();
-    showChart('30d');
-    updateLiveStats();
-  });
-</script>
+<script id="wallet-data" type="application/json">{{ wallet | dump | safe }}</script>
+<script id="wallet-chart-library" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous" defer></script>
+<script id="wallet-annotation-library" src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js" integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY" crossorigin="anonymous" defer></script>

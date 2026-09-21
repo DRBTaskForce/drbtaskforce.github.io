@@ -1,277 +1,88 @@
-<!DOCTYPE html>
+{% from "assembly-components.njk" import smile %}
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>{{ title | default("DRBTaskForce — DebtReliefBot ($DRB)") }}</title>
-  <meta name="description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI. Community hub for token info, chain verification, and the Grok Has Money movement.") }}" />
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
-  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://drbtaskforce.github.io{{ page.url }}" />
-  <meta property="og:title" content="{{ title | default("DRBTaskForce — DebtReliefBot ($DRB)") }}" />
-  <meta property="og:description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI.") }}" />
-  <meta property="og:image" content="https://drbtaskforce.github.io/assets/images/og-image.png" />
-  <meta property="og:image:alt" content="DRBTaskForce — The First Token Named by Grok AI" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:site" content="@DRBTaskForce" />
-  <meta name="twitter:title" content="{{ title | default("DRBTaskForce — DebtReliefBot ($DRB)") }}" />
-  <meta name="twitter:description" content="{{ description | default("DebtReliefBot ($DRB) — the first token named by Grok AI.") }}" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://drbtaskforce.github.io/assets/images/og-image.png" />
-
-  {% if noindex %}<meta name="robots" content="noindex" />{% endif %}
-
-  <!-- Theme init — runs before paint to prevent flash -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{{ title | default("$DRB — DebtReliefBot · DRB Task Force") }}</title>
+  <meta name="description" content="{{ description | default('Follow the story, the wallet, and the conversations around DebtReliefBot ($DRB).') }}">
+  <link rel="icon" type="image/png" href="/assets/images/assembly/drb.png">
+  <link rel="apple-touch-icon" href="/assets/images/assembly/drb.png">
+  <link rel="canonical" href="https://drbtaskforce.com{{ page.url }}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://drbtaskforce.com{{ page.url }}">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:image" content="https://drbtaskforce.com/assets/images/og-image.png">
+  <meta property="og:image:alt" content="DebtReliefBot ($DRB)">
+  <meta name="twitter:site" content="@DRBTaskForce">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ description }}">
+  <meta name="twitter:image" content="https://drbtaskforce.com/assets/images/og-image.png">
+  {% if noindex %}<meta name="robots" content="noindex">{% endif %}
+  <link rel="stylesheet" href="/assets/css/assembly.css">
+  {% if pageStyle %}<link rel="stylesheet" href="/assets/css/{{ pageStyle }}.css">{% endif %}
+  {% if secondary %}<link rel="stylesheet" href="/assets/css/secondary.css">{% endif %}
+  <link rel="stylesheet" href="/assets/css/identity.css">
+  {% if secondary %}
+  <style>.motion-pending body.secondary main{visibility:hidden}</style>
   <script>
-    (function() {
-      var t = localStorage.getItem('theme');
-      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-    })();
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {
+      document.documentElement.classList.add('motion-pending');
+      window.__drbMotionDeadline = setTimeout(() => {
+        window.__drbMotionExpired = true;
+        document.documentElement.classList.remove('motion-pending');
+      }, 1500);
+    }
   </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-
-  <!-- Markdown rendering with XSS protection -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+  {% endif %}
+  <script src="/assets/js/assembly.js" defer></script>
+  {% if secondary %}<script src="/assets/js/secondary.js" defer></script>{% endif %}
 </head>
-<body>
-  <div class="stars"></div>
-  <div class="relative z-10">
-
-    <!-- Nav -->
-    <nav class="sticky top-0 z-[100] border-b border-border-col bg-[var(--nav-bg)] backdrop-blur-[12px]">
-      <div class="max-w-[960px] mx-auto px-6">
-        <div class="flex items-center justify-between h-[68px]">
-          <a href="/" class="font-bold text-base text-text-primary no-underline flex items-center gap-2.5">
-            <img src="/assets/images/taskforce-logo.png" alt="DRBTaskForce" class="h-10 w-10 rounded-full object-cover" />
-            <span class="hidden sm:inline">DRBTaskForce</span>
-            <span class="hidden sm:inline text-brand-cyan">$DRB</span>
-          </a>
-          <ul class="flex gap-6 list-none" id="nav-links">
-            <li><a href="/#origin" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Origin</a></li>
-            <li><a href="/#token" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Token</a></li>
-            <li><a href="/community/" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Community</a></li>
-            <li><a href="/wallet/" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Wallet</a></li>
-            <li><a href="/movement/" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">Movement</a></li>
-            <li><a href="https://x.com/DRBTaskForce" target="_blank" class="text-text-muted no-underline text-sm font-medium transition-colors duration-200 hover:text-text-primary">X</a></li>
-          </ul>
-          <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"
-            class="flex items-center justify-center w-8 h-8 rounded-full text-text-muted hover:text-text-primary transition-colors duration-200 bg-transparent border-0 cursor-pointer shrink-0">
-            <!-- Moon (shown in light mode) -->
-            <svg id="theme-icon-moon" class="block dark:hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <!-- Sun (shown in dark mode) -->
-            <svg id="theme-icon-sun" class="hidden dark:block w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          </button>
-          <a href="/token/" class="nav-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-brand text-[0.78rem] font-semibold no-underline text-brand-cyan border border-brand-cyan/30 bg-brand-cyan/[0.05] transition-all duration-200 hover:bg-brand-cyan/[0.12] hover:border-brand-cyan hover:shadow-[0_0_12px_rgba(56,189,248,0.2)] whitespace-nowrap">Verify Grok Created $DRB</a>
-          <button class="hidden flex-col justify-center gap-[5px] bg-transparent border-0 cursor-pointer p-1.5 max-[640px]:flex" id="hamburger" aria-label="Toggle menu" onclick="toggleNav()">
-            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
-            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
-            <span class="block w-[22px] h-px bg-text-primary rounded-sm transition-transform duration-[250ms]"></span>
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Page Content -->
-    {{ content | safe }}
-
-    <!-- Footer -->
-    <footer class="border-t border-border-col py-8 text-center">
-      <div class="max-w-[960px] mx-auto px-6">
-        <div class="flex items-center justify-center mb-6">
-          <img src="/assets/images/taskforce-logo.png" alt="DRBTaskForce" class="h-12 w-12 rounded-full object-cover opacity-70 hover:opacity-100 transition-opacity duration-200" />
-        </div>
-        <p class="text-[0.8rem] text-text-muted leading-[1.6]">
-          <strong>DRBTaskForce</strong> — community hub for <a href="https://basescan.org/token/0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2" target="_blank" rel="noopener" class="text-brand-cyan no-underline hover:underline">$DRB</a> on Base.
-          Not affiliated with xAI or Grok.
-        </p>
-        <p class="max-w-[600px] mx-auto text-[0.75rem] text-text-muted opacity-70 mt-3">
-          $DRB is a meme token. This site provides informational content only and is not financial advice.
-          Cryptocurrency trading involves significant risk of loss.
-        </p>
-      </div>
-    </footer>
-
-  </div>
-
-  <!-- Chat Widget -->
-  <div id="drb-chat-btn" class="fixed bottom-6 right-6 z-[9999]">
-    <button type="button" onclick="toggleChat()" aria-label="Open DebtReliefBot chat"
-      class="w-14 h-14 rounded-full border-2 border-brand-cyan/40 bg-[var(--chat-btn-bg)] backdrop-blur-[12px] cursor-pointer p-0 flex items-center justify-center shadow-glow-cyan transition-all duration-200 hover:border-brand-cyan hover:shadow-glow-cyan-lg hover:scale-105">
-      <img src="/assets/images/DRB_Logo_Cropped.png" width="44" height="44" alt="DRB" class="rounded-full block" />
-    </button>
-  </div>
-
-  <div id="drb-chat-window" aria-hidden="true"
-    class="fixed bottom-[92px] right-6 w-[420px] max-w-[calc(100vw-48px)] h-[560px] max-h-[calc(100vh-120px)] bg-[var(--chat-bg)] border border-border-col rounded-2xl shadow-[var(--chat-shadow)] backdrop-blur-[20px] z-[9998] flex flex-col overflow-hidden">
-    <div class="flex items-center justify-between px-4 py-3.5 border-b border-border-col shrink-0 bg-[var(--chat-bg)]">
-      <div class="flex items-center gap-2.5">
-        <img src="/assets/images/DRB_Logo_Cropped.png" width="28" height="28" alt="" class="rounded-full" />
-        <div>
-          <div class="font-semibold text-sm text-text-primary">DebtReliefBot</div>
-          <div class="text-[0.7rem] text-brand-cyan">Powered by Grok</div>
-        </div>
-      </div>
-      <button type="button" onclick="toggleChat()" aria-label="Close chat"
-        class="bg-transparent border-0 text-text-muted cursor-pointer p-1 rounded-md flex transition-colors duration-150 hover:text-text-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+<body class="assembly{% if secondary %} secondary{% endif %}">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner wrap">
+      <a class="brand brand-taskforce" href="/" aria-label="DRB Task Force home"><img src="/assets/images/taskforce-logo.png" width="38" height="38" alt=""><span>DRB Task Force</span></a>
+      <nav class="site-menu" id="site-menu" aria-label="Main navigation">
+        <a href="{% if secondary %}/origin/{% else %}/#origin{% endif %}" {% if page.url == '/origin/' %}aria-current="page"{% endif %}>The origin</a>
+        <a href="/token/" {% if page.url == '/token/' %}aria-current="page"{% endif %}>The token</a>
+        <a href="/community/" {% if page.url == '/community/' %}aria-current="page"{% endif %}>The Community</a>
+        <a href="/wallet/" {% if page.url == '/wallet/' %}aria-current="page"{% endif %}>Wallet</a>
+        <a href="/movement/" {% if page.url == '/movement/' %}aria-current="page"{% endif %}>Movement</a>
+        <a class="menu-telegram" href="https://t.me/+J2c-wexHmCJmOThl" target="_blank" rel="noopener noreferrer">Telegram</a>
+      </nav>
+      <div class="header-actions"><a class="brand brand-token" href="/token/" aria-label="DebtReliefBot, $DRB token">{{ smile('header-smile') }}<span>$DRB</span></a><a class="button" href="https://t.me/+J2c-wexHmCJmOThl" target="_blank" rel="noopener noreferrer">Telegram</a><button class="menu-toggle" type="button" aria-controls="site-menu" aria-expanded="false">Menu</button></div>
     </div>
-    <div id="drb-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 min-h-0"></div>
-    <div class="flex gap-2 px-3.5 py-3 border-t border-border-col shrink-0">
-      <input id="drb-user-input" type="text" placeholder="Ask about $DRB or Grok..." autocomplete="off"
-        class="flex-1 px-3.5 py-2.5 bg-[var(--chat-input-bg)] border border-border-col rounded-[10px] text-text-primary font-body text-[0.85rem] outline-none transition-colors duration-200 placeholder:text-text-muted focus:border-brand-cyan/40" />
-      <button id="drb-send-btn" type="button" onclick="sendMessage()"
-        class="w-[38px] h-[38px] rounded-[10px] bg-gradient-to-br from-brand-blue to-brand-cyan border-0 text-white cursor-pointer flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-50">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
+  </header>
+  <main id="main" tabindex="-1">{{ content | safe }}</main>
+  <footer class="site-footer">
+    <div class="footer-inner wrap">
+      <div>
+        <p>DRB Task Force · An independent community around DebtReliefBot ($DRB). Not affiliated with xAI or Grok.</p>
+        <p>$DRB is a meme token. This site provides informational content only and is not financial advice. Cryptocurrency trading involves significant risk of loss. No debt relief or investment returns are promised.</p>
+      </div>
+      <div class="footer-links"><a id="official-x-profile" href="https://x.com/DRBTaskForce" target="_blank" rel="noopener noreferrer">DRB Task Force on X</a><button class="motion-toggle" type="button" aria-pressed="false">Pause motion</button></div>
     </div>
-  </div>
-
-  <script>
-    (function () {
-      const API_URL = 'https://drb-chat-worker.drbtaskforce.workers.dev';
-
-      function updateChatPosition() {
-        const w = document.getElementById('drb-chat-window');
-        if (window.innerWidth <= 640 && w.classList.contains('open') && window.visualViewport) {
-          w.style.top = window.visualViewport.offsetTop + 'px';
-          w.style.height = window.visualViewport.height + 'px';
-        }
-      }
-
-      function toggleChat() {
-        const w = document.getElementById('drb-chat-window');
-        const isOpen = w.classList.contains('open');
-        w.classList.toggle('open', !isOpen);
-        w.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-        document.getElementById('drb-chat-btn').classList.toggle('active', !isOpen);
-        if (window.innerWidth <= 640) {
-          document.body.classList.toggle('chat-open', !isOpen);
-          if (!isOpen) {
-            w.style.top = '';
-            w.style.height = '';
-          }
-        }
-        if (!isOpen) document.getElementById('drb-user-input').focus();
-      }
-
-      function addMessage(sender, text, side, id) {
-        const el = document.createElement('div');
-        if (id) el.id = id;
-        el.className = 'chat-msg chat-msg-' + side;
-        const label = document.createElement('span');
-        label.className = 'chat-msg-label';
-        label.textContent = sender;
-        const body = document.createElement('div');
-        body.className = 'chat-msg-body';
-
-        // Render markdown safely with XSS protection
-        if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-          marked.use({ breaks: true, gfm: true });
-          const rawHtml = marked.parse(text, { async: false });
-          const cleanHtml = DOMPurify.sanitize(rawHtml, {
-            ALLOWED_TAGS: ['a', 'strong', 'em', 'code', 'br'],
-            ALLOWED_ATTR: ['href', 'target', 'rel']
-          });
-          body.innerHTML = cleanHtml;
-          body.querySelectorAll('a').forEach(link => {
-            link.setAttribute('target', '_blank');
-            link.setAttribute('rel', 'noopener noreferrer');
-          });
-        } else {
-          body.textContent = text;
-        }
-
-        el.appendChild(label);
-        el.appendChild(body);
-        const msgs = document.getElementById('drb-messages');
-        msgs.appendChild(el);
-        el.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
-
-      async function sendMessage() {
-        const input = document.getElementById('drb-user-input');
-        const btn = document.getElementById('drb-send-btn');
-        const msg = input.value.trim();
-        if (!msg) return;
-        addMessage('You', msg, 'right');
-        input.value = '';
-        const thinkingId = 'thinking-' + Date.now();
-        addMessage('DRB', 'Thinking…', 'left', thinkingId);
-        btn.disabled = true;
-        try {
-          const payload = { message: msg };
-          const res = await fetch(API_URL + '/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          const raw = await res.text();
-          let data = {};
-          try { data = raw ? JSON.parse(raw) : {}; } catch { /**/ }
-          const thinking = document.getElementById(thinkingId);
-          if (thinking) thinking.remove();
-          if (!res.ok) {
-            addMessage('DRB', data.error || data.message || 'Request failed (' + res.status + ').', 'left');
-            return;
-          }
-          const reply = data.reply != null ? String(data.reply).trim() : '';
-          addMessage('DRB', reply || 'No reply received. Check your Worker response format.', 'left');
-        } catch {
-          const thinking = document.getElementById(thinkingId);
-          if (thinking) thinking.remove();
-          addMessage('DRB', 'Could not reach the chat service.', 'left');
-        } finally {
-          btn.disabled = false;
-        }
-      }
-
-      document.getElementById('drb-user-input').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') sendMessage();
-      });
-
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateChatPosition);
-        window.visualViewport.addEventListener('scroll', updateChatPosition);
-      }
-
-      window.toggleChat = toggleChat;
-      window.sendMessage = sendMessage;
-    })();
-  </script>
-
-  <script>
-    function toggleNav() {
-      document.getElementById('nav-links').classList.toggle('open');
-      document.getElementById('hamburger').classList.toggle('open');
-    }
-    document.querySelectorAll('#nav-links a').forEach(function(a) {
-      a.addEventListener('click', function() {
-        document.getElementById('nav-links').classList.remove('open');
-        document.getElementById('hamburger').classList.remove('open');
-      });
-    });
-
-    function toggleTheme() {
-      var isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    }
-  </script>
+  </footer>
+  <button class="chat-launch" id="drb-chat-btn" type="button" aria-label="Open DebtReliefBot chat" aria-haspopup="dialog" aria-controls="drb-chat-window">{{ smile('chat-launch-smile', 36) }}</button>
+  <dialog class="chat-window" id="drb-chat-window" aria-labelledby="chat-title" aria-describedby="chat-description">
+    <div class="chat-heading">
+      <div class="chat-identity">{{ smile('chat-heading-smile', 30) }}<div><h2 id="chat-title">DebtReliefBot</h2><p id="chat-description">Powered by Grok</p></div></div>
+      <button class="chat-close" type="button" aria-label="Close chat">×</button>
+    </div>
+    <div id="drb-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation"><p class="chat-intro">Ask about $DRB, its story, or the wallet.</p></div>
+    <form class="chat-form" id="drb-chat-form" novalidate>
+      <label class="visually-hidden" for="drb-user-input">Your message</label>
+      <input id="drb-user-input" name="message" type="text" placeholder="Ask about $DRB…" autocomplete="off" required>
+      <button id="drb-send-btn" class="button primary" type="submit" aria-label="Send message">Send</button>
+    </form>
+  </dialog>
+  {% if pageScript %}<script src="/assets/js/{{ pageScript }}.js" defer></script>{% endif %}
+  {% if xPosts %}<script src="/assets/js/x-posts.js" defer></script>{% endif %}
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.15/dist/purify.min.js" defer></script>
+  <script src="/assets/js/chat.js" defer></script>
 </body>
 </html>

@@ -1,143 +1,68 @@
 ---
 layout: base.njk
-title: "Grok Has Money — $DRB Movement"
-description: "Top posts about $DRB and the Grok Has Money movement from the last 24 hours."
+secondary: true
+title: "Movement — $DRB Task Force"
+description: "Follow the $DRB conversation through saved posts and rankings by impressions on X."
+pageStyle: movement
+pageScript: movement
+xPosts: true
 ---
 
-{% macro postCard(post) %}
-<a href="{{ post.url }}" target="_blank" rel="noopener noreferrer"
-  class="group bg-surface border border-border-col rounded-brand p-5 flex flex-col gap-3 no-underline transition-all duration-200 hover:border-brand-aurora/40 hover:shadow-[0_0_16px_rgba(168,85,247,0.1)]">
-
-  <div class="flex items-center gap-3">
-    {% if post.authorAvatar %}
-      <img src="{{ post.authorAvatar }}" alt="{{ post.authorName }}"
-        width="40" height="40"
-        class="w-10 h-10 rounded-full object-cover shrink-0 bg-surface border border-border-col" />
-    {% else %}
-      <div class="w-10 h-10 rounded-full bg-brand-aurora/10 border border-border-col shrink-0 flex items-center justify-center text-brand-aurora font-bold text-sm">
-        {{ post.authorName[0] | upper }}
-      </div>
-    {% endif %}
-    <div class="min-w-0">
-      <div class="font-semibold text-sm text-text-primary truncate">{{ post.authorName }}</div>
-      <div class="text-[0.72rem] text-text-muted truncate">@{{ post.authorUsername }}</div>
+{% macro postCard(post, rank) %}
+<article class="movement-post x-post" data-x-url="{{ post.url | escape }}" aria-label="Post by @{{ post.authorUsername | escape }}">
+  <div class="x-post-mount"></div>
+  <div class="x-post-fallback">
+    <div class="movement-post-author">
+      <span class="leader-portrait" aria-hidden="true"><span>{{ post.authorUsername | truncate(2, true, '') | upper | escape }}</span>{% if post.authorAvatar %}<img src="{{ post.authorAvatar | escape }}" alt="" width="40" height="40" loading="lazy">{% endif %}</span>
+      <div class="movement-author-name"><h3>{{ post.authorName | escape }}</h3><span>@{{ post.authorUsername | escape }}</span></div>
+      <span class="x-post-mark" aria-label="X">𝕏</span>
     </div>
-    <div class="ml-auto text-[0.7rem] text-text-muted shrink-0" data-ts="{{ post.createdAt }}"></div>
+    <p class="movement-post-text">{{ post.text | escape }}</p>
+    <time class="movement-post-date" datetime="{{ post.createdAt | escape }}" data-post-date>{{ post.createdAt | formatDate }}</time>
+    <div class="movement-post-footer"><span class="x-saved-note">Saved post · preview unavailable</span><a href="{{ post.url | escape }}" target="_blank" rel="noopener noreferrer" class="text-link">Read on X →</a></div>
   </div>
-
-  <p class="text-[0.875rem] text-text-primary leading-relaxed m-0 flex-1">{{ post.text }}</p>
-
-  <div class="flex items-center gap-4 text-[0.75rem] text-text-muted pt-1 border-t border-border-col">
-    <span class="flex items-center gap-1">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      {{ post.likes }}
-    </span>
-    <span class="flex items-center gap-1">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-      {{ post.retweets }}
-    </span>
-    <span class="flex items-center gap-1">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      {{ post.replies }}
-    </span>
-    <span class="ml-auto text-brand-aurora text-[0.7rem] font-semibold group-hover:underline">View on X →</span>
-  </div>
-
-</a>
+</article>
 {% endmacro %}
 
-<div class="max-w-[960px] mx-auto px-6 pb-20">
-
-  <!-- Hero -->
-  <section class="text-center py-[60px] pb-[48px]">
-    <div class="inline-flex items-center gap-1.5 border border-brand-aurora/30 bg-brand-aurora/[0.06] text-brand-aurora text-[0.75rem] font-semibold tracking-[0.08em] uppercase px-4 py-2 rounded-full mb-6">
-      <span class="w-1.5 h-1.5 rounded-full bg-brand-aurora animate-pulse inline-block"></span>
-      <span>Updated Daily</span>
-    </div>
-    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1] tracking-[-0.02em] mb-4">Grok Has Money</h1>
-    <p class="text-lg text-text-muted max-w-[520px] mx-auto leading-[1.7]">
-      Top posts about <span class="text-text-primary font-medium">$DRB</span> and the movement from the last 24 hours, ranked by engagement.
-    </p>
-  </section>
-
-  <!-- Search terms badge row -->
-  <div class="flex flex-wrap justify-center gap-2 mb-10">
-    {% for term in ['"Grok has money"', '$DRB', 'DebtReliefBot'] %}
-      <span class="inline-flex items-center px-3 py-1 rounded-full border border-border-col text-[0.75rem] text-text-muted font-mono bg-surface">{{ term }}</span>
-    {% endfor %}
-  </div>
-
-  {% if movement.posts.length %}
-
-  <!-- Top section: leaderboard left, first 5 posts right -->
-  <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.25fr] gap-8 items-start">
-
-    <div>
-      {% include "community-leaderboard.njk" %}
-    </div>
-
-    <div>
-      <div class="text-[0.7rem] font-bold tracking-[0.15em] uppercase text-brand-aurora opacity-90 mb-3.5">Top Posts</div>
-      <div class="grid grid-cols-1 gap-4">
-        {% for post in movement.posts %}
-          {% if loop.index <= 5 %}
-            {{ postCard(post) }}
-          {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Remaining posts fill both columns equally -->
-  {% if movement.posts.length > 5 %}
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-    {% for post in movement.posts %}
-      {% if loop.index > 5 %}
-        {{ postCard(post) }}
-      {% endif %}
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% else %}
-
+<div class="wrap movement-page">
   {% include "community-leaderboard.njk" %}
 
-  <div class="mt-10 text-center py-20 border border-border-col rounded-brand bg-surface">
-    <div class="text-text-muted text-[0.875rem]">No posts yet — check back after the first data fetch.</div>
-  </div>
-
-  {% endif %}
-
-  <!-- Footer -->
-  <p class="text-center text-[0.75rem] text-text-muted mt-10">
-    Data updated daily. Posts from the last 24 hours, ranked by engagement.
-    {% if movement.lastUpdated %}
-      <span class="ml-1">Last updated: <span id="last-updated"></span></span>
+  <section class="section movement-posts-section" id="movement-posts" aria-labelledby="movement-posts-title">
+    <div class="section-top">
+      <div>
+        <p class="eyebrow">From the X feed</p>
+        <h2 id="movement-posts-title">Grok has money.</h2>
+      </div>
+    </div>
+    {% if movement.posts.length %}
+      <div class="movement-post-grid">
+        {% for post in movement.posts %}
+          {{ postCard(post, loop.index) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="data-panel movement-empty">
+        <h3>No saved posts available.</h3>
+        <p>The conversation continues in <a href="https://t.me/+J2c-wexHmCJmOThl" target="_blank" rel="noopener noreferrer">Telegram</a>.</p>
+      </div>
     {% endif %}
-  </p>
+  </section>
 
+  {% set savedCreators = attention | default({}) %}
+  <details class="movement-method" id="movement-method">
+    <summary>About the rankings and posts</summary>
+    <p class="movement-collection-note">Rankings use collected X posts. Some posts may be missing, and older history is not backfilled.</p>
+    <p class="movement-snapshot">Rankings recorded through {% if savedCreators.asOf %}<time datetime="{{ savedCreators.asOf }}" data-snapshot>{{ savedCreators.asOf | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}.</p>
+    <dl class="movement-coverage">
+      {% for period, label in [['daily', '24 hours'], ['weekly', '7 days'], ['monthly', '30 days']] %}
+        {% set coverage = savedCreators.periods[period] %}
+        <div><dt>{{ label }}</dt><dd>{% if coverage.available %}{{ coverage.startDate | formatDate }} – {{ coverage.endDate | formatDate }} · {{ coverage.coveredDays }} of {{ coverage.expectedDays }} days recorded{% if not coverage.complete %} · Partial history{% endif %}{% else %}Comparable history unavailable{% endif %}</dd></div>
+      {% endfor %}
+    </dl>
+    <p>A post qualifies with at least five reactions: likes, reposts, replies, and quotes combined. Qualifying impressions are added by account, then ranked from highest to lowest. Follower counts do not affect rank. These figures measure attention on X; they do not establish token ownership.</p>
+    <p>Each period displays up to 15 accounts. Share = account impressions ÷ all qualifying impressions × 100, rounded to one decimal. The displayed shares may total less than 100%.</p>
+    <p>The 7-day and 30-day rankings combine available daily snapshots in their respective UTC date windows, ending at the same collection date. Missing dates are not filled with older data. Recorded dates describe available history, not complete coverage of every post on X.</p>
+    <p class="movement-snapshot">Posts saved {% if movement.lastUpdated %}<time datetime="{{ movement.lastUpdated }}" data-snapshot>{{ movement.lastUpdated | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}.</p>
+    <p>Top posts come from the 24 hours before their saved snapshot and are ranked by likes + reposts + replies + quotes. The feed follows “Grok has money”, $DRB, and DebtReliefBot. These are the authors’ own views.</p>
+  </details>
 </div>
-
-<script>
-  function relativeTime(isoStr) {
-    const diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-    if (diff < 60)   return diff + 's ago';
-    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-    return Math.floor(diff / 86400) + 'd ago';
-  }
-
-  document.querySelectorAll('[data-ts]').forEach(el => {
-    const ts = el.getAttribute('data-ts');
-    if (ts) el.textContent = relativeTime(ts);
-  });
-
-  const lastEl = document.getElementById('last-updated');
-  if (lastEl) {
-    {% if movement.lastUpdated %}
-      lastEl.textContent = relativeTime('{{ movement.lastUpdated }}');
-    {% endif %}
-  }
-</script>

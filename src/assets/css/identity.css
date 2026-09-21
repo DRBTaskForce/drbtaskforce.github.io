@@ -1,0 +1,21 @@
+/* The site identity and the token identity have separate space in the header. */
+.site-header .brand { display:inline-flex; align-items:center; text-decoration:none; flex-shrink:0; }
+.site-header .brand-taskforce { gap:12px; font:500 16px/1.2 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:0; }
+.site-header .brand-taskforce img { width:38px; height:38px; border-radius:50%; object-fit:cover; }
+.site-header .brand-taskforce span { white-space:nowrap; }
+.site-header .brand-token { gap:8px; margin-right:14px; font:500 20px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:-.04em; }
+.site-header .brand-token .drb-cutout { width:32px; height:32px; flex-shrink:0; }
+.site-header .menu-telegram { display:none; }
+@media(max-width:1100px) {
+  .assembly .site-menu { display:none; position:absolute; top:100%; left:0; right:0; padding:20px 32px; background:var(--bg); border-bottom:1px solid var(--line); box-shadow:0 12px 18px #0002; flex-wrap:wrap; }
+  .assembly .site-menu.is-open { display:flex; }
+  .assembly .menu-toggle { display:block; }
+}
+@media(max-width:560px) {
+  .site-header .brand-taskforce { gap:8px; font-size:12px; }
+  .site-header .brand-taskforce img { width:30px; height:30px; }
+  .site-header .brand-token { gap:6px; margin-right:4px; font-size:18px; }
+  .site-header .brand-token .drb-cutout { width:28px; height:28px; }
+  .assembly .header-actions > .button { display:none; }
+  .site-header .menu-telegram { display:inline-flex; }
+}
