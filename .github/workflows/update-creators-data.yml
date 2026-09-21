@@ -19,6 +19,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # Reruns retain their original event SHA; always load the latest
+          # published data and paid-recheck checkpoints after acquiring the lock.
+          ref: main
           fetch-depth: 0
 
       - name: Setup Node
