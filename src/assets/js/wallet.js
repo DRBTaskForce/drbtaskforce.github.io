@@ -48,8 +48,8 @@
   let walletInitialized = false;
 
   const finiteAmount = value => Number.isFinite(value) && value >= 0 ? value : null;
-  const lastStatic = valueAllTime.length ? valueAllTime[valueAllTime.length - 1] : null;
-  const savedDate = lastStatic?.date || wallet.lastUpdated;
+  const lastStatic = wallet.currentSnapshot || (valueAllTime.length ? valueAllTime[valueAllTime.length - 1] : null);
+  const savedDate = lastStatic?.observedAt || lastStatic?.date || wallet.lastUpdated;
   const formatDate = (date, short = false) => new Date(date).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', ...(short ? {} : { year: 'numeric' }), timeZone: 'UTC',
   });

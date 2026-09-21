@@ -4,6 +4,8 @@
  * writes to src/_data/wallet.json. No API key required.
  *
  * Data sources:
+ *   - Base RPC             — balances at one verified block
+ *   - DexScreener          — current DRB and ETH USD pool prices
  *   - Blockscout Base API  — wallet transfer history
  *   - GeckoTerminal API    — DRB/WETH daily price history
  *   - Kraken public API    — ETH/USD daily price history
@@ -24,10 +26,15 @@ const DRB_CONTRACT   = "0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2";
 const WETH_CONTRACT  = "0x4200000000000000000000000000000000000006";
 const USDC_CONTRACT  = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const DRB_POOL       = "0x5116773e18a9c7bb03ebb961b38678e45e238923"; // DRB/WETH pool on Base
+const ETH_POOL       = "0xd0b53d9277642d899df5c87a3966a349a798f224";
+const BASE_RPC       = "https://mainnet.base.org";
 const TOKEN_DECIMALS = 18;
 const USDC_DECIMALS  = 6;
 const BLOCKSCOUT_API = "https://base.blockscout.com/api";
 const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
+const INDEXER_PENDING_MESSAGE = "Some internal transactions within this block range have not yet been processed";
+
+class IndexerPendingError extends Error {}
 
 // ---------------------------------------------------------------------------
 // Resilient fetch — retries transient 5xx / 429 / network errors with
@@ -121,10 +128,10 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
 
     if (data.status === "0") {
       if (data.message === "No transactions found" || data.message === "No token transfers found") break;
-      throw new Error(`Blockscout API error: ${data.message} — ${data.result}`);
+      throw new Error(`Blockscout tokentx status ${data.status}: ${data.message} — ${data.result}`);
     }
 
-    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error("Invalid Blockscout transfer response");
+    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error(`Blockscout tokentx status ${data.status}: ${data.message ?? "invalid transfer response"}`);
     transfers.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
@@ -154,21 +161,108 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
     url.searchParams.set("page", page);
 
     const res = await blockscoutFetch(url.toString());
-    if (!res.ok) throw new Error(`Blockscout HTTP error: ${res.status}`);
+    if (!res.ok) throw new Error(`Blockscout ${action} HTTP error: ${res.status}`);
     const data = await res.json();
+
+    // Status 2 is a partial result, even when it contains hundreds of rows.
+    // Keep it distinct from arbitrary API failures; never consume these rows.
+    if (action === "txlistinternal" && data.status === "2" && Array.isArray(data.result)
+      && data.message === INDEXER_PENDING_MESSAGE) {
+      throw new IndexerPendingError(`Blockscout ${action} status 2: ${data.message}`);
+    }
 
     if (data.status === "0") {
       if (data.message === "No transactions found") break;
-      throw new Error(`Blockscout API error: ${data.message} — ${data.result}`);
+      throw new Error(`Blockscout ${action} status ${data.status}: ${data.message} — ${data.result}`);
     }
 
-    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error("Invalid Blockscout transaction response");
+    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error(`Blockscout ${action} status ${data.status}: ${data.message ?? "invalid transaction response"}`);
     txs.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
   }
 
   return txs;
+}
+
+// ---------------------------------------------------------------------------
+// Current balances are independent of the historical indexer's progress.
+// RPC balances share one block; spot USD prices are observations, not block data.
+// ---------------------------------------------------------------------------
+
+let rpcRequestId = 0;
+
+async function baseRpc(method, params) {
+  const id = ++rpcRequestId;
+  const response = await fetchWithRetry(BASE_RPC, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
+  });
+  if (!response.ok) throw new Error(`Base RPC ${method} HTTP error: ${response.status}`);
+  const data = await response.json();
+  if (!data || data.jsonrpc !== "2.0" || data.id !== id || data.error != null || !Object.hasOwn(data, "result")) {
+    throw new Error(`Invalid Base RPC ${method} response${data?.error?.message ? `: ${data.error.message}` : ""}`);
+  }
+  return data.result;
+}
+
+function rpcInteger(value, label, abiWord = false) {
+  const pattern = abiWord ? /^0x[\da-fA-F]{64}$/ : /^0x[\da-fA-F]{1,64}$/;
+  if (typeof value !== "string" || !pattern.test(value)) throw new Error(`Invalid Base RPC ${label} hex value`);
+  return BigInt(value);
+}
+
+function validateBlock(block) {
+  if (!block || typeof block.hash !== "string" || !/^0x[\da-fA-F]{64}$/.test(block.hash)) throw new Error("Invalid Base RPC block hash");
+  const number = Number(rpcInteger(block.number, "block number"));
+  if (!Number.isSafeInteger(number) || number < 0) throw new Error("Invalid Base RPC block number");
+  return number;
+}
+
+async function fetchSpotPrice(pool, token) {
+  const response = await fetchWithRetry(`https://api.dexscreener.com/latest/dex/pairs/base/${pool}`);
+  if (!response.ok) throw new Error(`DexScreener ${pool} HTTP error: ${response.status}`);
+  const data = await response.json();
+  const pairs = Array.isArray(data?.pairs) ? data.pairs : data?.pair ? [data.pair] : [];
+  const pair = pairs.find(p => p?.chainId === "base" && p.pairAddress?.toLowerCase() === pool
+    && [p.baseToken?.address?.toLowerCase(), p.quoteToken?.address?.toLowerCase()].includes(token.toLowerCase()));
+  const priceUsd = Number(pair?.priceUsd);
+  if (!validPrice(priceUsd)) throw new Error(`Invalid DexScreener USD price for ${pool}`);
+  if (pair.baseToken?.address?.toLowerCase() === token.toLowerCase()) return priceUsd;
+  const priceNative = Number(pair.priceNative);
+  const quoteUsd = priceUsd / priceNative;
+  if (!validPrice(priceNative) || !validPrice(quoteUsd)) throw new Error(`Invalid DexScreener quote-token price for ${pool}`);
+  return quoteUsd;
+}
+
+async function fetchCurrentSnapshot() {
+  if (rpcInteger(await baseRpc("eth_chainId", []), "chain ID") !== 8453n) throw new Error("Base RPC returned the wrong chain ID");
+  const block = await baseRpc("eth_getBlockByNumber", ["latest", false]);
+  const blockNumber = validateBlock(block);
+  const blockTag = `0x${blockNumber.toString(16)}`;
+  const balanceOf = `0x70a08231${WALLET_ADDRESS.slice(2).padStart(64, "0")}`;
+  const [drbRaw, wethRaw, usdcRaw, ethRaw, drbPrice, ethPrice] = await Promise.all([
+    baseRpc("eth_call", [{ to: DRB_CONTRACT, data: balanceOf }, blockTag]),
+    baseRpc("eth_call", [{ to: WETH_CONTRACT, data: balanceOf }, blockTag]),
+    baseRpc("eth_call", [{ to: USDC_CONTRACT, data: balanceOf }, blockTag]),
+    baseRpc("eth_getBalance", [WALLET_ADDRESS, blockTag]),
+    fetchSpotPrice(DRB_POOL, DRB_CONTRACT), fetchSpotPrice(ETH_POOL, WETH_CONTRACT),
+  ]);
+  const confirmed = await baseRpc("eth_getBlockByNumber", [blockTag, false]);
+  if (validateBlock(confirmed) !== blockNumber || confirmed.hash.toLowerCase() !== block.hash.toLowerCase()) {
+    throw new Error("Base RPC block changed while reading balances; snapshot not published");
+  }
+  const rawBalances = Object.fromEntries(Object.entries({ drb: drbRaw, weth: wethRaw, usdc: usdcRaw, eth: ethRaw })
+    .map(([asset, raw]) => [asset, String(rpcInteger(raw, `${asset} balance`, asset !== "eth"))]));
+  const amounts = Object.fromEntries(Object.entries(rawBalances)
+    .map(([asset, raw]) => [asset, Number(formatUnits(raw, asset === "usdc" ? USDC_DECIMALS : TOKEN_DECIMALS))]));
+  const usd = amounts.drb * drbPrice + (amounts.weth + amounts.eth) * ethPrice + amounts.usdc;
+  if ([...Object.values(amounts), usd, usd * 100].some(value => !Number.isFinite(value) || value < 0)) throw new Error("Invalid current wallet valuation");
+  const observedAt = new Date().toISOString();
+  return {
+    date: observedAt.slice(0, 10), observedAt, blockNumber, blockHash: block.hash,
+    source: "Base RPC", rawBalances, ...amounts, drbPrice, ethPrice, usd: Math.round(usd * 100) / 100,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -448,14 +542,12 @@ function writeSnapshot(output) {
 }
 
 // ---------------------------------------------------------------------------
-// Collection is a transaction: all transfers and both prices must succeed.
+// Historical collection returns data only when all transfers and prices succeed.
 // Legacy data has no exact ledger; its first incremental run must replay all
 // history to recover skipped intervals. Rounded chart balances cannot repair it.
 // ---------------------------------------------------------------------------
 
-async function collect(incremental) {
-  const existing = existsSync(OUTPUT_PATH) ? JSON.parse(readFileSync(OUTPUT_PATH, "utf8")) : null;
-  if (existing?.walletAddress && existing.walletAddress.toLowerCase() !== WALLET_ADDRESS) throw new Error("Existing snapshot belongs to another wallet");
+async function collect(incremental, existing) {
   const previous = incremental ? existing?.ledger : null;
   if (previous) validateLedger(previous);
   if (incremental && !previous) console.log("No exact ledger — rebuilding full transfer history and retaining historical prices.");
@@ -520,12 +612,51 @@ async function collect(incremental) {
     walletValueAllTime, walletValueLast30Days: last30DaysFrom(walletValueAllTime),
     ledger, priceHistory: prices,
   };
-  writeSnapshot(output);
-  console.log(`Written ${walletValueAllTime.length} valuation days to ${OUTPUT_PATH}`);
+  return output;
 }
 
-async function main() { return collect(false); }
-async function mainIncremental() { return collect(true); }
+function requireSavedHistory(existing) {
+  const rows = existing?.walletValueAllTime;
+  if (existing?.walletAddress?.toLowerCase() !== WALLET_ADDRESS
+    || typeof existing.lastUpdated !== "string" || !Number.isFinite(Date.parse(existing.lastUpdated))
+    || !Array.isArray(rows) || rows.length === 0
+    || rows.some(row => !row || !validDate(row.date) || !validPrice(row.drbPrice) || !validPrice(row.ethPrice)
+      || ["usd", "drb", "weth", "usdc", "eth"].some(key => typeof row[key] !== "number" || !Number.isFinite(row[key]) || row[key] < 0))) {
+    throw new Error("Blockscout indexing is pending and no valid saved wallet history is available; snapshot not published");
+  }
+  if (existing.ledger) validateLedger(existing.ledger);
+}
+
+async function refreshWallet(incremental) {
+  const existing = existsSync(OUTPUT_PATH) ? JSON.parse(readFileSync(OUTPUT_PATH, "utf8")) : null;
+  if (existing?.walletAddress && existing.walletAddress.toLowerCase() !== WALLET_ADDRESS) throw new Error("Existing snapshot belongs to another wallet");
+  const currentSnapshot = await fetchCurrentSnapshot();
+  let output;
+  try {
+    output = {
+      ...await collect(incremental, existing), currentSnapshot,
+      historyStatus: { state: "updated", checkedAt: new Date().toISOString() },
+    };
+  } catch (error) {
+    if (!(error instanceof IndexerPendingError)) throw error;
+    requireSavedHistory(existing);
+    console.warn(error.message);
+    // Only these two fields change. In particular, partial transaction arrays,
+    // cursors, historical prices, and lastUpdated must never advance here.
+    output = {
+      ...existing, currentSnapshot,
+      historyStatus: {
+        state: "pending", checkedAt: new Date().toISOString(),
+        reason: "Blockscout is still indexing internal transactions. Saved history has been retained.",
+      },
+    };
+  }
+  writeSnapshot(output);
+  console.log(`Written current balances; history ${output.historyStatus.state}; ${output.walletValueAllTime.length} valuation days in ${OUTPUT_PATH}`);
+}
+
+async function main() { return refreshWallet(false); }
+async function mainIncremental() { return refreshWallet(true); }
 
 // ---------------------------------------------------------------------------
 // Entry point

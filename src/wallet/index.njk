@@ -7,7 +7,8 @@ pageStyle: wallet
 pageScript: wallet
 ---
 
-{% set snapshot = wallet.walletValueAllTime | last %}
+{% set historicalSnapshot = wallet.walletValueAllTime | last %}
+{% set snapshot = wallet.currentSnapshot or historicalSnapshot %}
 <div class="wrap wallet-page">
   <header class="page-heading">
     <p class="eyebrow">Grok’s wallet · Base</p>
@@ -39,7 +40,7 @@ pageScript: wallet
       </div>
       <div class="wallet-snapshot">
         <p class="eyebrow">Saved snapshot</p>
-        <p>{% if snapshot %}<time datetime="{{ snapshot.date }}">{{ snapshot.date | formatDate }}</time>{% else %}Unavailable{% endif %}</p>
+        <p>{% if snapshot %}<time datetime="{{ snapshot.observedAt or snapshot.date }}">{% if wallet.currentSnapshot %}{{ homeWallet.asOf }}{% else %}{{ snapshot.date | formatDate }}{% endif %}</time>{% else %}Unavailable{% endif %}</p>
         <p id="stat-updated-sub" class="wallet-note" role="status">Showing saved balances.</p>
       </div>
     </div>
@@ -76,7 +77,7 @@ pageScript: wallet
       <div>
         <p class="eyebrow">Cumulative WETH received</p>
         <p class="wallet-detail-value">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</p>
-        <p class="wallet-note">{{ wallet.totalWethTransactions }} incoming transfers in the saved record</p>
+        <p class="wallet-note">{{ wallet.totalWethTransactions }} incoming transfers in the saved record{% if homeWallet.receiptsAsOf %} · {{ homeWallet.receiptsAsOf }}{% endif %}</p>
       </div>
     </div>
   </section>
@@ -92,7 +93,8 @@ pageScript: wallet
         <button id="btn-90d" type="button" aria-pressed="false" aria-controls="wallet-charts wallet-history-table">90 days</button>
       </div>
     </div>
-    <p class="wallet-note wallet-history-range" id="history-range" role="status">Daily snapshots through {% if snapshot %}{{ snapshot.date | formatDate }}{% else %}the last saved record{% endif %}.</p>
+    {% if homeWallet.historyNotice %}<p class="wallet-note" role="status">{{ homeWallet.historyNotice }}</p>{% endif %}
+    <p class="wallet-note wallet-history-range" id="history-range" role="status">Daily snapshots through {% if historicalSnapshot %}{{ historicalSnapshot.date | formatDate }}{% else %}the last saved record{% endif %}.</p>
 
     <div class="wallet-chart-grid" id="wallet-charts">
       {% for asset, label in { drb: 'DRB balance', weth: 'WETH balance', eth: 'ETH balance', usdc: 'USDC balance' } %}

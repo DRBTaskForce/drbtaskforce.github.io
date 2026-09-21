@@ -2,17 +2,23 @@
 
 // Present the collected snapshot; never substitute the build time for its date.
 module.exports = function walletSummary(wallet) {
-  const latest = wallet.walletValueAllTime?.at(-1);
+  const historicalLatest = wallet.walletValueAllTime?.at(-1);
+  const current = wallet.currentSnapshot;
+  const latest = current || historicalLatest;
   const amount = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
   const validDate = value => typeof value === 'string' && Number.isFinite(Date.parse(value));
   if (!latest || !validDate(latest.date) || !validDate(wallet.lastUpdated)
       || !['usd', 'drb', 'weth', 'usdc', 'eth'].every(key => amount(latest[key]))) {
     throw new Error('A valid saved wallet snapshot is required for the homepage.');
   }
-  const cutoff = new Date(latest.date);
+  if (current && (!validDate(current.observedAt) || current.date !== new Date(current.observedAt).toISOString().slice(0, 10))) {
+    throw new Error('The current wallet observation date is invalid.');
+  }
+  if (!historicalLatest || !validDate(historicalLatest.date)) throw new Error('Saved wallet history is invalid.');
+  const cutoff = new Date(historicalLatest.date);
   cutoff.setUTCDate(cutoff.getUTCDate() - 29);
   const from = cutoff.toISOString().slice(0, 10);
-  const points = wallet.walletValueAllTime.filter(point => point.date >= from && point.date <= latest.date);
+  const points = wallet.walletValueAllTime.filter(point => point.date >= from && point.date <= historicalLatest.date);
   if (!points.length || points.some(point => !validDate(point.date) || !amount(point.usd))) {
     throw new Error('Saved wallet history is invalid.');
   }
@@ -38,15 +44,18 @@ module.exports = function walletSummary(wallet) {
   const line = xy.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
   const tick = value => '$' + new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value).toLowerCase();
   const collectedAt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(new Date(wallet.lastUpdated)) + ' UTC';
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(new Date(current?.observedAt || wallet.lastUpdated)) + ' UTC';
   const valuationDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(latest.date));
+  const receiptsAsOf = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(wallet.lastUpdated));
   const startYear = first.date.slice(0, 4), endYear = last.date.slice(0, 4);
   const range = `${date(first.date)}${startYear === endYear ? '' : ', ' + startYear}–${date(last.date)}, ${endYear}`;
   return {
     total: usd(latest.usd),
-    asOf: latest.date === new Date(wallet.lastUpdated).toISOString().slice(0, 10) ? collectedAt : `${valuationDate} · collected ${collectedAt}`,
+    asOf: current || latest.date === new Date(wallet.lastUpdated).toISOString().slice(0, 10) ? collectedAt : `${valuationDate} · collected ${collectedAt}`,
     balances: { drb: number(latest.drb, 0), weth: number(latest.weth, 4), usdc: number(latest.usdc, 2), eth: number(latest.eth, 4) },
     wethReceived: number(fees, 4),
+    receiptsAsOf: current ? receiptsAsOf : '',
+    historyNotice: wallet.historyStatus?.state === 'pending' ? 'History update pending. The last saved history is shown below.' : '',
     history: points,
     chart: {
       title: `Saved wallet value in US dollars, ${date(first.date, true)} to ${date(last.date, true)}`,

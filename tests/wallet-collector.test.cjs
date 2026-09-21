@@ -16,6 +16,9 @@ const other = '0x0000000000000000000000000000000000000001';
 const drb = '0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2';
 const weth = '0x4200000000000000000000000000000000000006';
 const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const drbPool = '0x5116773e18a9c7bb03ebb961b38678e45e238923';
+const ethPool = '0xd0b53d9277642d899df5c87a3966a349a798f224';
+const pendingMessage = 'Some internal transactions within this block range have not yet been processed';
 const unix = date => Date.parse(`${date}T12:00:00Z`) / 1000;
 const tx = (date, block, value, fields = {}) => ({
   timeStamp: String(unix(date)), blockNumber: String(block), from: other, to: wallet,
@@ -23,6 +26,7 @@ const tx = (date, block, value, fields = {}) => ({
 });
 const point = date => ({ date, usd: 10010, drb: 10, weth: 0, usdc: 0, eth: 10, drbPrice: 1, ethPrice: 1000 });
 const legacy = () => ({
+  walletAddress: wallet,
   lastUpdated: '2026-09-20T12:00:00Z', lastBlockDrb: 100, lastBlockWeth: 0,
   lastBlockUsdc: 0, lastBlockEth: 200, cumulativeDrbReceived: '10', cumulativeWethEarned: '0',
   cumulativeUsdcReceived: '0', cumulativeEthReceived: '10', totalDrbTransactions: 1,
@@ -37,19 +41,47 @@ function fixture(existing = null, options = {}) {
   if (existing) files.set(outputPath, JSON.stringify(existing));
   const originalBytes = files.get(outputPath);
   const calls = [];
+  const rpcRequests = [];
   let commits = 0;
   class Clock extends Date {
     constructor(...args) { super(...(args.length ? args : ['2026-09-21T12:00:00Z'])); }
     static now() { return Date.parse('2026-09-21T12:00:00Z'); }
   }
   const reply = (data, status = 200) => ({ status, ok: status === 200, json: async () => data });
-  const fetch = async input => {
+  const fetch = async (input, requestOptions = {}) => {
     const url = new URL(input);
     calls.push(url);
-    if (options.fetch) return options.fetch(url);
+    if (options.fetch) return options.fetch(url, requestOptions);
+    if (url.hostname === 'mainnet.base.org') {
+      const request = JSON.parse(requestOptions.body);
+      rpcRequests.push(request);
+      let result;
+      if (request.method === 'eth_chainId') result = '0x2105';
+      else if (request.method === 'eth_getBlockByNumber') result = { number: '0xabc', hash: `0x${'a'.repeat(64)}` };
+      else if (request.method === 'eth_getBalance') result = `0x${(4n * 10n ** 18n).toString(16)}`;
+      else if (request.method === 'eth_call') {
+        const balances = { [drb]: 100n * 10n ** 18n, [weth]: 2n * 10n ** 18n, [usdc]: 300n * 10n ** 6n };
+        const balance = balances[request.params[0].to.toLowerCase()];
+        if (balance === undefined) throw new Error('Unexpected token balance request');
+        result = `0x${balance.toString(16).padStart(64, '0')}`;
+      } else throw new Error(`Unexpected RPC method ${request.method}`);
+      const body = { jsonrpc: '2.0', id: request.id, result };
+      return reply(options.rpcOverride ? options.rpcOverride(request, body, rpcRequests) : body);
+    }
+    if (url.hostname === 'api.dexscreener.com') {
+      const pool = url.pathname.split('/').at(-1);
+      const pair = pool === drbPool
+        ? { chainId: 'base', pairAddress: drbPool, baseToken: { address: drb }, quoteToken: { address: weth }, priceUsd: '0.25', priceNative: '0.0001' }
+        : { chainId: 'base', pairAddress: ethPool, baseToken: { address: usdc }, quoteToken: { address: weth }, priceUsd: '1', priceNative: '0.0004' };
+      return reply(options.spotOverride ? options.spotOverride(pair) : { pairs: [pair] });
+    }
     if (url.hostname === 'base.blockscout.com') {
       const action = url.searchParams.get('action');
       if (action === options.failAction) return reply({}, 503);
+      if (action === options.statusResponse?.action) return reply(options.statusResponse.data);
+      if (action === 'txlistinternal' && options.pendingInternal) {
+        return reply({ status: '2', message: pendingMessage, result: [tx('2026-09-21', 999, 99)] });
+      }
       const start = Number(url.searchParams.get('startblock'));
       const list = action === 'txlist' ? options.normal ?? [] : action === 'txlistinternal'
         ? options.internal ?? [] : options.tokens?.[url.searchParams.get('contractaddress').toLowerCase()] ?? [];
@@ -79,7 +111,7 @@ function fixture(existing = null, options = {}) {
   });
   vm.runInContext(code, context, { filename: 'fetch-wallet-data.mjs' });
   return {
-    collector: context.collector, calls, originalBytes,
+    collector: context.collector, calls, rpcRequests, originalBytes,
     get bytes() { return files.get(outputPath); },
     get output() { return files.has(outputPath) ? JSON.parse(files.get(outputPath)) : null; },
     get commits() { return commits; },
@@ -360,4 +392,127 @@ test('complete full replay reaches every known checkpoint and can replace the sn
   assert.equal(replay.output.walletValueAllTime.at(-1).usd, 13011);
   assert.equal(replay.output.ledger.eth.lastNormalBlock, 200);
   assert.equal(replay.output.ledger.eth.lastInternalBlock, 150);
+});
+
+test('current snapshot reads all balances at one verified Base block and converts quote-token USD prices', async () => {
+  const run = fixture();
+  await run.collector.main();
+  const current = run.output.currentSnapshot;
+  assert.ok(current, 'a current snapshot is published with complete historical collection');
+  assert.equal(current.source, 'Base RPC');
+  assert.equal(current.blockNumber, 2748);
+  assert.equal(current.blockHash, `0x${'a'.repeat(64)}`);
+  assert.equal(current.date, '2026-09-21');
+  assert.equal(current.observedAt, '2026-09-21T12:00:00.000Z');
+  assert.deepEqual(current.rawBalances, { drb: '100000000000000000000', weth: '2000000000000000000', usdc: '300000000', eth: '4000000000000000000' });
+  assert.deepEqual([current.drb, current.weth, current.usdc, current.eth, current.drbPrice, current.ethPrice, current.usd], [100, 2, 300, 4, 0.25, 2500, 15325]);
+  const balanceRequests = run.rpcRequests.filter(r => ['eth_getBalance', 'eth_call'].includes(r.method));
+  assert.equal(balanceRequests.length, 4);
+  assert.equal(balanceRequests.every(r => r.params[1] === '0xabc'), true);
+  assert.equal(balanceRequests.filter(r => r.method === 'eth_call').every(r => r.params[0].data === `0x70a08231${wallet.slice(2).padStart(64, '0')}`), true);
+  assert.equal(run.output.historyStatus.state, 'updated');
+  assert.equal(run.commits, 1);
+});
+
+test('explicit pending internal indexing publishes current balances while preserving every saved historical field', async () => {
+  const initial = legacy();
+  const run = fixture(initial, { pendingInternal: true, ...completeHistory() });
+  await run.collector.mainIncremental();
+  const { currentSnapshot, historyStatus, ...retained } = run.output;
+  assert.deepEqual(retained, initial);
+  assert.equal(currentSnapshot.usd, 15325);
+  assert.deepEqual(historyStatus, {
+    state: 'pending', checkedAt: '2026-09-21T12:00:00.000Z',
+    reason: 'Blockscout is still indexing internal transactions. Saved history has been retained.',
+  });
+  assert.equal(run.commits, 1);
+});
+
+test('a successful retry after pending indexing uses the unchanged ledger checkpoints', async () => {
+  const initial = await seeded(completeHistory());
+  const pending = fixture(initial, { pendingInternal: true, normal: [tx('2026-09-21', 300, 1)] });
+  await pending.collector.mainIncremental();
+  assert.deepEqual(pending.output.ledger, initial.ledger);
+  assert.equal(pending.output.lastUpdated, initial.lastUpdated);
+  const retry = fixture(pending.output, { normal: [tx('2026-09-21', 300, 1)], internal: [tx('2026-09-21', 250, 2)] });
+  await retry.collector.mainIncremental();
+  assert.equal(retry.output.historyStatus.state, 'updated');
+  assert.equal(retry.output.walletValueAllTime.at(-1).eth, 15);
+  assert.equal(retry.calls.find(u => u.searchParams.get('action') === 'txlist').searchParams.get('startblock'), '201');
+  assert.equal(retry.calls.find(u => u.searchParams.get('action') === 'txlistinternal').searchParams.get('startblock'), '151');
+});
+
+test('pending indexing without usable saved wallet history cannot publish partial data', async () => {
+  for (const initial of [null, { ...legacy(), walletValueAllTime: [] }, { ...legacy(), walletAddress: other }]) {
+    const run = fixture(initial, { pendingInternal: true });
+    await assert.rejects(run.collector.mainIncremental());
+    assert.equal(run.commits, 0);
+    assert.equal(run.bytes, run.originalBytes);
+  }
+});
+
+test('only a well-formed explicit internal-indexing response permits retaining history', async () => {
+  for (const response of [
+    { action: 'txlistinternal', data: { status: '2', message: pendingMessage, result: {} } },
+    { action: 'txlistinternal', data: { status: '2', message: 'Unknown error', result: [] } },
+    { action: 'txlist', data: { status: '2', message: pendingMessage, result: [] } },
+  ]) {
+    const run = fixture(legacy(), { statusResponse: response });
+    await assert.rejects(run.collector.mainIncremental(), /Blockscout.*(txlist|txlistinternal).*status.*2/);
+    assert.equal(run.bytes, run.originalBytes);
+  }
+});
+
+test('RPC errors, missing balances, mismatched IDs, wrong chain and changed block hashes preserve saved data', async () => {
+  const mutations = [
+    (r, b) => r.method === 'eth_call' ? { ...b, error: { code: -32000, message: 'unavailable' } } : b,
+    (r, b) => r.method === 'eth_getBalance' ? { jsonrpc: b.jsonrpc, id: b.id } : b,
+    (r, b) => ({ ...b, id: r.id + 1 }),
+    (r, b) => r.method === 'eth_chainId' ? { ...b, result: '0x1' } : b,
+    (r, b) => r.method === 'eth_call' ? { ...b, result: '0xnothex' } : b,
+    (r, b) => r.method === 'eth_getBlockByNumber' && r.params[0] !== 'latest' ? { ...b, result: { ...b.result, hash: `0x${'b'.repeat(64)}` } } : b,
+  ];
+  for (const rpcOverride of mutations) {
+    const run = fixture(legacy(), { ...completeHistory(), rpcOverride });
+    await assert.rejects(run.collector.mainIncremental());
+    assert.equal(run.commits, 0);
+    assert.equal(run.bytes, run.originalBytes);
+  }
+});
+
+test('missing, unrelated or invalid current prices cannot publish a snapshot', async () => {
+  for (const mutate of [
+    () => ({ pairs: [] }),
+    p => ({ pairs: [{ ...p, chainId: 'ethereum' }] }),
+    p => ({ pairs: [{ ...p, pairAddress: other }] }),
+    p => ({ pairs: [{ ...p, baseToken: { address: other }, quoteToken: { address: other } }] }),
+    p => ({ pairs: [{ ...p, priceUsd: 'NaN' }] }),
+    p => ({ pairs: [{ ...p, priceUsd: '0' }] }),
+  ]) {
+    const run = fixture(legacy(), { ...completeHistory(), spotOverride: mutate });
+    await assert.rejects(run.collector.mainIncremental());
+    assert.equal(run.commits, 0);
+    assert.equal(run.bytes, run.originalBytes);
+  }
+});
+
+test('ERC-20 RPC balances must contain a complete ABI uint256 result', async () => {
+  const run = fixture(legacy(), {
+    ...completeHistory(),
+    rpcOverride: (request, body) => request.method === 'eth_call' ? { ...body, result: '0x1' } : body,
+  });
+  await assert.rejects(run.collector.mainIncremental(), /balance.*hex/i);
+  assert.equal(run.bytes, run.originalBytes);
+});
+
+test('pending-indexer fallback cannot bypass current balance or spot price failures', async () => {
+  for (const options of [
+    { rpcOverride: (request, body) => request.method === 'eth_getBalance' ? { ...body, error: { message: 'balance unavailable' } } : body },
+    { spotOverride: () => ({ pairs: [] }) },
+  ]) {
+    const run = fixture(legacy(), { pendingInternal: true, ...options });
+    await assert.rejects(run.collector.mainIncremental());
+    assert.equal(run.commits, 0);
+    assert.equal(run.bytes, run.originalBytes);
+  }
 });

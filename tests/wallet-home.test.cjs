@@ -7,7 +7,7 @@ const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const bin = path.join(path.dirname(require.resolve('@11ty/eleventy/package.json')), 'cmd.js');
-function render(wallet) {
+function render(wallet, page = 'index.html') {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'drb-wallet-home-'));
   try {
     fs.cpSync(path.join(root, 'src'), path.join(dir, 'src'), { recursive: true });
@@ -15,7 +15,7 @@ function render(wallet) {
     fs.copyFileSync(path.join(root, '.eleventy.js'), path.join(dir, '.eleventy.js'));
     fs.writeFileSync(path.join(dir, 'src/_data/wallet.json'), JSON.stringify(wallet));
     execFileSync(process.execPath, [bin, '--quiet'], { cwd: dir, stdio: 'pipe', timeout: 15000 });
-    return fs.readFileSync(path.join(dir, '_site/index.html'), 'utf8');
+    return fs.readFileSync(path.join(dir, '_site', page), 'utf8');
   } finally {
     if (!process.env.KEEP_TEST_FIXTURES) fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -72,4 +72,35 @@ test('a genuine zero balance still produces a finite readable chart', () => {
   assert.equal(summary.balances.eth, '0.0000');
   assert.equal(summary.chart.end.x, '512.00');
   assert.doesNotMatch(summary.chart.line, /NaN|Infinity/);
+});
+
+test('current chain balances update both pages without making retained history or receipts look new', () => {
+  const saved = fixture();
+  saved.currentSnapshot = { ...point('2026-02-05', 3950, 1850), observedAt: '2026-02-05T10:20:00Z' };
+  saved.historyStatus = { state: 'pending', checkedAt: '2026-02-05T10:20:00Z' };
+  const before = render(fixture());
+  const home = render(saved);
+  assert.equal(value(home, 'wallet-total'), '$3,950.00');
+  assert.match(panel(home), /As of Feb 5, 2026, 10:20 UTC/);
+  assert.match(panel(home), /History update pending/);
+  assert.match(panel(home), /WETH received · cumulative · Feb 2, 2026/);
+  assert.match(panel(home), /3 daily samples · Jan 31–Feb 2, 2026/);
+  assert.equal(panel(home).match(/class="chart-line" d="([^"]+)/)?.[1], panel(before).match(/class="chart-line" d="([^"]+)/)?.[1]);
+  assert.equal(home.replace(panel(home), ''), before.replace(panel(before), ''), 'current observation affects only the wallet section');
+  const walletPage = render(saved, 'wallet/index.html');
+  assert.match(walletPage, /id="stat-total">\$3950</);
+  assert.match(walletPage, /datetime="2026-02-05T10:20:00Z"/);
+  assert.match(walletPage, /History update pending/);
+  assert.match(walletPage, /Daily snapshots through Feb 2, 2026/);
+  const table = walletPage.slice(walletPage.indexOf('<tbody id="history-rows">'), walletPage.indexOf('</tbody>'));
+  assert.doesNotMatch(table, /2026-02-05/);
+});
+
+test('invalid current observations cannot masquerade as a valid current snapshot', () => {
+  const summarize = require('../scripts/wallet-summary.cjs');
+  for (const changes of [{ usd: -1 }, { observedAt: 'invalid' }, { eth: NaN }]) {
+    const saved = fixture();
+    saved.currentSnapshot = { ...point('2026-02-05', 3950, 1850), observedAt: '2026-02-05T10:20:00Z', ...changes };
+    assert.throws(() => summarize(saved), /snapshot|observation/i);
+  }
 });
