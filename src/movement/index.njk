@@ -34,6 +34,7 @@ xPosts: true
         <h2 id="movement-posts-title">Grok has money.</h2>
       </div>
     </div>
+    <p class="movement-snapshot">Posts saved {% if movement.lastUpdated %}<time datetime="{{ movement.lastUpdated }}" data-snapshot>{{ movement.lastUpdated | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily.</p>
     {% if movement.posts.length %}
       <div class="movement-post-grid">
         {% for post in movement.posts %}
@@ -52,7 +53,6 @@ xPosts: true
   <details class="movement-method" id="movement-method">
     <summary>About the rankings and posts</summary>
     <p class="movement-collection-note">Rankings use collected X posts. Some posts may be missing, and older history is not backfilled.</p>
-    <p class="movement-snapshot">Rankings recorded through {% if savedCreators.asOf %}<time datetime="{{ savedCreators.asOf }}" data-snapshot>{{ savedCreators.asOf | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}.</p>
     <dl class="movement-coverage">
       {% for period, label in [['daily', '24 hours'], ['weekly', '7 days'], ['monthly', '30 days']] %}
         {% set coverage = savedCreators.periods[period] %}
@@ -62,7 +62,6 @@ xPosts: true
     <p>A post qualifies with at least five reactions: likes, reposts, replies, and quotes combined. Qualifying impressions are added by account, then ranked from highest to lowest. Follower counts do not affect rank. These figures measure attention on X; they do not establish token ownership.</p>
     <p>Each period displays up to 15 accounts. Share = account impressions ÷ all qualifying impressions × 100, rounded to one decimal. The displayed shares may total less than 100%.</p>
     <p>The 7-day and 30-day rankings combine available daily snapshots in their respective UTC date windows, ending at the same collection date. Missing dates are not filled with older data. Recorded dates describe available history, not complete coverage of every post on X.</p>
-    <p class="movement-snapshot">Posts saved {% if movement.lastUpdated %}<time datetime="{{ movement.lastUpdated }}" data-snapshot>{{ movement.lastUpdated | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}.</p>
     <p>Top posts come from the 24 hours before their saved snapshot and are ranked by likes + reposts + replies + quotes. The feed follows “Grok has money”, $DRB, and DebtReliefBot. These are the authors’ own views.</p>
   </details>
 </div>

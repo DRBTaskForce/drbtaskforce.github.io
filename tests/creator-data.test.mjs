@@ -352,7 +352,7 @@ test('recheck age boundaries never fetch ordinary posts at 48h or strong posts a
   }
 });
 
-test('a failed or incomplete final read preserves rankings and consumes its attempt without retrying', () => {
+test('a failed final read retains old metrics, publishes complete new discovery, and never retries its attempt', () => {
   const first = runCreators(creators, discovery);
   assert.equal(first.status, 0, first.stderr);
   for (const page of [
@@ -363,15 +363,52 @@ test('a failed or incomplete final read preserves rankings and consumes its atte
     { body: { data: [{ id: 'ordinary', public_metrics: { like_count: 5 } }] } },
   ]) {
     const options = { now: '2026-09-12T14:00:00.000Z', cache: first.cache, lookups: [page] };
-    const failed = runCreators(first.data, emptySearch, options);
-    assert.notEqual(failed.status, 0);
-    assert.equal(failed.after, failed.before);
+    const newDiscovery = { ...response, data: [{ ...response.data[0], id: 'new-day', created_at: '2026-09-12T12:00:00.000Z' }] };
+    const failed = runCreators(first.data, newDiscovery, options);
+    assert.equal(failed.status, 0, failed.stderr);
+    assert.equal(failed.data.lastUpdatedDaily, options.now);
+    assert.equal(failed.data.daily[0].impressions, 100);
+    assert.deepEqual(failed.data.dailyHistory['2026-09-11'], first.data.dailyHistory['2026-09-11']);
+    assert.equal(failed.data.metricRechecks.unavailablePosts, 1);
+    assert.match(failed.stderr, /retained|retaining/i);
     assert.equal(lookupRequests(failed).length, 1);
     assert.equal(failed.cache?.posts?.ordinary?.recheckStatus, 'attempted');
     const rerun = runCreators(first.data, emptySearch, { ...options, cache: failed.cache, lookups: [] });
     assert.equal(rerun.status, 0, rerun.stderr);
     assert.equal(lookupRequests(rerun).length, 0);
     assert.equal(rerun.cache.posts.ordinary.post.public_metrics.impression_count, 999);
+    assert.equal(rerun.data.metricRechecks.unavailablePosts, 1);
+  }
+});
+
+test('mixed and malformed final lookup batches never apply partial metrics or start later paid batches', () => {
+  const posts = Array.from({ length: 101 }, (_, i) => ({ ...response.data[0], id: String(i + 1) }));
+  const first = runCreators(creators, { ...response, data: posts });
+  for (const body of [
+    { data: [{ id: '1', public_metrics: metrics(9999) }], errors: [{ resource_id: '2', resource_type: 'tweet', type: 'https://api.x.com/2/problems/resource-not-found' }] },
+    { data: posts.slice(0, 100).map((post, i) => ({ id: i === 99 ? '1' : post.id, public_metrics: metrics(9999) })) },
+    { data: posts.slice(0, 100).map((post, i) => ({ id: post.id, public_metrics: metrics(i === 99 ? -1 : 9999) })) },
+  ]) {
+    const result = runCreators(first.data, emptySearch, {
+      now: '2026-09-12T14:00:00.000Z', cache: first.cache, lookups: [{ body }],
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(lookupRequests(result).length, 1);
+    assert.equal(result.cache.posts['1'].post.public_metrics.impression_count, 100);
+    assert.equal(result.cache.posts['100'].recheckStatus, 'attempted');
+    assert.equal(result.cache.posts['101'].recheckStatus, 'pending');
+    assert.equal(result.data.metricRechecks.unavailablePosts, 100);
+    assert.equal(result.data.weekly[0].impressions, 10100);
+  }
+});
+
+test('unknown or invalid initial impressions fail before any cache checkpoint or final lookup', () => {
+  for (const impression_count of [undefined, null, -1, '100', 1.5]) {
+    const result = runCreators(creators, { ...response, data: [{ ...response.data[0], public_metrics: { like_count: 5, impression_count } }] });
+    assert.notEqual(result.status, 0);
+    assert.equal(result.after, result.before);
+    assert.equal(result.cache, null);
+    assert.equal(lookupRequests(result).length, 0);
   }
 });
 
@@ -444,6 +481,28 @@ test('checkpoint time cannot push a paid recheck across either age cutoff', asyn
       assert.equal(calls, 0, 'post reached its cutoff during checkpoint');
       assert.equal(cache.posts['1'].recheckStatus, 'expired');
     }
+  } finally {
+    globalThis.Date = RealDate;
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('checkpoint storage failure stays fatal and cannot become a successful partial update', async () => {
+  const { updatePostCache } = await import('../scripts/creator-post-cache.mjs');
+  const first = runCreators(creators, discovery);
+  const RealDate = Date;
+  const realFetch = globalThis.fetch;
+  try {
+    globalThis.Date = class extends RealDate {
+      constructor(...args) { super(...(args.length ? args : ['2026-09-12T14:00:00.000Z'])); }
+      static now() { return RealDate.parse('2026-09-12T14:00:00.000Z'); }
+    };
+    let calls = 0;
+    globalThis.fetch = async () => { calls++; throw new Error('must not fetch'); };
+    await assert.rejects(updatePostCache(first.cache, [], {}, new Date(), 'test-only-placeholder', () => {
+      throw new Error('checkpoint disk full');
+    }), /checkpoint disk full/);
+    assert.equal(calls, 0);
   } finally {
     globalThis.Date = RealDate;
     globalThis.fetch = realFetch;

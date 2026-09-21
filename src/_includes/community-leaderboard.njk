@@ -16,6 +16,9 @@
     </div>
   </header>
 
+  <p class="movement-snapshot">Rankings saved {% if savedCreators.asOf %}<time datetime="{{ savedCreators.asOf }}" data-snapshot>{{ savedCreators.asOf | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily.</p>
+  {% if creators.metricRechecks.unavailablePosts > 0 %}<p class="movement-note">Some posts use earlier saved counts because their follow-up metrics check was unavailable.</p>{% endif %}
+
     <div class="movement-ranking-panel" id="lb-periods">
       {% for period, label in [['daily', '24 hours'], ['weekly', '7 days'], ['monthly', '30 days']] %}
         {% set leaders = savedCreators[period] | default([]) %}

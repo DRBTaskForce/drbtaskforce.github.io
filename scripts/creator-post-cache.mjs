@@ -29,6 +29,15 @@ export function savePostCache(path, cache) {
 // Cache only public post/author data. A post belongs to its first collection day;
 // later metrics replace that contribution rather than creating another snapshot.
 export async function updatePostCache(cache, posts, usersById, now, bearerToken, save) {
+  // Validate discovery before changing cache state or starting a billable recheck.
+  for (const post of posts) {
+    const metrics = post.public_metrics;
+    if (!metrics || !Number.isSafeInteger(metrics.impression_count) || metrics.impression_count < 0 ||
+        ['like_count', 'retweet_count', 'reply_count', 'quote_count'].some(key =>
+          metrics[key] !== undefined && (!Number.isSafeInteger(metrics[key]) || metrics[key] < 0))) {
+      throw new Error('X returned invalid initial metrics; saved rankings were not replaced.');
+    }
+  }
   const today = now.toISOString().slice(0, 10);
   const firstDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - 29 * DAY)
     .toISOString().slice(0, 10);
@@ -84,25 +93,34 @@ export async function updatePostCache(cache, posts, usersById, now, bearerToken,
     if (!batch.length) continue;
     const ids = batch.map(record => record.post.id);
     const params = new URLSearchParams({ ids: ids.join(','), 'tweet.fields': 'public_metrics' });
-    const res = await fetch(`https://api.twitter.com/2/tweets?${params}`, {
-      headers: { Authorization: `Bearer ${bearerToken}` },
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!res.ok) throw new Error(`X final recheck HTTP ${res.status}; saved rankings were not replaced. No automatic retry.`);
-    const result = await res.json();
-    if (!Array.isArray(result?.data) || result.errors?.length || result.data.length !== ids.length) {
-      throw new Error('Incomplete final recheck; saved rankings were not replaced. No automatic retry.');
-    }
-    const byId = new Map();
-    for (const post of result.data) {
-      const metrics = post?.public_metrics;
-      if (!ids.includes(post?.id) || byId.has(post.id) || !metrics ||
-          !Number.isFinite(metrics.impression_count) || metrics.impression_count < 0 ||
-          ['like_count', 'retweet_count', 'reply_count', 'quote_count'].some(key =>
-            metrics[key] !== undefined && (!Number.isFinite(metrics[key]) || metrics[key] < 0))) {
-        throw new Error('Invalid final recheck metrics; saved rankings were not replaced. No automatic retry.');
+    let byId;
+    try {
+      const res = await fetch(`https://api.twitter.com/2/tweets?${params}`, {
+        headers: { Authorization: `Bearer ${bearerToken}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!res.ok) throw new Error(`X final recheck HTTP ${res.status}.`);
+      const result = await res.json();
+      if (!Array.isArray(result?.data) || result.errors?.length || result.data.length !== ids.length) {
+        throw new Error('Incomplete final recheck.');
       }
-      byId.set(post.id, metrics);
+      byId = new Map();
+      for (const post of result.data) {
+        const metrics = post?.public_metrics;
+        if (!ids.includes(post?.id) || byId.has(post.id) || !metrics ||
+            !Number.isSafeInteger(metrics.impression_count) || metrics.impression_count < 0 ||
+            ['like_count', 'retweet_count', 'reply_count', 'quote_count'].some(key =>
+              metrics[key] !== undefined && (!Number.isSafeInteger(metrics[key]) || metrics[key] < 0))) {
+          throw new Error('Invalid final recheck metrics.');
+        }
+        byId.set(post.id, metrics);
+      }
+    } catch (error) {
+      // Discovery is complete; an optional later observation must not discard it.
+      // Preserve this entire batch's old metrics and its consumed-attempt markers.
+      // Stop further paid lookups for this run. Checkpoint/write errors stay fatal.
+      console.warn(`Final metrics unavailable: ${error.message} Retained saved counts; no automatic retry.`);
+      break;
     }
     for (const record of batch) {
       record.post.public_metrics = byId.get(record.post.id);

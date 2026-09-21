@@ -66,23 +66,7 @@
       <div class="footer-links"><a id="official-x-profile" href="https://x.com/DRBTaskForce" target="_blank" rel="noopener noreferrer">DRB Task Force on X</a><button class="motion-toggle" type="button" aria-pressed="false">Pause motion</button></div>
     </div>
   </footer>
-  <button class="chat-launch" id="drb-chat-btn" type="button" aria-label="Open DebtReliefBot chat" aria-haspopup="dialog" aria-controls="drb-chat-window">{{ smile('chat-launch-smile', 36) }}</button>
-  <dialog class="chat-window" id="drb-chat-window" aria-labelledby="chat-title" aria-describedby="chat-description">
-    <div class="chat-heading">
-      <div class="chat-identity">{{ smile('chat-heading-smile', 30) }}<div><h2 id="chat-title">DebtReliefBot</h2><p id="chat-description">Powered by Grok</p></div></div>
-      <button class="chat-close" type="button" aria-label="Close chat">×</button>
-    </div>
-    <div id="drb-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation"><p class="chat-intro">Ask about $DRB, its story, or the wallet.</p></div>
-    <form class="chat-form" id="drb-chat-form" novalidate>
-      <label class="visually-hidden" for="drb-user-input">Your message</label>
-      <input id="drb-user-input" name="message" type="text" placeholder="Ask about $DRB…" autocomplete="off" required>
-      <button id="drb-send-btn" class="button primary" type="submit" aria-label="Send message">Send</button>
-    </form>
-  </dialog>
   {% if pageScript %}<script src="/assets/js/{{ pageScript }}.js" defer></script>{% endif %}
   {% if xPosts %}<script src="/assets/js/x-posts.js" defer></script>{% endif %}
-  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.15/dist/purify.min.js" defer></script>
-  <script src="/assets/js/chat.js" defer></script>
 </body>
 </html>

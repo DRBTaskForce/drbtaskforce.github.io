@@ -179,6 +179,9 @@ async function main() {
     lastUpdatedWeekly:  now.toISOString(),
     lastUpdatedMonthly: now.toISOString(),
     dailyHistory: history,
+    metricRechecks: {
+      unavailablePosts: Object.values(cache.posts).filter(record => record.recheckStatus === 'attempted').length,
+    },
   }, null, 2) + '\n');
 
   console.log(`Done. Daily: ${daily.length}, Weekly: ${weekly.length}, Monthly: ${monthly.length}`);
