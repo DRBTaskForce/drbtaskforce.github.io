@@ -3,7 +3,7 @@
   const wallet = JSON.parse(document.getElementById('wallet-data').textContent);
   // --- Static data (historical prices baked in at build time) ---
   const valueAllTime    = wallet.walletValueAllTime || [];
-  const valueLast30Days = wallet.walletValueLast30Days || [];
+  const valueLast30Days = historyWindow(30);
 
   const WALLET        = wallet.walletAddress;
   const TOKEN         = wallet.tokenContract;
@@ -58,7 +58,9 @@
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 12000);
     try {
-      return await fetch(url, { signal: controller.signal });
+      const response = await fetch(url, { signal: controller.signal });
+      // Keep the deadline active until the response body has also arrived.
+      return { ok: response.ok, status: response.status, data: response.ok ? await response.json() : null };
     } finally {
       clearTimeout(timer);
     }
@@ -143,7 +145,7 @@
     try {
       const res = await fetchWithTimeout('https://open.er-api.com/v6/latest/USD');
       if (!res.ok) throw new Error('Exchange rates unavailable');
-      const d   = await res.json();
+      const d   = res.data;
       allRates = { USD: 1 };
       for (const [code] of CURRENCIES) {
         if (Number.isFinite(d.rates?.[code]) && d.rates[code] > 0) allRates[code] = d.rates[code];
@@ -393,12 +395,12 @@
     });
   }
 
-  function last90Days() {
+  function historyWindow(days) {
     if (valueAllTime.length === 0) return [];
     const cutoff = new Date(valueAllTime[valueAllTime.length - 1].date);
-    cutoff.setUTCDate(cutoff.getUTCDate() - 89);
+    cutoff.setUTCDate(cutoff.getUTCDate() - (days - 1));
     const from = cutoff.toISOString().slice(0, 10);
-    return valueAllTime.filter(point => point.date >= from);
+    return valueAllTime.filter(point => point.date >= from && !point.carriedForward);
   }
 
   function renderHistoryTable(data) {
@@ -438,7 +440,7 @@
     currentChartMode = mode;
     document.getElementById('btn-30d').setAttribute('aria-pressed', String(mode === '30d'));
     document.getElementById('btn-90d').setAttribute('aria-pressed', String(mode === '90d'));
-    const data = mode === '30d' ? valueLast30Days : last90Days();
+    const data = mode === '30d' ? valueLast30Days : historyWindow(90);
     document.getElementById('history-range').textContent = data.length
       ? `${formatDate(data[0].date)} – ${formatDate(data[data.length - 1].date)} · ${data.length} saved daily snapshots`
       : 'No saved balance history is available for this period.';
@@ -571,7 +573,7 @@
         `https://base.blockscout.com/api?module=account&action=tokenbalance&contractaddress=${contractAddress}&address=${WALLET}`
       );
       if (!res.ok) return null;
-      const d = await res.json();
+      const d = res.data;
       if (d.status === '1') {
         const raw = BigInt(d.result);
         const div = BigInt(10) ** BigInt(decimals);
@@ -581,23 +583,32 @@
     return null;
   }
 
-  async function fetchDrbPrice() {
+  async function fetchPairPrice(pairAddress, tokenAddress) {
     try {
-      const res = await fetchWithTimeout(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
+      const res = await fetchWithTimeout(`https://api.dexscreener.com/latest/dex/pairs/base/${pairAddress}`);
       if (!res.ok) return null;
-      const d = await res.json();
-      return d.pairs?.[0] ? finiteAmount(parseFloat(d.pairs[0].priceUsd)) : null;
+      const d = res.data;
+      const pairs = Array.isArray(d.pairs) ? d.pairs : d.pair ? [d.pair] : [];
+      const p = pairs.find(pair => pair.chainId === 'base' && pair.pairAddress?.toLowerCase() === pairAddress);
+      if (!p) return null;
+      const usd = Number(p.priceUsd);
+      if (!Number.isFinite(usd) || usd <= 0) return null;
+      if (p.baseToken?.address?.toLowerCase() === tokenAddress.toLowerCase()) return usd;
+      const native = Number(p.priceNative);
+      if (p.quoteToken?.address?.toLowerCase() === tokenAddress.toLowerCase() && Number.isFinite(native) && native > 0) {
+        const quoteUsd = usd / native;
+        return Number.isFinite(quoteUsd) && quoteUsd > 0 ? quoteUsd : null;
+      }
+      return null;
     } catch { return null; }
   }
 
+  async function fetchDrbPrice() {
+    return fetchPairPrice('0x5116773e18a9c7bb03ebb961b38678e45e238923', TOKEN);
+  }
+
   async function fetchEthPrice() {
-    try {
-      const res = await fetchWithTimeout('https://api.dexscreener.com/latest/dex/pairs/base/0xd0b53d9277642d899df5c87a3966a349a798f224');
-      if (!res.ok) return null;
-      const d = await res.json();
-      const p = d.pair;
-      return p ? finiteAmount(p.baseToken?.symbol === 'WETH' ? parseFloat(p.priceUsd) : parseFloat(p.priceNative)) : null;
-    } catch { return null; }
+    return fetchPairPrice('0xd0b53d9277642d899df5c87a3966a349a798f224', WETH_CONTRACT);
   }
 
   async function fetchNativeEthBalance() {
@@ -606,7 +617,7 @@
         `https://base.blockscout.com/api?module=account&action=balance&address=${WALLET}`
       );
       if (!res.ok) return null;
-      const d = await res.json();
+      const d = res.data;
       if (d.status === '1') {
         const raw = BigInt(d.result);
         const div = BigInt(10) ** BigInt(18);

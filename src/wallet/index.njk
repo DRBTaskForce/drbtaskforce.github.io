@@ -39,7 +39,7 @@ pageScript: wallet
       </div>
       <div class="wallet-snapshot">
         <p class="eyebrow">Saved snapshot</p>
-        <p><time datetime="{{ wallet.lastUpdated }}">{{ wallet.lastUpdated | formatDate }}</time></p>
+        <p>{% if snapshot %}<time datetime="{{ snapshot.date }}">{{ snapshot.date | formatDate }}</time>{% else %}Unavailable{% endif %}</p>
         <p id="stat-updated-sub" class="wallet-note" role="status">Showing saved balances.</p>
       </div>
     </div>
@@ -74,9 +74,9 @@ pageScript: wallet
         <p class="wallet-note" id="stat-price-sub">USD · saved price</p>
       </div>
       <div>
-        <p class="eyebrow">Cumulative WETH fees received</p>
+        <p class="eyebrow">Cumulative WETH received</p>
         <p class="wallet-detail-value">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</p>
-        <p class="wallet-note">{{ wallet.totalWethTransactions }} claims in the saved record</p>
+        <p class="wallet-note">{{ wallet.totalWethTransactions }} incoming transfers in the saved record</p>
       </div>
     </div>
   </section>
@@ -114,7 +114,7 @@ pageScript: wallet
           <caption>Saved daily balances. Amounts are in each token’s own units.</caption>
           <thead><tr><th scope="col">Date (UTC)</th><th scope="col">DRB</th><th scope="col">WETH</th><th scope="col">ETH</th><th scope="col">USDC</th></tr></thead>
           <tbody id="history-rows">
-            {% for point in wallet.walletValueLast30Days | reverse %}
+            {% for point in homeWallet.history | reverse %}
             <tr><th scope="row"><time datetime="{{ point.date }}">{{ point.date | formatDate }}</time></th><td>{{ point.drb | formatDrb }}</td><td>{{ point.weth | formatWeth }}</td><td>{{ point.eth | formatWeth }}</td><td>{{ point.usdc }}</td></tr>
             {% else %}
             <tr><td colspan="5">No saved balance history is available.</td></tr>
@@ -127,6 +127,7 @@ pageScript: wallet
       <p class="wallet-note">History reflects saved daily snapshots. Current balances and prices may differ.</p>
       <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener noreferrer" class="text-link">View on Basescan</a>
     </div>
+    {% if wallet.accountingCoverage.missingL1FeeTransactions %}<p class="wallet-note">Historical ETH balances may omit some network fees that the data source did not provide. Current balances are checked separately.</p>{% endif %}
     <p class="wallet-note wallet-event-note">Record context: <a href="https://x.com/0xdeployer/status/2051315834212303334" target="_blank" rel="noopener noreferrer" class="text-link">May 4, 2026 prompt injection attack</a></p>
   </section>
 </div>

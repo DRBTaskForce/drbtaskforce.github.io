@@ -13,7 +13,7 @@
  *   node scripts/fetch-wallet-data.mjs --incremental  # fast daily update (new transfers + last 8 days of prices)
  */
 
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { writeFileSync, readFileSync, existsSync, renameSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -35,11 +35,28 @@ const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
 // the existing `if (!res.ok) throw` checks still surface them.
 // ---------------------------------------------------------------------------
 
-async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000 } = {}) {
+async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000, timeoutMs = 30000 } = {}) {
   const label = typeof url === "string" ? url : url.toString();
   for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    let timer;
     try {
-      const res = await fetch(url, options);
+      // Read JSON inside the deadline: receiving headers alone is not completion.
+      const res = await Promise.race([
+        (async () => {
+          const response = await fetch(url, { ...options, signal: controller.signal });
+          const body = response.ok ? await response.json() : null;
+          if (!response.ok) await response.body?.cancel();
+          return { ok: response.ok, status: response.status, json: async () => body };
+        })(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            controller.abort();
+            reject(new Error(`Request timed out after ${timeoutMs}ms: ${label}`));
+          }, timeoutMs);
+        }),
+      ]);
+      clearTimeout(timer);
       if ((res.status >= 500 || res.status === 429) && attempt < retries) {
         const delay = baseDelay * 2 ** attempt + Math.floor(Math.random() * 500);
         console.warn(`HTTP ${res.status} from ${label} — retry ${attempt + 1}/${retries} in ${delay}ms`);
@@ -48,6 +65,7 @@ async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000
       }
       return res;
     } catch (err) {
+      clearTimeout(timer);
       if (attempt < retries) {
         const delay = baseDelay * 2 ** attempt + Math.floor(Math.random() * 500);
         console.warn(`Fetch failed for ${label}: ${err.message} — retry ${attempt + 1}/${retries} in ${delay}ms`);
@@ -55,6 +73,8 @@ async function fetchWithRetry(url, options = {}, { retries = 5, baseDelay = 1000
         continue;
       }
       throw err;
+    } finally {
+      clearTimeout(timer);
     }
   }
 }
@@ -104,6 +124,7 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
       throw new Error(`Blockscout API error: ${data.message} — ${data.result}`);
     }
 
+    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error("Invalid Blockscout transfer response");
     transfers.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
@@ -141,6 +162,7 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
       throw new Error(`Blockscout API error: ${data.message} — ${data.result}`);
     }
 
+    if (data.status !== "1" || !Array.isArray(data.result)) throw new Error("Invalid Blockscout transaction response");
     txs.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
@@ -169,6 +191,7 @@ async function fetchDrbPriceHistory(limit = 1000) {
     const date = new Date(ts * 1000).toISOString().slice(0, 10);
     result[date] = close; // DRB price in USD (GeckoTerminal OHLCV returns USD)
   }
+  validatePrices(result, "DRB");
   return result;
 }
 
@@ -188,442 +211,321 @@ async function fetchEthPriceHistory(days = 400) {
   const result = {};
   for (const [ts, , , , close] of candles) {
     const date = new Date(ts * 1000).toISOString().slice(0, 10);
-    result[date] = parseFloat(close);
+    result[date] = Number(close);
   }
+  validatePrices(result, "ETH");
   return result;
 }
 
 // ---------------------------------------------------------------------------
-// Balance helpers
+// Exact accounting. Chart rows are presentation only; never use their rounded
+// balances or decimal totals as the opening state for a later run.
 // ---------------------------------------------------------------------------
 
+const LEDGER_VERSION = 1;
+
 function toDateString(unixTimestamp) {
-  return new Date(parseInt(unixTimestamp, 10) * 1000).toISOString().slice(0, 10);
+  return new Date(Number(unixTimestamp) * 1000).toISOString().slice(0, 10);
 }
 
 function formatUnits(rawValue, decimals = TOKEN_DECIMALS) {
   const big = BigInt(rawValue);
-  const divisor = BigInt(10) ** BigInt(decimals);
-  const whole = big / divisor;
-  const remainder = big % divisor;
-  const fracStr = remainder.toString().padStart(decimals, "0").replace(/0+$/, "");
-  return fracStr.length > 0 ? `${whole}.${fracStr}` : `${whole}`;
+  const magnitude = big < 0n ? -big : big;
+  const divisor = 10n ** BigInt(decimals);
+  const fraction = (magnitude % divisor).toString().padStart(decimals, "0").replace(/0+$/, "");
+  return `${big < 0n ? "-" : ""}${magnitude / divisor}${fraction ? `.${fraction}` : ""}`;
 }
 
-/**
- * Build a {date → cumulative_balance_float} map from ERC-20 token transfers.
- * incomingOnly=false accounts for outgoing transfers too (net balance).
- */
-function buildCumulativeBalanceMap(transfers, incomingOnly = false, decimals = TOKEN_DECIMALS) {
-  const walletLower = WALLET_ADDRESS.toLowerCase();
-  const dailyNet = {};
-  let totalIn = BigInt(0);
-  let countIn = 0;
+function addDelta(dailyNet, date, value) {
+  dailyNet[date] = (dailyNet[date] ?? 0n) + value;
+}
 
+function cumulativeFromDeltas(dailyNet, decimals = TOKEN_DECIMALS) {
+  const cumByDate = {};
+  const sortedDates = Object.keys(dailyNet).sort();
+  let balance = 0n;
+  for (const date of sortedDates) {
+    balance += BigInt(dailyNet[date]);
+    if (balance < 0n) throw new Error(`Negative wallet balance on ${date}; transfer history is incomplete or inconsistent`);
+    cumByDate[date] = Number(formatUnits(balance, decimals));
+  }
+  return { cumByDate, sortedDates, balance };
+}
+
+function buildCumulativeBalanceMap(transfers, incomingOnly = false, decimals = TOKEN_DECIMALS, replay = true) {
+  const dailyNet = {};
+  let totalIn = 0n, countIn = 0;
   for (const tx of transfers) {
+    if (tx.isError === "1") continue;
     const date = toDateString(tx.timeStamp);
     const value = BigInt(tx.value);
-    if (tx.to.toLowerCase() === walletLower) {
-      totalIn += value;
-      countIn++;
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) + value;
-    } else if (!incomingOnly && tx.from.toLowerCase() === walletLower) {
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) - value;
-    }
+    const incoming = tx.to?.toLowerCase() === WALLET_ADDRESS;
+    const outgoing = tx.from?.toLowerCase() === WALLET_ADDRESS;
+    // A self-transfer has two equal legs and is not external income.
+    if (incoming && !outgoing) { totalIn += value; countIn++; }
+    if (incoming && (!incomingOnly || !outgoing)) addDelta(dailyNet, date, value);
+    if (outgoing && !incomingOnly) addDelta(dailyNet, date, -value);
   }
-
-  const sortedDates = Object.keys(dailyNet).sort();
-  const divisor = BigInt(10) ** BigInt(decimals);
-  const cumByDate = {};
-  let running = BigInt(0);
-
-  for (const date of sortedDates) {
-    running += dailyNet[date];
-    const clamped = running < BigInt(0) ? BigInt(0) : running;
-    cumByDate[date] = Number(clamped / divisor) + Number(clamped % divisor) / Number(divisor);
-  }
-
-  return { cumByDate, sortedDates, totalIn, countIn };
+  return { dailyNet, totalIn, countIn, ...(replay ? cumulativeFromDeltas(dailyNet, decimals) : {}) };
 }
 
-/**
- * Build a {date → cumulative_balance_float} map from native ETH transactions.
- * Accounts for gas costs on outgoing normal transactions.
- */
-function buildCumulativeEthBalanceMap(normalTxs, internalTxs) {
-  const walletLower = WALLET_ADDRESS.toLowerCase();
-  const dailyNet = {}; // date → BigInt
-  let totalIn = BigInt(0);
-  let countIn = 0;
-
+function buildCumulativeEthBalanceMap(normalTxs, internalTxs, replay = true) {
+  const dailyNet = {};
+  let totalIn = 0n, countIn = 0;
+  let missingL1FeeTransactions = 0;
+  function applyValue(tx) {
+    if (tx.isError === "1" || tx.txreceipt_status === "0") return;
+    const date = toDateString(tx.timeStamp);
+    const value = BigInt(tx.value || "0");
+    const incoming = tx.to?.toLowerCase() === WALLET_ADDRESS;
+    const outgoing = tx.from?.toLowerCase() === WALLET_ADDRESS;
+    if (incoming && !outgoing && value > 0n) { totalIn += value; countIn++; }
+    if (incoming) addDelta(dailyNet, date, value);
+    if (outgoing) addDelta(dailyNet, date, -value);
+  }
   for (const tx of normalTxs) {
-    if (tx.isError === "1") continue;
-    const date = toDateString(tx.timeStamp);
-    const value = BigInt(tx.value || "0");
-    if (tx.to?.toLowerCase() === walletLower && value > BigInt(0)) {
-      totalIn += value;
-      countIn++;
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) + value;
-    }
-    if (tx.from?.toLowerCase() === walletLower) {
+    applyValue(tx);
+    if (tx.from?.toLowerCase() === WALLET_ADDRESS) {
+      // Failed execution still pays fees. Base's supplied L1 fee is separate
+      // from execution gas. If the provider omits it we cannot infer it.
       const gasCost = BigInt(tx.gasUsed || "0") * BigInt(tx.gasPrice || "0");
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) - value - gasCost;
+      const l1Fee = BigInt(tx.l1Fee || "0");
+      if (tx.l1Fee == null || tx.l1Fee === "") missingL1FeeTransactions++;
+      addDelta(dailyNet, toDateString(tx.timeStamp), -gasCost - l1Fee);
     }
   }
+  for (const tx of internalTxs) applyValue(tx);
+  return { dailyNet, totalIn, countIn, missingL1FeeTransactions, ...(replay ? cumulativeFromDeltas(dailyNet) : {}) };
+}
 
-  for (const tx of internalTxs) {
-    if (tx.isError === "1") continue;
-    const date = toDateString(tx.timeStamp);
-    const value = BigInt(tx.value || "0");
-    if (value === BigInt(0)) continue;
-    if (tx.to?.toLowerCase() === walletLower) {
-      totalIn += value;
-      countIn++;
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) + value;
-    } else if (tx.from?.toLowerCase() === walletLower) {
-      dailyNet[date] = (dailyNet[date] ?? BigInt(0)) - value;
+function mergeAsset(previous, delta, decimals = TOKEN_DECIMALS) {
+  const dailyNet = Object.fromEntries(Object.entries(previous?.dailyNet ?? {}).map(([date, raw]) => [date, BigInt(raw)]));
+  for (const [date, raw] of Object.entries(delta.dailyNet)) addDelta(dailyNet, date, raw);
+  const cumulative = cumulativeFromDeltas(dailyNet, decimals);
+  return {
+    ...cumulative,
+    dailyNet: Object.fromEntries(Object.entries(dailyNet).sort(([a], [b]) => a.localeCompare(b)).map(([date, raw]) => [date, String(raw)])),
+    totalIn: String(BigInt(previous?.totalIn ?? "0") + delta.totalIn),
+    countIn: (previous?.countIn ?? 0) + delta.countIn,
+  };
+}
+
+function persistedAsset(asset, cursors) {
+  return { dailyNet: asset.dailyNet, totalIn: asset.totalIn, countIn: asset.countIn, ...cursors };
+}
+
+function maxBlock(txs, initial = 0) {
+  return txs.reduce((max, tx) => {
+    const block = Number(tx.blockNumber);
+    if (!Number.isSafeInteger(block) || block < 0) throw new Error("Invalid transaction block number");
+    return Math.max(max, block);
+  }, initial);
+}
+
+function validateReplayCoverage(existing, streams) {
+  if (!existing) return;
+  function requireCheckpoint(label, transactions, checkpoint) {
+    if (checkpoint === undefined) return;
+    if (!Number.isSafeInteger(checkpoint) || checkpoint < 0) throw new Error(`Invalid saved ${label} history checkpoint`);
+    const reached = maxBlock(transactions);
+    if (reached < checkpoint) {
+      throw new Error(`Incomplete ${label} history: saved checkpoint ${checkpoint} was not reached (latest ${reached}); previous snapshot retained`);
     }
   }
-
-  const sortedDates = Object.keys(dailyNet).sort();
-  const divisor = BigInt(10) ** BigInt(18);
-  const cumByDate = {};
-  let running = BigInt(0);
-
-  for (const date of sortedDates) {
-    running += dailyNet[date];
-    const clamped = running < BigInt(0) ? BigInt(0) : running;
-    cumByDate[date] = Number(clamped / divisor) + Number(clamped % divisor) / Number(divisor);
+  // Empty-success and truncated API replies are not a valid replacement for
+  // history we already observed. Check both public and exact-ledger anchors.
+  for (const [asset, field] of [["drb", "lastBlockDrb"], ["weth", "lastBlockWeth"], ["usdc", "lastBlockUsdc"]]) {
+    requireCheckpoint(asset.toUpperCase(), streams[asset], existing[field]);
+    requireCheckpoint(asset.toUpperCase(), streams[asset], existing.ledger?.[asset]?.lastBlock);
   }
+  requireCheckpoint("ETH", [...streams.normal, ...streams.internal], existing.lastBlockEth);
+  requireCheckpoint("normal ETH", streams.normal, existing.ledger?.eth?.lastNormalBlock);
+  requireCheckpoint("internal ETH", streams.internal, existing.ledger?.eth?.lastInternalBlock);
+}
 
-  return { cumByDate, sortedDates, totalIn, countIn };
+function validDate(date) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0, 10) === date;
+}
+
+function validateLedger(ledger) {
+  if (ledger.version !== LEDGER_VERSION) throw new Error("Unsupported wallet ledger version; run a full rebuild");
+  for (const key of ["drb", "weth", "usdc", "eth"]) {
+    const asset = ledger[key];
+    if (!asset || !asset.dailyNet || typeof asset.dailyNet !== "object" || Array.isArray(asset.dailyNet)
+      || typeof asset.totalIn !== "string" || !/^\d+$/.test(asset.totalIn)
+      || !Number.isSafeInteger(asset.countIn) || asset.countIn < 0) throw new Error(`Invalid ${key} ledger`);
+    for (const [date, raw] of Object.entries(asset.dailyNet)) {
+      if (!validDate(date) || typeof raw !== "string" || !/^-?\d+$/.test(raw)) throw new Error(`Invalid ${key} ledger delta`);
+    }
+    for (const cursor of key === "eth" ? ["lastNormalBlock", "lastInternalBlock"] : ["lastBlock"]) {
+      if (!Number.isSafeInteger(asset[cursor]) || asset[cursor] < 0) throw new Error(`Invalid ${key} ledger cursor`);
+    }
+    if (key === "eth" && (!Number.isSafeInteger(asset.missingL1FeeTransactions) || asset.missingL1FeeTransactions < 0)) {
+      throw new Error("Invalid ETH ledger fee coverage");
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Wallet value history
+// Prices and chart projections
 // ---------------------------------------------------------------------------
 
-/**
- * For each day where we have both DRB and ETH prices, compute the wallet's
- * total USD value across all four assets and return an array sorted by date.
- * USDC is treated as a $1 stablecoin (no price feed needed).
- */
+function validPrice(price) { return typeof price === "number" && Number.isFinite(price) && price > 0; }
+
+function validatePrices(prices, label) {
+  if (!Object.keys(prices).length || Object.entries(prices).some(([date, price]) => !validDate(date) || !validPrice(price))) {
+    throw new Error(`${label} price feed is empty or invalid`);
+  }
+}
+
 function buildValueHistory(drbCumByDate, wethCumByDate, usdcCumByDate, ethCumByDate, drbPriceUsd, ethPriceUsd) {
-  const priceDates = Object.keys(drbPriceUsd).sort();
-
-  let lastDrb = 0, lastWeth = 0, lastUsdc = 0, lastEth = 0;
+  const balances = [drbCumByDate, wethCumByDate, usdcCumByDate, ethCumByDate];
+  const dates = balances.map(map => Object.keys(map).sort());
+  const indices = [0, 0, 0, 0], latest = [0, 0, 0, 0];
   const history = [];
-
-  for (const date of priceDates) {
-    const ethUsd = ethPriceUsd[date];
-    if (ethUsd == null) continue;
-
-    if (drbCumByDate[date]  !== undefined) lastDrb  = drbCumByDate[date];
-    if (wethCumByDate[date] !== undefined) lastWeth = wethCumByDate[date];
-    if (usdcCumByDate[date] !== undefined) lastUsdc = usdcCumByDate[date];
-    if (ethCumByDate[date]  !== undefined) lastEth  = ethCumByDate[date];
-
-    const drbUsd = drbPriceUsd[date];
-    const usdValue = lastDrb * drbUsd + lastWeth * ethUsd + lastUsdc + lastEth * ethUsd;
-
+  for (const date of Object.keys(drbPriceUsd).sort()) {
+    if (!validPrice(drbPriceUsd[date]) || !validPrice(ethPriceUsd[date])) continue;
+    for (let i = 0; i < balances.length; i++) {
+      while (indices[i] < dates[i].length && dates[i][indices[i]] <= date) {
+        latest[i] = balances[i][dates[i][indices[i]++]];
+      }
+    }
+    const [drb, weth, usdc, eth] = latest;
+    const drbPrice = drbPriceUsd[date], ethPrice = ethPriceUsd[date];
+    const usd = drb * drbPrice + weth * ethPrice + usdc + eth * ethPrice;
+    if (!Number.isFinite(usd)) throw new Error("Invalid wallet valuation");
     history.push({
-      date,
-      usd:      Math.round(usdValue * 100) / 100,
-      drb:      Math.round(lastDrb),
-      weth:     Math.round(lastWeth * 10000) / 10000,
-      usdc:     Math.round(lastUsdc * 100) / 100,
-      eth:      Math.round(lastEth * 10000) / 10000,
-      drbPrice: drbUsd,
-      ethPrice: Math.round(ethUsd * 100) / 100,
+      date, usd: Math.round(usd * 100) / 100, drb: Math.round(drb),
+      weth: Math.round(weth * 10000) / 10000, usdc: Math.round(usdc * 100) / 100,
+      eth: Math.round(eth * 10000) / 10000, drbPrice, ethPrice: Math.round(ethPrice * 100) / 100,
     });
   }
-
   return history;
 }
 
-/**
- * Extract the last 30 calendar days from a full value history array.
- * Days with no price entry carry forward the previous day's value.
- */
 function last30DaysFrom(fullHistory) {
-  if (fullHistory.length === 0) return [];
-
-  const byDate = Object.fromEntries(fullHistory.map(d => [d.date, d]));
+  const sorted = [...fullHistory].sort((a, b) => a.date.localeCompare(b.date));
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const result = [];
-  let last = null;
-
+  let index = 0, last = null;
   for (let i = 29; i >= 0; i--) {
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
-    if (byDate[dateStr]) last = byDate[dateStr];
-    if (last) result.push({ ...last, date: dateStr });
+    const day = new Date(today);
+    day.setUTCDate(day.getUTCDate() - i);
+    const date = day.toISOString().slice(0, 10);
+    while (index < sorted.length && sorted[index].date <= date) last = sorted[index++];
+    if (last) result.push({ ...last, date, valuationDate: last.date, carriedForward: last.date !== date });
   }
-
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Main — full rebuild
-// ---------------------------------------------------------------------------
-
-async function main() {
-  console.log("Fetching wallet data for:", WALLET_ADDRESS);
-
-  // Blockscout calls run sequentially to stay within rate limits.
-  const drbTransfers      = await fetchAllTransfers(DRB_CONTRACT);
-  const wethTransfers     = await fetchAllTransfers(WETH_CONTRACT);
-  const usdcTransfers     = await fetchAllTransfers(USDC_CONTRACT);
-  const ethNormalTxs      = await fetchAllEthTxs("txlist");
-  const ethInternalTxs    = await fetchAllEthTxs("txlistinternal");
-
-  // Price APIs are independent — fetch in parallel.
-  const [drbPriceUsd, ethPriceUsd] = await Promise.all([
-    fetchDrbPriceHistory().catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
-    fetchEthPriceHistory().catch(e => { console.warn("ETH price history failed:", e.message); return {}; }),
-  ]);
-
-  console.log(`DRB: ${drbTransfers.length} | WETH: ${wethTransfers.length} | USDC: ${usdcTransfers.length} | ETH: ${ethNormalTxs.length}+${ethInternalTxs.length}`);
-  console.log(`DRB price days: ${Object.keys(drbPriceUsd).length} | ETH price days: ${Object.keys(ethPriceUsd).length}`);
-
-  const drb  = buildCumulativeBalanceMap(drbTransfers,  false);
-  const weth = buildCumulativeBalanceMap(wethTransfers, false);
-  const usdc = buildCumulativeBalanceMap(usdcTransfers, false, USDC_DECIMALS);
-  const eth  = buildCumulativeEthBalanceMap(ethNormalTxs, ethInternalTxs);
-
-  const walletValueAllTime    = buildValueHistory(drb.cumByDate, weth.cumByDate, usdc.cumByDate, eth.cumByDate, drbPriceUsd, ethPriceUsd);
-  const walletValueLast30Days = last30DaysFrom(walletValueAllTime);
-
-  console.log(`Value history: ${walletValueAllTime.length} days | 30d: ${walletValueLast30Days.length} days`);
-
-  const lastBlockDrb  = drbTransfers.length  ? parseInt(drbTransfers[drbTransfers.length - 1].blockNumber, 10)   : 0;
-  const lastBlockWeth = wethTransfers.length ? parseInt(wethTransfers[wethTransfers.length - 1].blockNumber, 10) : 0;
-  const lastBlockUsdc = usdcTransfers.length ? parseInt(usdcTransfers[usdcTransfers.length - 1].blockNumber, 10) : 0;
-  const allEthTxs     = [...ethNormalTxs, ...ethInternalTxs];
-  const lastBlockEth  = allEthTxs.reduce((max, t) => {
-    const b = parseInt(t.blockNumber, 10);
-    return b > max ? b : max;
-  }, 0);
-
-  const output = {
-    lastUpdated: new Date().toISOString(),
-    walletAddress: WALLET_ADDRESS,
-    tokenContract: DRB_CONTRACT,
-    wethContract: WETH_CONTRACT,
-    usdcContract: USDC_CONTRACT,
-    tokenSymbol: "DRB",
-    tokenDecimals: TOKEN_DECIMALS,
-    lastBlockDrb,
-    lastBlockWeth,
-    lastBlockUsdc,
-    lastBlockEth,
-    cumulativeDrbReceived:  formatUnits(drb.totalIn),
-    totalDrbTransactions:   drb.countIn,
-    cumulativeWethEarned:   formatUnits(weth.totalIn),
-    totalWethTransactions:  weth.countIn,
-    cumulativeUsdcReceived: formatUnits(usdc.totalIn, USDC_DECIMALS),
-    totalUsdcTransactions:  usdc.countIn,
-    cumulativeEthReceived:  formatUnits(eth.totalIn),
-    totalEthTransactions:   eth.countIn,
-    walletValueAllTime,
-    walletValueLast30Days,
-  };
-
-  writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2) + "\n");
-  console.log("Written to", OUTPUT_PATH);
+function savedPrices(existing) {
+  const drb = {}, eth = {};
+  // The historical price window may be longer than the providers still serve.
+  // Preserve prices, but never preserve the old, possibly corrupted balances.
+  for (const row of existing?.walletValueAllTime ?? []) {
+    if (validDate(row.date) && validPrice(row.drbPrice) && validPrice(row.ethPrice)) {
+      drb[row.date] = row.drbPrice;
+      eth[row.date] = row.ethPrice;
+    }
+  }
+  for (const [asset, target] of [["drb", drb], ["eth", eth]]) {
+    for (const [date, price] of Object.entries(existing?.priceHistory?.[asset] ?? {})) {
+      if (validDate(date) && validPrice(price)) target[date] = price;
+    }
+  }
+  return { drb, eth };
 }
 
-// ---------------------------------------------------------------------------
-// Main — incremental update (--incremental flag)
-// Fetches only new transfers since the last known block, refreshes the last
-// 8 days of price data, then merges the deltas into the existing JSON.
-// ---------------------------------------------------------------------------
-
-async function mainIncremental() {
-  if (!existsSync(OUTPUT_PATH)) {
-    console.log("No existing wallet.json — falling back to full rebuild.");
-    return main();
-  }
-
-  const existing = JSON.parse(readFileSync(OUTPUT_PATH, "utf8"));
-  const fromBlockDrb  = (existing.lastBlockDrb  ?? 0) + 1;
-  const fromBlockWeth = (existing.lastBlockWeth ?? 0) + 1;
-  const fromBlockUsdc = (existing.lastBlockUsdc ?? 0) + 1;
-  const fromBlockEth  = (existing.lastBlockEth  ?? 0) + 1;
-
-  console.log(`Incremental update from blocks DRB=${fromBlockDrb} WETH=${fromBlockWeth} USDC=${fromBlockUsdc} ETH=${fromBlockEth}`);
-
-  // Blockscout calls run sequentially to stay within rate limits.
-  // On rate-limit failure we fall back to existing balance data.
-  let newDrbTx = [], newWethTx = [], newUsdcTx = [], newEthNormalTxs = [], newEthInternalTxs = [];
-  let blockscoutAvailable = true;
+function writeSnapshot(output) {
+  const temporary = `${OUTPUT_PATH}.${process.pid}.tmp`;
   try {
-    newDrbTx         = await fetchAllTransfers(DRB_CONTRACT,  fromBlockDrb);
-    newWethTx        = await fetchAllTransfers(WETH_CONTRACT, fromBlockWeth);
-    newUsdcTx        = await fetchAllTransfers(USDC_CONTRACT, fromBlockUsdc);
-    newEthNormalTxs  = await fetchAllEthTxs("txlist",         fromBlockEth);
-    newEthInternalTxs = await fetchAllEthTxs("txlistinternal", fromBlockEth);
-  } catch (err) {
-    console.warn("Blockscout unavailable — using existing balance data:", err.message);
-    blockscoutAvailable = false;
+    writeFileSync(temporary, JSON.stringify(output, null, 2) + "\n");
+    renameSync(temporary, OUTPUT_PATH);
+  } finally {
+    if (existsSync(temporary)) unlinkSync(temporary);
   }
+}
 
-  // Price APIs are independent — fetch in parallel.
-  const [newDrbPrices, newEthPrices] = await Promise.all([
-    fetchDrbPriceHistory(8).catch(e => { console.warn("DRB price history failed:", e.message); return {}; }),
-    fetchEthPriceHistory(8).catch(e => { console.warn("ETH price history failed:", e.message); return {}; }),
+// ---------------------------------------------------------------------------
+// Collection is a transaction: all transfers and both prices must succeed.
+// Legacy data has no exact ledger; its first incremental run must replay all
+// history to recover skipped intervals. Rounded chart balances cannot repair it.
+// ---------------------------------------------------------------------------
+
+async function collect(incremental) {
+  const existing = existsSync(OUTPUT_PATH) ? JSON.parse(readFileSync(OUTPUT_PATH, "utf8")) : null;
+  if (existing?.walletAddress && existing.walletAddress.toLowerCase() !== WALLET_ADDRESS) throw new Error("Existing snapshot belongs to another wallet");
+  const previous = incremental ? existing?.ledger : null;
+  if (previous) validateLedger(previous);
+  if (incremental && !previous) console.log("No exact ledger — rebuilding full transfer history and retaining historical prices.");
+  const from = (asset, cursor = "lastBlock") => previous ? previous[asset][cursor] + 1 : 0;
+
+  // Sequential Blockscout calls respect rate limits. No partial result is saved.
+  const drbTx = await fetchAllTransfers(DRB_CONTRACT, from("drb"));
+  const wethTx = await fetchAllTransfers(WETH_CONTRACT, from("weth"));
+  const usdcTx = await fetchAllTransfers(USDC_CONTRACT, from("usdc"));
+  const normalTx = await fetchAllEthTxs("txlist", from("eth", "lastNormalBlock"));
+  const internalTx = await fetchAllEthTxs("txlistinternal", from("eth", "lastInternalBlock"));
+  if (!previous) validateReplayCoverage(existing, {
+    drb: drbTx, weth: wethTx, usdc: usdcTx, normal: normalTx, internal: internalTx,
+  });
+  const [drbPrices, ethPrices] = await Promise.all([
+    fetchDrbPriceHistory(previous ? 8 : 1000), fetchEthPriceHistory(previous ? 8 : 400),
   ]);
+  if (!Object.keys(drbPrices).some(date => ethPrices[date] !== undefined)) throw new Error("Fresh price feeds have no shared valuation date");
 
-  if (!blockscoutAvailable && Object.keys(newDrbPrices).length === 0 && Object.keys(newEthPrices).length === 0) {
-    console.warn("No new data available from any source. Skipping update.");
-    return;
-  }
+  const drb = mergeAsset(previous?.drb, buildCumulativeBalanceMap(drbTx, false, TOKEN_DECIMALS, false));
+  const weth = mergeAsset(previous?.weth, buildCumulativeBalanceMap(wethTx, false, TOKEN_DECIMALS, false));
+  const usdc = mergeAsset(previous?.usdc, buildCumulativeBalanceMap(usdcTx, false, USDC_DECIMALS, false), USDC_DECIMALS);
+  const ethDelta = buildCumulativeEthBalanceMap(normalTx, internalTx, false);
+  const eth = mergeAsset(previous?.eth, ethDelta);
+  const prices = savedPrices(existing);
+  Object.assign(prices.drb, drbPrices);
+  Object.assign(prices.eth, ethPrices);
+  const walletValueAllTime = buildValueHistory(drb.cumByDate, weth.cumByDate, usdc.cumByDate, eth.cumByDate, prices.drb, prices.eth);
+  if (!walletValueAllTime.length) throw new Error("No usable wallet valuations; previous snapshot retained");
 
-  console.log(`New transfers — DRB: ${newDrbTx.length} | WETH: ${newWethTx.length} | USDC: ${newUsdcTx.length}`);
-  console.log(`New ETH txs — normal: ${newEthNormalTxs.length} | internal: ${newEthInternalTxs.length}`);
-
-  const walletLower = WALLET_ADDRESS.toLowerCase();
-
-  // Rebuild cumulative maps: start from existing totals + apply new transfers
-  function applyNewTransfers(existing, newTxs, incomingOnly, balanceKey, countKey, decimals = TOKEN_DECIMALS) {
-    const localDivisor = BigInt(10) ** BigInt(decimals);
-    let totalIn  = BigInt(0);
-    let countIn  = existing[countKey] ?? 0;
-    const cumByDate = Object.fromEntries(
-      (existing.walletValueAllTime ?? []).map(d => [d.date, d[balanceKey] ?? 0])
-    );
-    const allTime = existing.walletValueAllTime ?? [];
-    let runningFloat = allTime.length ? (allTime[allTime.length - 1][balanceKey] ?? 0) : 0;
-
-    const dailyNet = {};
-    for (const tx of newTxs) {
-      const date  = toDateString(tx.timeStamp);
-      const value = BigInt(tx.value);
-      if (tx.to.toLowerCase() === walletLower) {
-        totalIn += value;
-        countIn++;
-        dailyNet[date] = (dailyNet[date] ?? 0) + Number(value / localDivisor) + Number(value % localDivisor) / Number(localDivisor);
-      } else if (!incomingOnly && tx.from.toLowerCase() === walletLower) {
-        dailyNet[date] = (dailyNet[date] ?? 0) - Number(value / localDivisor) - Number(value % localDivisor) / Number(localDivisor);
-      }
-    }
-
-    for (const date of Object.keys(dailyNet).sort()) {
-      runningFloat = Math.max(0, runningFloat + dailyNet[date]);
-      cumByDate[date] = runningFloat;
-    }
-
-    return { cumByDate, totalIn, countIn };
-  }
-
-  function applyNewEthTxs(existing, newNormalTxs, newInternalTxs) {
-    const ethDivisor = BigInt(10) ** BigInt(18);
-    let totalIn = BigInt(0);
-    let countIn = existing.totalEthTransactions ?? 0;
-    const cumByDate = Object.fromEntries(
-      (existing.walletValueAllTime ?? []).map(d => [d.date, d.eth ?? 0])
-    );
-    const allTime = existing.walletValueAllTime ?? [];
-    let runningFloat = allTime.length ? (allTime[allTime.length - 1].eth ?? 0) : 0;
-
-    const dailyNet = {};
-
-    for (const tx of newNormalTxs) {
-      if (tx.isError === "1") continue;
-      const date = toDateString(tx.timeStamp);
-      const value = BigInt(tx.value || "0");
-      if (tx.to?.toLowerCase() === walletLower && value > BigInt(0)) {
-        totalIn += value;
-        countIn++;
-        dailyNet[date] = (dailyNet[date] ?? 0) + Number(value / ethDivisor) + Number(value % ethDivisor) / Number(ethDivisor);
-      }
-      if (tx.from?.toLowerCase() === walletLower) {
-        const gasCost = BigInt(tx.gasUsed || "0") * BigInt(tx.gasPrice || "0");
-        const total = value + gasCost;
-        dailyNet[date] = (dailyNet[date] ?? 0) - Number(total / ethDivisor) - Number(total % ethDivisor) / Number(ethDivisor);
-      }
-    }
-
-    for (const tx of newInternalTxs) {
-      if (tx.isError === "1") continue;
-      const date = toDateString(tx.timeStamp);
-      const value = BigInt(tx.value || "0");
-      if (value === BigInt(0)) continue;
-      if (tx.to?.toLowerCase() === walletLower) {
-        totalIn += value;
-        countIn++;
-        dailyNet[date] = (dailyNet[date] ?? 0) + Number(value / ethDivisor) + Number(value % ethDivisor) / Number(ethDivisor);
-      } else if (tx.from?.toLowerCase() === walletLower) {
-        dailyNet[date] = (dailyNet[date] ?? 0) - Number(value / ethDivisor) - Number(value % ethDivisor) / Number(ethDivisor);
-      }
-    }
-
-    for (const date of Object.keys(dailyNet).sort()) {
-      runningFloat = Math.max(0, runningFloat + dailyNet[date]);
-      cumByDate[date] = runningFloat;
-    }
-
-    return { cumByDate, totalIn, countIn };
-  }
-
-  const drbResult  = applyNewTransfers(existing, newDrbTx,  false, "drb",  "totalDrbTransactions");
-  const wethResult = applyNewTransfers(existing, newWethTx, false, "weth", "totalWethTransactions");
-  const usdcResult = applyNewTransfers(existing, newUsdcTx, false, "usdc", "totalUsdcTransactions", USDC_DECIMALS);
-  const ethResult  = applyNewEthTxs(existing, newEthNormalTxs, newEthInternalTxs);
-
-  // Merge new prices into existing price maps (built from existing walletValueAllTime)
-  const existingDrbPrices = Object.fromEntries((existing.walletValueAllTime ?? []).map(d => [d.date, d.drbPrice]));
-  const existingEthPrices = Object.fromEntries((existing.walletValueAllTime ?? []).map(d => [d.date, d.ethPrice]));
-  const mergedDrbPrices   = { ...existingDrbPrices, ...newDrbPrices };
-  const mergedEthPrices   = { ...existingEthPrices, ...newEthPrices };
-
-  const walletValueAllTime    = buildValueHistory(drbResult.cumByDate, wethResult.cumByDate, usdcResult.cumByDate, ethResult.cumByDate, mergedDrbPrices, mergedEthPrices);
-  const walletValueLast30Days = last30DaysFrom(walletValueAllTime);
-
-  const lastBlockDrb  = newDrbTx.length  ? parseInt(newDrbTx[newDrbTx.length - 1].blockNumber, 10)   : (existing.lastBlockDrb  ?? 0);
-  const lastBlockWeth = newWethTx.length ? parseInt(newWethTx[newWethTx.length - 1].blockNumber, 10) : (existing.lastBlockWeth ?? 0);
-  const lastBlockUsdc = newUsdcTx.length ? parseInt(newUsdcTx[newUsdcTx.length - 1].blockNumber, 10) : (existing.lastBlockUsdc ?? 0);
-  const allNewEthTxs  = [...newEthNormalTxs, ...newEthInternalTxs];
-  const lastBlockEth  = allNewEthTxs.reduce((max, t) => {
-    const b = parseInt(t.blockNumber, 10);
-    return b > max ? b : max;
-  }, existing.lastBlockEth ?? 0);
-
-  // Recalculate cumulative totals: existing + new
-  const existingDrbIn  = BigInt(Math.round(parseFloat(existing.cumulativeDrbReceived)  * 1e18));
-  const existingWethIn = BigInt(Math.round(parseFloat(existing.cumulativeWethEarned)   * 1e18));
-  const existingUsdcIn = BigInt(Math.round(parseFloat(existing.cumulativeUsdcReceived ?? "0") * 1e6));
-  const existingEthIn  = BigInt(Math.round(parseFloat(existing.cumulativeEthReceived  ?? "0") * 1e18));
-
+  const ledger = {
+    version: LEDGER_VERSION,
+    drb: persistedAsset(drb, { lastBlock: maxBlock(drbTx, previous?.drb.lastBlock) }),
+    weth: persistedAsset(weth, { lastBlock: maxBlock(wethTx, previous?.weth.lastBlock) }),
+    usdc: persistedAsset(usdc, { lastBlock: maxBlock(usdcTx, previous?.usdc.lastBlock) }),
+    eth: persistedAsset(eth, {
+      lastNormalBlock: maxBlock(normalTx, previous?.eth.lastNormalBlock),
+      lastInternalBlock: maxBlock(internalTx, previous?.eth.lastInternalBlock),
+      missingL1FeeTransactions: (previous?.eth.missingL1FeeTransactions ?? 0) + ethDelta.missingL1FeeTransactions,
+    }),
+  };
   const output = {
     lastUpdated: new Date().toISOString(),
-    walletAddress: WALLET_ADDRESS,
-    tokenContract: DRB_CONTRACT,
-    wethContract: WETH_CONTRACT,
-    usdcContract: USDC_CONTRACT,
-    tokenSymbol: "DRB",
-    tokenDecimals: TOKEN_DECIMALS,
-    lastBlockDrb,
-    lastBlockWeth,
-    lastBlockUsdc,
-    lastBlockEth,
-    cumulativeDrbReceived:  formatUnits(existingDrbIn  + drbResult.totalIn),
-    totalDrbTransactions:   drbResult.countIn,
-    cumulativeWethEarned:   formatUnits(existingWethIn + wethResult.totalIn),
-    totalWethTransactions:  wethResult.countIn,
-    cumulativeUsdcReceived: formatUnits(existingUsdcIn + usdcResult.totalIn, USDC_DECIMALS),
-    totalUsdcTransactions:  usdcResult.countIn,
-    cumulativeEthReceived:  formatUnits(existingEthIn  + ethResult.totalIn),
-    totalEthTransactions:   ethResult.countIn,
-    walletValueAllTime,
-    walletValueLast30Days,
+    priceAsOfDate: walletValueAllTime.at(-1).date,
+    accountingCoverage: {
+      chainBalancesReconciled: false,
+      missingL1FeeTransactions: ledger.eth.missingL1FeeTransactions,
+      note: "Balances replay indexed transfers; omitted Base L1 fees are not inferred. Chain balances and indexer completeness are not independently reconciled.",
+    },
+    walletAddress: WALLET_ADDRESS, tokenContract: DRB_CONTRACT,
+    wethContract: WETH_CONTRACT, usdcContract: USDC_CONTRACT,
+    tokenSymbol: "DRB", tokenDecimals: TOKEN_DECIMALS,
+    lastBlockDrb: ledger.drb.lastBlock, lastBlockWeth: ledger.weth.lastBlock,
+    lastBlockUsdc: ledger.usdc.lastBlock,
+    lastBlockEth: Math.max(ledger.eth.lastNormalBlock, ledger.eth.lastInternalBlock),
+    cumulativeDrbReceived: formatUnits(drb.totalIn), totalDrbTransactions: drb.countIn,
+    // Backward-compatible field name: this counts external WETH received,
+    // not independently classified liquidity-provider earnings.
+    cumulativeWethEarned: formatUnits(weth.totalIn), totalWethTransactions: weth.countIn,
+    cumulativeUsdcReceived: formatUnits(usdc.totalIn, USDC_DECIMALS), totalUsdcTransactions: usdc.countIn,
+    cumulativeEthReceived: formatUnits(eth.totalIn), totalEthTransactions: eth.countIn,
+    walletValueAllTime, walletValueLast30Days: last30DaysFrom(walletValueAllTime),
+    ledger, priceHistory: prices,
   };
-
-  writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2) + "\n");
-  console.log(`Incremental update complete. Value history: ${walletValueAllTime.length} days`);
+  writeSnapshot(output);
+  console.log(`Written ${walletValueAllTime.length} valuation days to ${OUTPUT_PATH}`);
 }
+
+async function main() { return collect(false); }
+async function mainIncremental() { return collect(true); }
 
 // ---------------------------------------------------------------------------
 // Entry point
