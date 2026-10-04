@@ -3444,9 +3444,9 @@
   ],
   "currentSnapshot": {
     "date": "2026-10-04",
-    "observedAt": "2026-10-04T15:24:01.387Z",
-    "blockNumber": 52169046,
-    "blockHash": "0x048b06cad8a8ccc355c46b64f29d7935fde94c28750b20037f36e42211b558cf",
+    "observedAt": "2026-10-04T23:14:13.433Z",
+    "blockNumber": 52183153,
+    "blockHash": "0xbaa2ab5e2d3d8b94570c82d92854ec972cdccdf29c4e2d60d0fe02506fd33954",
     "source": "Base RPC",
     "rawBalances": {
       "drb": "627962764747243383582224415",
@@ -3458,13 +3458,13 @@
     "weth": 157.87831102906176,
     "usdc": 88826.013903,
     "eth": 16.046966693443903,
-    "drbPrice": 0.0002109,
-    "ethPrice": 2702.095,
-    "usd": 691225.98
+    "drbPrice": 0.00022,
+    "ethPrice": 2732.65,
+    "usd": 702254.73
   },
   "historyStatus": {
     "state": "pending",
-    "checkedAt": "2026-10-04T15:24:12.075Z",
+    "checkedAt": "2026-10-04T23:14:23.719Z",
     "reason": "Blockscout is still indexing internal transactions. Saved history has been retained."
   }
 }
