@@ -3444,9 +3444,9 @@
   ],
   "currentSnapshot": {
     "date": "2026-10-08",
-    "observedAt": "2026-10-08T18:40:23.410Z",
-    "blockNumber": 52347738,
-    "blockHash": "0x4a430e2536f0fa9015cfaa524bfe660395624a21ed854ca3c8220c2ca5ad6df2",
+    "observedAt": "2026-10-08T19:07:57.398Z",
+    "blockNumber": 52348564,
+    "blockHash": "0xa924be75a27bbd75b9c8804f4be5c120fecf4c0e087682ff079e3de3c1e5acd7",
     "source": "Base RPC",
     "rawBalances": {
       "drb": "632380893672701170678606343",
@@ -3458,13 +3458,13 @@
     "weth": 158.22036958593083,
     "usdc": 88826.013903,
     "eth": 16.046966693443903,
-    "drbPrice": 0.000177,
-    "ethPrice": 2444.29,
-    "usd": 626717.34
+    "drbPrice": 0.0001781,
+    "ethPrice": 2446.91,
+    "usd": 627869.54
   },
   "historyStatus": {
     "state": "pending",
-    "checkedAt": "2026-10-08T18:40:23.410Z",
-    "reason": "Blockscout returned HTTP 429: history request rate limited. Saved history has been retained."
+    "checkedAt": "2026-10-08T19:07:57.519Z",
+    "reason": "Blockscout tokentx HTTP 403: history access denied. Saved history has been retained."
   }
 }
