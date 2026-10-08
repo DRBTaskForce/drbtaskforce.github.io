@@ -35,6 +35,7 @@ const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
 const INDEXER_PENDING_MESSAGE = "Some internal transactions within this block range have not yet been processed";
 
 class IndexerPendingError extends Error {}
+class HistoryUnavailableError extends Error {}
 
 // ---------------------------------------------------------------------------
 // Resilient fetch — retries transient 5xx / 429 / network errors with
@@ -98,7 +99,13 @@ async function blockscoutFetch(url) {
   const gap = BLOCKSCOUT_MIN_GAP_MS - (Date.now() - lastBlockscoutCallAt);
   if (gap > 0) await new Promise(r => setTimeout(r, gap));
   lastBlockscoutCallAt = Date.now();
-  return fetchWithRetry(url);
+  const response = await fetchWithRetry(url);
+  if (response.status === 403 || response.status === 429) {
+    const action = new URL(url).searchParams.get("action");
+    const reason = response.status === 403 ? "history access denied" : "history request rate limited";
+    throw new HistoryUnavailableError(`Blockscout ${action} HTTP ${response.status}: ${reason}. Saved history has been retained.`);
+  }
+  return response;
 }
 
 // ---------------------------------------------------------------------------
@@ -622,7 +629,7 @@ function requireSavedHistory(existing) {
     || !Array.isArray(rows) || rows.length === 0
     || rows.some(row => !row || !validDate(row.date) || !validPrice(row.drbPrice) || !validPrice(row.ethPrice)
       || ["usd", "drb", "weth", "usdc", "eth"].some(key => typeof row[key] !== "number" || !Number.isFinite(row[key]) || row[key] < 0))) {
-    throw new Error("Blockscout indexing is pending and no valid saved wallet history is available; snapshot not published");
+    throw new Error("Blockscout history is unavailable and no valid saved wallet history is available; snapshot not published");
   }
   if (existing.ledger) validateLedger(existing.ledger);
 }
@@ -638,16 +645,18 @@ async function refreshWallet(incremental) {
       historyStatus: { state: "updated", checkedAt: new Date().toISOString() },
     };
   } catch (error) {
-    if (!(error instanceof IndexerPendingError)) throw error;
+    const unavailable = error instanceof HistoryUnavailableError;
+    if (!(error instanceof IndexerPendingError) && !unavailable) throw error;
     requireSavedHistory(existing);
-    console.warn(error.message);
+    console.warn(unavailable ? `::warning::${error.message} Only current balances were refreshed.` : error.message);
     // Only these two fields change. In particular, partial transaction arrays,
     // cursors, historical prices, and lastUpdated must never advance here.
     output = {
       ...existing, currentSnapshot,
       historyStatus: {
         state: "pending", checkedAt: new Date().toISOString(),
-        reason: "Blockscout is still indexing internal transactions. Saved history has been retained.",
+        reason: unavailable ? error.message
+          : "Blockscout is still indexing internal transactions. Saved history has been retained.",
       },
     };
   }

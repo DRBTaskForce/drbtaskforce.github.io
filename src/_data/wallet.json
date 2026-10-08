@@ -3443,28 +3443,28 @@
     }
   ],
   "currentSnapshot": {
-    "date": "2026-10-06",
-    "observedAt": "2026-10-06T01:19:22.179Z",
-    "blockNumber": 52230107,
-    "blockHash": "0xcee9621cfa891857a0c6eb024db84856def3d5cfa9ba7d25b292454c42150086",
+    "date": "2026-10-08",
+    "observedAt": "2026-10-08T18:40:23.410Z",
+    "blockNumber": 52347738,
+    "blockHash": "0x4a430e2536f0fa9015cfaa524bfe660395624a21ed854ca3c8220c2ca5ad6df2",
     "source": "Base RPC",
     "rawBalances": {
-      "drb": "627962764747243383582224415",
-      "weth": "157878311029061776880",
+      "drb": "632380893672701170678606343",
+      "weth": "158220369585930829215",
       "usdc": "88826013903",
       "eth": "16046966693443903298"
     },
-    "drb": 627962764.7472434,
-    "weth": 157.87831102906176,
+    "drb": 632380893.6727011,
+    "weth": 158.22036958593083,
     "usdc": 88826.013903,
     "eth": 16.046966693443903,
-    "drbPrice": 0.0002204,
-    "ethPrice": 2716.12,
-    "usd": 699630.93
+    "drbPrice": 0.000177,
+    "ethPrice": 2444.29,
+    "usd": 626717.34
   },
   "historyStatus": {
     "state": "pending",
-    "checkedAt": "2026-10-06T01:19:31.325Z",
-    "reason": "Blockscout is still indexing internal transactions. Saved history has been retained."
+    "checkedAt": "2026-10-08T18:40:23.410Z",
+    "reason": "Blockscout returned HTTP 429: history request rate limited. Saved history has been retained."
   }
 }
