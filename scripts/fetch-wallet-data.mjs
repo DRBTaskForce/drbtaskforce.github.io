@@ -634,6 +634,28 @@ function requireSavedHistory(existing) {
   if (existing.ledger) validateLedger(existing.ledger);
 }
 
+function recordObservedBalances(existing, currentSnapshot) {
+  const rows = existing.walletValueAllTime;
+  // An observation is a chart point, never a transfer-ledger checkpoint or a
+  // claim about balances on unobserved dates. Keep its exact block provenance.
+  if (rows.some(row => row.date > currentSnapshot.date
+    || (row.observedAt && Date.parse(row.observedAt) > Date.parse(currentSnapshot.observedAt))
+    || (Number.isSafeInteger(row.blockNumber) && row.blockNumber > currentSnapshot.blockNumber))) {
+    throw new Error("Current balance observation is older than saved chart evidence; snapshot not published");
+  }
+  const walletValueAllTime = [
+    ...rows.filter(row => row.date !== currentSnapshot.date), { ...currentSnapshot },
+  ];
+  const cutoff = new Date(`${currentSnapshot.date}T00:00:00Z`);
+  cutoff.setUTCDate(cutoff.getUTCDate() - 29);
+  const startDate = cutoff.toISOString().slice(0, 10);
+  return {
+    walletValueAllTime,
+    // Missing dates remain missing: do not carry an old balance into a gap.
+    walletValueLast30Days: walletValueAllTime.filter(row => row.date >= startDate),
+  };
+}
+
 async function refreshWallet(incremental) {
   const existing = existsSync(OUTPUT_PATH) ? JSON.parse(readFileSync(OUTPUT_PATH, "utf8")) : null;
   if (existing?.walletAddress && existing.walletAddress.toLowerCase() !== WALLET_ADDRESS) throw new Error("Existing snapshot belongs to another wallet");
@@ -648,11 +670,12 @@ async function refreshWallet(incremental) {
     const unavailable = error instanceof HistoryUnavailableError;
     if (!(error instanceof IndexerPendingError) && !unavailable) throw error;
     requireSavedHistory(existing);
-    console.warn(unavailable ? `::warning::${error.message} Only current balances were refreshed.` : error.message);
-    // Only these two fields change. In particular, partial transaction arrays,
-    // cursors, historical prices, and lastUpdated must never advance here.
+    console.warn(unavailable ? `::warning::${error.message} Verified current balances were recorded in the chart; transfer history remains pending.` : error.message);
+    // Record independently verified balances for their observation date only.
+    // Partial transactions, ledger cursors, historical prices and lastUpdated
+    // remain unchanged until complete transfer collection succeeds.
     output = {
-      ...existing, currentSnapshot,
+      ...existing, ...recordObservedBalances(existing, currentSnapshot), currentSnapshot,
       historyStatus: {
         state: "pending", checkedAt: new Date().toISOString(),
         reason: unavailable ? error.message
