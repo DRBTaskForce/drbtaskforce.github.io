@@ -7,6 +7,8 @@ pageStyle: movement
 pageScript: movement
 xPosts: true
 ---
+{% from "data-freshness.njk" import freshness %}
+
 
 {% macro postCard(post, rank) %}
 <article class="movement-post x-post" data-x-url="{{ post.url | escape }}" aria-label="Post by @{{ post.authorUsername | escape }}">
@@ -34,7 +36,8 @@ xPosts: true
         <h2 id="movement-posts-title">Grok has money.</h2>
       </div>
     </div>
-    <p class="movement-snapshot">Posts saved {% if movement.lastUpdated %}<time datetime="{{ movement.lastUpdated }}" data-snapshot>{{ movement.lastUpdated | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily.</p>
+    <p class="movement-snapshot">Posts saved {% if movement.lastUpdated %}<time datetime="{{ movement.lastUpdated }}" data-snapshot>{{ movement.lastUpdated | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily at 02:00 UTC.</p>
+    {{ freshness('posts', dataStatus.sources.posts) }}
     {% if movement.posts.length %}
       <div class="movement-post-grid">
         {% for post in movement.posts %}
@@ -56,9 +59,11 @@ xPosts: true
     <dl class="movement-coverage">
       {% for period, label in [['daily', '24 hours'], ['weekly', '7 days'], ['monthly', '30 days']] %}
         {% set coverage = savedCreators.periods[period] %}
-        <div><dt>{{ label }}</dt><dd>{% if coverage.available %}{{ coverage.startDate | formatDate }} – {{ coverage.endDate | formatDate }} · {{ coverage.coveredDays }} of {{ coverage.expectedDays }} days recorded{% if not coverage.complete %} · Partial history{% endif %}{% else %}Comparable history unavailable{% endif %}</dd></div>
+        <div><dt>{{ label }}</dt><dd>{% if coverage.available %}{{ coverage.startDate | formatDate }} – {{ coverage.endDate | formatDate }} · {{ coverage.coveredDays }} of {{ coverage.expectedDays }} days recorded{% if not coverage.complete %} · Partial history{% endif %}{% if coverage.searchCoverage == 'gap' %} · Search gaps recorded{% elif coverage.searchCoverage == 'unknown' %} · Search continuity unknown{% endif %}{% else %}Comparable history unavailable{% endif %}</dd></div>
       {% endfor %}
     </dl>
+    {% if savedCreators.collection.windowStart %}<p>Latest search window: <time datetime="{{ savedCreators.collection.windowStart }}">{{ savedCreators.collection.windowStart }}</time> to <time datetime="{{ savedCreators.collection.windowEnd }}">{{ savedCreators.collection.windowEnd }}</time> (UTC).{% if savedCreators.collection.gapSeconds > 0 %} There were {{ savedCreators.collection.gapSeconds }} seconds between this search window and the previous saved window.{% endif %}</p>{% endif %}
+    <p>Impressions are X’s saved cumulative counts for collected posts, not unique people or views earned only within the selected period. Posts stay assigned to their first collection date; a later metrics check can revise that date’s totals.</p>
     <p>A post qualifies with at least five reactions: likes, reposts, replies, and quotes combined. Qualifying impressions are added by account, then ranked from highest to lowest. Follower counts do not affect rank. These figures measure attention on X; they do not establish token ownership.</p>
     <p>Each period displays up to 15 accounts. Share = account impressions ÷ all qualifying impressions × 100, rounded to one decimal. The displayed shares may total less than 100%.</p>
     <p>The 7-day and 30-day rankings combine available daily snapshots in their respective UTC date windows, ending at the same collection date. Missing dates are not filled with older data. Recorded dates describe available history, not complete coverage of every post on X.</p>

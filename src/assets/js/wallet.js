@@ -2,7 +2,7 @@
   'use strict';
   const wallet = JSON.parse(document.getElementById('wallet-data').textContent);
   // --- Static data (historical prices baked in at build time) ---
-  const valueAllTime    = wallet.walletValueAllTime || [];
+  const valueAllTime    = (wallet.walletValueAllTime || []).filter(point => !point.carriedForward);
   const valueLast30Days = historyWindow(30);
 
   const WALLET        = wallet.walletAddress;
@@ -473,7 +473,7 @@
   }
 
   // --- Stats rendering (separated from fetching so currency changes can re-render) ---
-  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice, usingCached, refreshState, fetchedAt, cachedDrbPrice, cachedTotalUsd }) {
+  function renderStats({ drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice, usingCached, refreshState, fetchedAt, cachedDrbPrice, cachedTotalUsd, mixedSources }) {
     if (drbBalance !== null) {
       document.getElementById('stat-balance').textContent = formatDrb(drbBalance) + ' DRB';
       document.getElementById('stat-balance-local').textContent = drbPrice
@@ -534,13 +534,13 @@
     if (anyValued) {
       document.getElementById('stat-total').textContent = formatLocal(cachedTotalUsd ?? (drbUsd + wethUsd + ethUsd + usdcUsd));
       document.getElementById('stat-total-sub').textContent =
-        (allValued ? 'DRB + WETH + ETH + USDC combined' : 'Partial value · some balances or prices unavailable') + ' · ' + localCurrency;
+        (allValued ? 'DRB + WETH + ETH + USDC combined' : 'Partial value · some balances or prices unavailable') + (mixedSources ? ' · Includes saved and current data' : '') + ' · ' + localCurrency;
     } else {
       document.getElementById('stat-total').textContent = 'unavailable';
       document.getElementById('stat-total-sub').textContent = '';
     }
 
-    const time = fetchedAt ? new Date(fetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }) + ' UTC' : '';
+    const time = fetchedAt ? new Date(fetchedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }) + ' UTC' : '';
     document.getElementById('stat-updated-sub').textContent = refreshState === 'pending'
       ? lastStatic ? `Showing ${formatDate(savedDate)} balances. Checking for updates…` : 'No saved balances. Checking for current data…'
       : usingCached ? lastStatic ? `Some current data is unavailable. Saved values from ${formatDate(savedDate)} remain in use.` : 'Some current data is unavailable. No saved balances are available.'
@@ -574,7 +574,8 @@
       );
       if (!res.ok) return null;
       const d = res.data;
-      if (d.status === '1') {
+      if (d.status === '1' && typeof d.result === 'string' && /^\d+$/.test(d.result)
+          && BigInt(d.result) < 2n ** 256n) {
         const raw = BigInt(d.result);
         const div = BigInt(10) ** BigInt(decimals);
         return finiteAmount(Number(raw / div) + Number(raw % div) / Number(div));
@@ -618,7 +619,8 @@
       );
       if (!res.ok) return null;
       const d = res.data;
-      if (d.status === '1') {
+      if (d.status === '1' && typeof d.result === 'string' && /^\d+$/.test(d.result)
+          && BigInt(d.result) < 2n ** 256n) {
         const raw = BigInt(d.result);
         const div = BigInt(10) ** BigInt(18);
         return finiteAmount(Number(raw / div) + Number(raw % div) / Number(div));
@@ -628,14 +630,15 @@
   }
 
   async function updateLiveStats() {
+    // Independent prices can load while rate-limited balance requests run.
+    const prices = Promise.all([fetchDrbPrice(), fetchEthPrice()]);
     // Blockscout calls run sequentially to avoid rate limiting.
     const drbBalance  = await fetchTokenBalance(TOKEN);
     const wethBalance = await fetchTokenBalance(WETH_CONTRACT);
     const ethBalance  = await fetchNativeEthBalance();
     const usdcBalance = await fetchTokenBalance(USDC_CONTRACT, USDC_DECIMALS);
 
-    // Price APIs are independent — fetch in parallel.
-    const [drbPrice, ethPrice] = await Promise.all([fetchDrbPrice(), fetchEthPrice()]);
+    const [drbPrice, ethPrice] = await prices;
 
     const usingCached = [drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice].some(value => value === null);
     liveData = {
@@ -646,6 +649,11 @@
       drbPrice:    drbPrice    ?? lastStatic?.drbPrice ?? null,
       ethPrice:    ethPrice    ?? lastStatic?.ethPrice ?? null,
       usingCached,
+      mixedSources: [drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice].some(value => value !== null)
+        && [[drbBalance, lastStatic?.drb], [wethBalance, lastStatic?.weth],
+          [ethBalance, lastStatic?.eth], [usdcBalance, lastStatic?.usdc],
+          [drbPrice, lastStatic?.drbPrice], [ethPrice, lastStatic?.ethPrice]]
+          .some(([current, saved]) => current === null && finiteAmount(saved) !== null),
       cachedDrbPrice: drbPrice === null,
       cachedTotalUsd: [drbBalance, wethBalance, ethBalance, usdcBalance, drbPrice, ethPrice].every(value => value === null)
         ? finiteAmount(lastStatic?.usd) : null,

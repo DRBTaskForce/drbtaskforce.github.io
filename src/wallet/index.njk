@@ -1,19 +1,22 @@
 ---
 layout: base.njk
 secondary: true
-title: "Grok's Wallet — $DRB Balances & Fees"
-description: "Explore Grok's wallet on Base: balances, claimed fees, and saved balance history."
+title: "Grok's Wallet — $DRB Balances & Receipts"
+description: "Explore Grok's wallet on Base: balances, WETH received, and saved balance history."
 pageStyle: wallet
 pageScript: wallet
 ---
+{% from "data-freshness.njk" import freshness %}
 
+
+{% set wallet = displayWallet %}
 {% set historicalSnapshot = wallet.walletValueAllTime | last %}
 {% set snapshot = wallet.currentSnapshot or historicalSnapshot %}
 <div class="wrap wallet-page">
   <header class="page-heading">
     <p class="eyebrow">Grok’s wallet · Base</p>
     <h1>Follow the wallet.</h1>
-    <p class="intro">Balances, claimed fees, and recorded activity from Grok’s wallet on Base. The numbers, with a trail you can follow.</p>
+    <p class="intro">Balances, WETH received, and recorded activity from Grok’s wallet on Base. The numbers, with a trail you can follow.</p>
     <a href="https://basescan.org/address/{{ wallet.walletAddress }}" target="_blank" rel="noopener noreferrer" class="text-link wallet-address">
       <span>{{ wallet.walletAddress }}</span><span aria-hidden="true"></span>
       <span class="visually-hidden">View wallet on Basescan</span>
@@ -45,6 +48,7 @@ pageScript: wallet
       </div>
     </div>
 
+    {{ freshness('balances', dataStatus.sources.balances) }}
     <dl class="wallet-stats">
       <div class="wallet-stat">
         <dt>DRB balance</dt>
@@ -76,8 +80,9 @@ pageScript: wallet
       </div>
       <div>
         <p class="eyebrow">Cumulative WETH received</p>
-        <p class="wallet-detail-value">{{ wallet.cumulativeWethEarned | formatWeth }} WETH</p>
-        <p class="wallet-note">{{ wallet.totalWethTransactions }} incoming transfers in the saved record{% if homeWallet.receiptsAsOf %} · {{ homeWallet.receiptsAsOf }}{% endif %}</p>
+        <p class="wallet-detail-value">{{ homeWallet.wethReceived }} WETH</p>
+        <p class="wallet-note">{{ homeWallet.receiptsCount }} incoming transfers in the saved record{% if homeWallet.receiptsAsOf %} · {{ homeWallet.receiptsAsOf }}{% endif %}</p>
+        {{ freshness('receipts', dataStatus.sources.receipts) }}
       </div>
     </div>
   </section>
@@ -96,6 +101,7 @@ pageScript: wallet
     {% if homeWallet.historyNotice %}<p class="wallet-note" role="status">{{ homeWallet.historyNotice }}</p>{% endif %}
     <p class="wallet-note wallet-history-range" id="history-range" role="status">Daily snapshots through {% if historicalSnapshot %}{{ historicalSnapshot.date | formatDate }}{% else %}the last saved record{% endif %}.</p>
 
+    {{ freshness('history', dataStatus.sources.history) }}
     <div class="wallet-chart-grid" id="wallet-charts">
       {% for asset, label in { drb: 'DRB balance', weth: 'WETH balance', eth: 'ETH balance', usdc: 'USDC balance' } %}
       <article class="data-panel wallet-chart-panel">

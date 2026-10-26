@@ -2,6 +2,7 @@
 layout: false
 permalink: /index.html
 ---
+{% from "data-freshness.njk" import freshness %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -257,7 +258,9 @@ permalink: /index.html
 @media(max-width:1100px) { .hero-face { width:330px; } .hero-word { font-size:clamp(125px,14vw,156px); } }
 @media(max-width:800px) { .hero { display:block; } .hero-lockup { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.88fr); align-items:center; gap:24px; } .hero-face { grid-row:1; width:270px; transform:translateY(-2px); } .hero-word { font-size:clamp(92px,17vw,132px); } .hero-title { margin-top:18px; } }
 @media(max-width:520px) { .hero-lockup { grid-template-columns:minmax(0,1fr) minmax(0,.82fr); gap:16px; } .hero-word { font-size:clamp(56px,18vw,92px); } .hero-face { width:100%; margin-right:0; transform:translateY(-2px); } .holders-aside { padding-top:32px; } }
+.snapshot-status{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0 16px}
 </style>
+<script src="/assets/js/data-freshness.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#origin">Skip to content</a>
@@ -299,6 +302,7 @@ permalink: /index.html
         {% set homeLeaders = attention.daily | default([]) %}
         <div class="ranking">
           <div class="ranking-header"><h3>Top daily accounts</h3><span class="utility">Saved {% if attention.asOf %}<time datetime="{{ attention.asOf }}">{{ attention.asOf | formatDate }}</time>{% else %}date unavailable{% endif %}</span></div>
+          {{ freshness('rankings', dataStatus.sources.rankings) }}
           {% if homeLeaders.length %}
           <table aria-label="Top daily accounts by impressions{% if attention.asOf %}, saved {{ attention.asOf | formatDate }}{% endif %}"><thead><tr><th scope="col">Rank</th><th scope="col">Account</th><th scope="col">Impressions</th></tr></thead><tbody>
             {% for leader in homeLeaders %}{% if loop.index <= 5 %}
@@ -313,13 +317,13 @@ permalink: /index.html
     </section>
     <section id="wallet" class="wrap wallet" aria-labelledby="wallet-title">
       <div class="split">
-        <div class="section-intro"><p class="utility section-kicker">Grok’s wallet · Base</p><h2 class="section-title" id="wallet-title">Wallet.</h2><p class="section-deck">Follow the onchain story.</p><p class="section-body">Balances, claimed fees, and recorded activity. Explore the wallet behind the numbers.</p><a class="button" href="https://drbtaskforce.com/wallet/">Open wallet tracker</a><br><a class="wallet-address" href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" aria-label="View the full Grok wallet address on Basescan">0xb1058c95…a0e4f9 · View address</a></div>
-        <div class="wallet-panel"><div class="wallet-panel-head"><h3>Wallet value · USD</h3><span class="snapshot-tag">Saved snapshot</span></div><p class="wallet-total">{{ homeWallet.total }}</p><p class="wallet-date">As of {{ homeWallet.asOf }}</p><figure class="chart"><svg viewBox="0 0 520 215" role="img" aria-labelledby="wallet-chart-title wallet-chart-desc">
+        <div class="section-intro"><p class="utility section-kicker">Grok’s wallet · Base</p><h2 class="section-title" id="wallet-title">Wallet.</h2><p class="section-deck">Follow the onchain story.</p><p class="section-body">Balances, WETH received, and recorded activity. Explore the wallet behind the numbers.</p><a class="button" href="https://drbtaskforce.com/wallet/">Open wallet tracker</a><br><a class="wallet-address" href="https://basescan.org/address/0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9" aria-label="View the full Grok wallet address on Basescan">0xb1058c95…a0e4f9 · View address</a></div>
+        <div class="wallet-panel"><div class="wallet-panel-head"><h3>Wallet value · USD</h3><span class="snapshot-tag">Saved snapshot</span></div><p class="wallet-total">{{ homeWallet.total }}</p><p class="wallet-date">As of {{ homeWallet.asOf }}</p>{{ freshness('balances', dataStatus.sources.balances) }}<figure class="chart"><svg viewBox="0 0 520 215" role="img" aria-labelledby="wallet-chart-title wallet-chart-desc">
 <title id="wallet-chart-title">{{ homeWallet.chart.title }}</title>
 <desc id="wallet-chart-desc">{{ homeWallet.chart.description }}</desc>
 {% for tick in homeWallet.chart.ticks %}<line class="chart-grid" x1="48" x2="512" y1="{{ tick.y }}" y2="{{ tick.y }}"/><text class="chart-label" x="0" y="{{ tick.textY }}">{{ tick.label }}</text>{% endfor %}<path class="chart-area" d="{{ homeWallet.chart.area }}" fill="#f0f2f3"/>
 <path class="chart-line" d="{{ homeWallet.chart.line }}"/><circle class="chart-end" cx="{{ homeWallet.chart.end.x }}" cy="{{ homeWallet.chart.end.y }}" r="3.5" fill="#1b1d1f"/>
-<text class="chart-label" x="48" y="207">{{ homeWallet.chart.startLabel }}</text><text class="chart-label" x="512" y="207" text-anchor="end">{{ homeWallet.chart.endLabel }}</text></svg><figcaption class="chart-caption">{{ homeWallet.chart.caption }}{% if homeWallet.historyNotice %} · History update pending{% endif %}</figcaption></figure><dl class="balance-list"><div><dt>DRB</dt><dd>{{ homeWallet.balances.drb }}</dd></div><div><dt>WETH</dt><dd>{{ homeWallet.balances.weth }}</dd></div><div><dt>USDC</dt><dd>{{ homeWallet.balances.usdc }}</dd></div><div><dt>ETH</dt><dd>{{ homeWallet.balances.eth }}</dd></div></dl><div class="wallet-foot"><span>WETH received · cumulative{% if homeWallet.receiptsAsOf %} · {{ homeWallet.receiptsAsOf }}{% endif %}</span><strong>{{ homeWallet.wethReceived }} WETH</strong></div></div>
+<text class="chart-label" x="48" y="207">{{ homeWallet.chart.startLabel }}</text><text class="chart-label" x="512" y="207" text-anchor="end">{{ homeWallet.chart.endLabel }}</text></svg><figcaption class="chart-caption">{{ homeWallet.chart.caption }}{% if homeWallet.historyNotice %} · History update pending{% endif %}</figcaption></figure><dl class="balance-list"><div><dt>DRB</dt><dd>{{ homeWallet.balances.drb }}</dd></div><div><dt>WETH</dt><dd>{{ homeWallet.balances.weth }}</dd></div><div><dt>USDC</dt><dd>{{ homeWallet.balances.usdc }}</dd></div><div><dt>ETH</dt><dd>{{ homeWallet.balances.eth }}</dd></div></dl><div class="wallet-foot"><span>WETH received · cumulative{% if homeWallet.receiptsAsOf %} · {{ homeWallet.receiptsAsOf }}{% endif %}</span><strong>{{ homeWallet.wethReceived }} WETH</strong></div>{{ freshness('receipts', dataStatus.sources.receipts) }}</div>
       </div>
     </section>
     <section id="token" class="wrap token" aria-labelledby="token-title">

@@ -1,0 +1,748 @@
+{
+  "version": 1,
+  "originalCheckpoint": 51580414,
+  "originalCount": 2186,
+  "originalTotalRaw": "160380687153072678177",
+  "correctedCount": 2207,
+  "correctedTotalRaw": "161276146113506321927",
+  "correctionRaw": "895458960433678460",
+  "precisionOverstatementRaw": "34710",
+  "providerOnly": [
+    "0x487c08c0c43022c5c23913c636d64c801fca5103af4d27199812f8c65744bf63:406",
+    "0x2d02e01bf05f5d7bf100986dbe25fc1fb9cb66b7e0b5422eb1002f828ea3a523:713",
+    "0xb4d3b57cdaf8f0eec374b2913eefd757e01afea948ed846987d45f126bd4976c:715",
+    "0x683eccf71c77dccd62dd931dce8c2131552adac3f4c50285b041bd685cb3debe:1465",
+    "0x7cb490cc936981fb4d5203aabf977e699d1adfd83274d6866660ce3f3ce921b6:745",
+    "0x5a7a425fdcef5947f95c7b3f785dc6bcc67dd197373edacfaf07c0cd3adbe906:592",
+    "0xcbd322457c772341bc4ed07b15f958b541a36aa49e22313681e4a8c65dc9c072:624",
+    "0xcea3f2b004653d0ba1d51b8ca8c3f18ea5c86c68ca29d668b02e481bcbaa75ba:279",
+    "0x708bda7e92a9ed2b0b0c2ec1cf64f1db24577adc899f14949dd032af113d9a83:597",
+    "0xafbaf97cb59f6b5d15a4adac0dea481c66560230db36f4a74105b6cf4fceef00:563",
+    "0x21975c90dfcdb435e8a8c3e2ddf6e0307055d7115cfb65f36517db4c5c59ae7e:556",
+    "0x7959a3c50cd468e73bc3941e673ccc06b62f3c26920f345b53ac4c25b62b5be8:545",
+    "0x4eda3dad196273b90403397ae7dd61b82d1d9407764bc5c131e23f0a4c99c2cb:639",
+    "0xe0fdbf3ff5b03efbb5c847ee0cdf3b364b220acd434e28dd12a2fac37e434b14:406",
+    "0xde2daa484e1cead911394ed6c68029205cb1575c4d83d7e1aeb9b93e67c9d96b:170",
+    "0xac6bae54575ac265074a6866f531062784d8e54825c854e724eb212d53df1834:601"
+  ],
+  "missingFromSaved": [
+    "0x203ccc23249a990625a5bac86309778cacb2c84226bff72e9b110ca913901207:830",
+    "0x4691860dfaeb92781c29c7995ce9a7b58251eba44bf0e03e625082a54ac5af52:23",
+    "0x6628d127888f72c4e85a4fc5bcb81f842e508781dffa9f952d3e2bd1b7dbfdae:126",
+    "0xadd17458b3bd94a44a62861e3ca40157b6c560311f2f87d31d514297d7f6cafd:271",
+    "0xfc89a97e27c3b94f9ea7f9ca48e4a1ff7e3f880f720b0b25c6646b0b57e4732e:123"
+  ],
+  "history": [
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358541247",
+      "count": 1994,
+      "provenance": "7b9955241d868a51c9ab684bae534b48015bc4d7"
+    },
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358545408",
+      "count": 1994,
+      "provenance": "43cab76edac8b8ca6ae3779fde6bfcb905264c56"
+    },
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358545408",
+      "count": 1994,
+      "provenance": "4ac316579d11fd88a6d88637067027c8ae891872"
+    },
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358545408",
+      "count": 1994,
+      "provenance": "a70ae4027f0618f7ba5ba7fcfa92eb6fc7f447bb"
+    },
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358545408",
+      "count": 1994,
+      "provenance": "164ccdcdf5f7dab96750edfc06cca7cb14ffc810"
+    },
+    {
+      "checkpoint": 45694285,
+      "totalRaw": "142604392436358545408",
+      "count": 1994,
+      "provenance": "2e48ae5dd2e0a5c71154cd9177eb2147e94cc8bf"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459259444",
+      "count": 1995,
+      "provenance": "f815477f0d4e4da1ed5b1fa8adedfda354fea9e9"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459270144",
+      "count": 1995,
+      "provenance": "642e991855973304baf0e15c89e3ff22a204e4d7"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459270144",
+      "count": 1995,
+      "provenance": "5191c5a7c9d4a6d3c0e13b29a65ab8e5cb78c66f"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459270144",
+      "count": 1995,
+      "provenance": "aa3f6d6654a85c237c944ca6f938aa0b35de89ee"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459270144",
+      "count": 1995,
+      "provenance": "086c42c61050047d0f1ccd7ed5bc34923d353865"
+    },
+    {
+      "checkpoint": 46197091,
+      "totalRaw": "143313263740459270144",
+      "count": 1995,
+      "provenance": "dee5cf64fdf5a758a9ec565f0b37aae57b6583c6"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094697639",
+      "count": 1998,
+      "provenance": "ff3175d91b626c7917c98e51dd506d25dcb6f3ef"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "06fdce25aed7d5a50993e3c228e8e1075c58e25c"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "1372dcf91357e715a5cf9e53877f7489e4304a98"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "2a7751cdd1662b1b2d9d60a1676989f213ed2a99"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "f1678ea1b4effc60d03b9f89e092961ebd3b2daf"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "ff432e9eab3ba2e71427de1c48aede92db3b099b"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "d7ee67720c975694bf98d53630dd4c62d44e2296"
+    },
+    {
+      "checkpoint": 46477753,
+      "totalRaw": "143654089991094714368",
+      "count": 1998,
+      "provenance": "642c8aadf48462d24ceb832a9bbbd3068d7946d1"
+    },
+    {
+      "checkpoint": 46818538,
+      "totalRaw": "143847347998891711924",
+      "count": 2000,
+      "provenance": "5a197c1916f5a8d8fca3bfd79c8797a3b372a6a1"
+    },
+    {
+      "checkpoint": 46864297,
+      "totalRaw": "143860293844470883277",
+      "count": 2002,
+      "provenance": "d82854441577f9c6a91b93ce5fd99db49352ba3a"
+    },
+    {
+      "checkpoint": 46921914,
+      "totalRaw": "144014610679827400865",
+      "count": 2005,
+      "provenance": "3187a1aab5ba439e2fa7b2a3118de8c5d49a4143"
+    },
+    {
+      "checkpoint": 46921914,
+      "totalRaw": "144014610679827398656",
+      "count": 2005,
+      "provenance": "6faa9edd95283902bbf9ebb51a799b03d6d6a264"
+    },
+    {
+      "checkpoint": 46977615,
+      "totalRaw": "144054190210791067999",
+      "count": 2006,
+      "provenance": "54b23a7ece53dbbc8494c1586fb680482fb2b872"
+    },
+    {
+      "checkpoint": 47038046,
+      "totalRaw": "144111823485832551432",
+      "count": 2007,
+      "provenance": "2c630ef1162bfd7cef6d318994bf7832af107e32"
+    },
+    {
+      "checkpoint": 47079563,
+      "totalRaw": "144145605731896087880",
+      "count": 2008,
+      "provenance": "b6b5839bed6cec3ce9f9433adbf150b868a63b63"
+    },
+    {
+      "checkpoint": 47079563,
+      "totalRaw": "144145605731896098816",
+      "count": 2008,
+      "provenance": "bce2ef1feef2b18b91c9dd6ac44ee2147859529a"
+    },
+    {
+      "checkpoint": 47149458,
+      "totalRaw": "144163245227659581144",
+      "count": 2009,
+      "provenance": "6bd3358d8794882c5f633a9e4a6d3d6542a958e2"
+    },
+    {
+      "checkpoint": 47194520,
+      "totalRaw": "144192377392547218190",
+      "count": 2011,
+      "provenance": "adc8456c3a2c44031c65358725ae69c066bec404"
+    },
+    {
+      "checkpoint": 47241799,
+      "totalRaw": "144302087267167005328",
+      "count": 2012,
+      "provenance": "b3e3566d95469597a421fd2b786f0bcd057c3d58"
+    },
+    {
+      "checkpoint": 47278070,
+      "totalRaw": "144394396427187351237",
+      "count": 2013,
+      "provenance": "3053002f46bcf647d1fe0e9da9e6384acd9206ff"
+    },
+    {
+      "checkpoint": 47311775,
+      "totalRaw": "144466767962469926888",
+      "count": 2014,
+      "provenance": "d42dd64f77a5e70d19a265cf96e93f643a64cdbe"
+    },
+    {
+      "checkpoint": 47311775,
+      "totalRaw": "144466767962469924864",
+      "count": 2014,
+      "provenance": "646344bad8450201e29a99f2177a833f8b8cee5d"
+    },
+    {
+      "checkpoint": 47491530,
+      "totalRaw": "144555650307605414839",
+      "count": 2021,
+      "provenance": "9ad9cb1b5461c6f4496a1471bc4cf704476a5ac2"
+    },
+    {
+      "checkpoint": 47491530,
+      "totalRaw": "144555650307605413888",
+      "count": 2021,
+      "provenance": "278377bb1fbd942ed15a100346fcc44bf0662da3"
+    },
+    {
+      "checkpoint": 47491530,
+      "totalRaw": "144555650307605413888",
+      "count": 2021,
+      "provenance": "1f41b7ee6c93993b689ceecc36e9f5e79052adfe"
+    },
+    {
+      "checkpoint": 47491530,
+      "totalRaw": "144555650307605413888",
+      "count": 2021,
+      "provenance": "e1d7eaf717f3c33b9cc6ce2b0ede6b87169aa788"
+    },
+    {
+      "checkpoint": 47700738,
+      "totalRaw": "144624237877653945701",
+      "count": 2022,
+      "provenance": "e1a12bec46c356b9672026f41db62c2285e3742f"
+    },
+    {
+      "checkpoint": 47700738,
+      "totalRaw": "144624237877653946368",
+      "count": 2022,
+      "provenance": "419cfa0a3f51c8f2779b0b6986418ec97fdfb412"
+    },
+    {
+      "checkpoint": 47768579,
+      "totalRaw": "144655251899666239879",
+      "count": 2023,
+      "provenance": "6a3098d6282d051b9ff2a08e84e3fefe57683cd6"
+    },
+    {
+      "checkpoint": 47768579,
+      "totalRaw": "144655251899666235392",
+      "count": 2023,
+      "provenance": "71c588c9d674e7dd90de0cc0e172a7caacc7fd64"
+    },
+    {
+      "checkpoint": 47838965,
+      "totalRaw": "144682079179158788530",
+      "count": 2024,
+      "provenance": "1f94aba2b84a0544f658c4c61e8ab121d8cb6040"
+    },
+    {
+      "checkpoint": 47838965,
+      "totalRaw": "144682079179158798336",
+      "count": 2024,
+      "provenance": "b64bf978674f529bb3d79b34730c0793c019d97e"
+    },
+    {
+      "checkpoint": 47838965,
+      "totalRaw": "144682079179158798336",
+      "count": 2024,
+      "provenance": "e83f1bd198e79483ee1e2a8cd053032c4651995a"
+    },
+    {
+      "checkpoint": 47984248,
+      "totalRaw": "144717428371336586187",
+      "count": 2025,
+      "provenance": "731cb3bf41c363832f95cc197f131518370a85c1"
+    },
+    {
+      "checkpoint": 47984248,
+      "totalRaw": "144717428371336577024",
+      "count": 2025,
+      "provenance": "83154d74586c299014736cbdf82ee4f08a690cdd"
+    },
+    {
+      "checkpoint": 47984248,
+      "totalRaw": "144717428371336577024",
+      "count": 2025,
+      "provenance": "a18aee073dded6005242a472979ca9096cf4b2ee"
+    },
+    {
+      "checkpoint": 47984248,
+      "totalRaw": "144717428371336577024",
+      "count": 2025,
+      "provenance": "6700d0727200839ddd3a737a206da06f9a1737dd"
+    },
+    {
+      "checkpoint": 48134891,
+      "totalRaw": "144754503723098104760",
+      "count": 2026,
+      "provenance": "03fe6e0229457d4c9b673bebb4f4e3ff1c2a478a"
+    },
+    {
+      "checkpoint": 48200001,
+      "totalRaw": "144791650756493237566",
+      "count": 2027,
+      "provenance": "77eb4bb7c7b33a1ef124f3dde5049e69f86ff87b"
+    },
+    {
+      "checkpoint": 48242005,
+      "totalRaw": "144792725883394035009",
+      "count": 2028,
+      "provenance": "e17bd01b9a857bae416c4a80076d1b5c726622c4"
+    },
+    {
+      "checkpoint": 48242005,
+      "totalRaw": "144792725883394048000",
+      "count": 2028,
+      "provenance": "6b45ed1ab07d0c6bf40bb529566c008f0151e1f3"
+    },
+    {
+      "checkpoint": 48309144,
+      "totalRaw": "144826660723741620052",
+      "count": 2029,
+      "provenance": "18aae306fb3d94759214597207fad42e2e857324"
+    },
+    {
+      "checkpoint": 48366192,
+      "totalRaw": "144843369938202057818",
+      "count": 2030,
+      "provenance": "a08ea1b061c74852767b06fcbcbe0b86554dd658"
+    },
+    {
+      "checkpoint": 48366192,
+      "totalRaw": "144843369938202050560",
+      "count": 2030,
+      "provenance": "00bba845372a80205e676feefea63212501dd42e"
+    },
+    {
+      "checkpoint": 48440953,
+      "totalRaw": "144877828262564545714",
+      "count": 2031,
+      "provenance": "9c9eedb8fd310da33480e9ce5c2e313a81a608a1"
+    },
+    {
+      "checkpoint": 48440953,
+      "totalRaw": "144877828262564544512",
+      "count": 2031,
+      "provenance": "9061e08d7a5c32152ac1ad7d85cb38b29236cb72"
+    },
+    {
+      "checkpoint": 48553707,
+      "totalRaw": "144906968757868887200",
+      "count": 2032,
+      "provenance": "f802274f42deba8847180ee3a7f644a3ebe24ff3"
+    },
+    {
+      "checkpoint": 48594788,
+      "totalRaw": "144919095051411576746",
+      "count": 2033,
+      "provenance": "2a86262a37f843106136af17f2ba386bae7556d9"
+    },
+    {
+      "checkpoint": 48629801,
+      "totalRaw": "144948631884301668024",
+      "count": 2034,
+      "provenance": "1b7b783975ec5d2d5ea2f93e960ba15e7a98adb8"
+    },
+    {
+      "checkpoint": 48629801,
+      "totalRaw": "144948631884301680640",
+      "count": 2034,
+      "provenance": "9162b8b1fe4746a2d894ff33cac96a362415d1f3"
+    },
+    {
+      "checkpoint": 48711328,
+      "totalRaw": "144979885067937278882",
+      "count": 2035,
+      "provenance": "3fc9cd483c39a7696adfafa7fd826ab6500dd548"
+    },
+    {
+      "checkpoint": 48748394,
+      "totalRaw": "145006886442421679045",
+      "count": 2036,
+      "provenance": "4168c62ed6246225c0fad0789b360d16577820a9"
+    },
+    {
+      "checkpoint": 48748394,
+      "totalRaw": "145006886442421682176",
+      "count": 2036,
+      "provenance": "df654b59a707db2f950da8f575934a53949bce2c"
+    },
+    {
+      "checkpoint": 48835760,
+      "totalRaw": "145084320561546268652",
+      "count": 2037,
+      "provenance": "8993c7ec1234c3e1c7fbf10e1b5efe55414b3d0e"
+    },
+    {
+      "checkpoint": 48835760,
+      "totalRaw": "145084320561546264576",
+      "count": 2037,
+      "provenance": "54e5b7d0aba72eb39bc54383de293616930817da"
+    },
+    {
+      "checkpoint": 48927112,
+      "totalRaw": "145093350007563062420",
+      "count": 2038,
+      "provenance": "2adda327803b9ec59a70a896fe46c00955f84c40"
+    },
+    {
+      "checkpoint": 48990681,
+      "totalRaw": "145122824322519416268",
+      "count": 2039,
+      "provenance": "caf7c182fcdd3e2443c6c84fdefe968acb01f348"
+    },
+    {
+      "checkpoint": 49014453,
+      "totalRaw": "145136723961450648025",
+      "count": 2040,
+      "provenance": "0f6d1aeddb54dfb7489e5f9d840749c8685014c1"
+    },
+    {
+      "checkpoint": 49014453,
+      "totalRaw": "145136723961450659840",
+      "count": 2040,
+      "provenance": "e27c60a3969b168bf512f7c29176ade26aa4a8ec"
+    },
+    {
+      "checkpoint": 49091290,
+      "totalRaw": "145170829530610027986",
+      "count": 2041,
+      "provenance": "65037e21524d479561876fe84a0e7dc4a1470732"
+    },
+    {
+      "checkpoint": 49091290,
+      "totalRaw": "145170829530610040832",
+      "count": 2041,
+      "provenance": "e5a5369112d7d23fc317cd48bd7e4238c94a12e2"
+    },
+    {
+      "checkpoint": 49188148,
+      "totalRaw": "145196704304503750124",
+      "count": 2043,
+      "provenance": "80452c71c9de44b0b5ab26738c40dfdc9e0afae0"
+    },
+    {
+      "checkpoint": 49228834,
+      "totalRaw": "145282829202048133728",
+      "count": 2045,
+      "provenance": "acbaed5918c550558a4704901fe220163bb01b9d"
+    },
+    {
+      "checkpoint": 49259256,
+      "totalRaw": "145302773388850449465",
+      "count": 2046,
+      "provenance": "50e1801445f82ff6f6ecef93654cb2897f996128"
+    },
+    {
+      "checkpoint": 49309383,
+      "totalRaw": "145324357552884872411",
+      "count": 2047,
+      "provenance": "fa4fa3bdfe44ed944ca9db2242535b479092395c"
+    },
+    {
+      "checkpoint": 49309383,
+      "totalRaw": "145324357552884858880",
+      "count": 2047,
+      "provenance": "a02e82f06baf60c47905189969b864b1c807905d"
+    },
+    {
+      "checkpoint": 49393142,
+      "totalRaw": "145356217982207613277",
+      "count": 2048,
+      "provenance": "cedff8ae2760abae3e194dee9287ecbafe71b7bd"
+    },
+    {
+      "checkpoint": 49393142,
+      "totalRaw": "145356217982207623168",
+      "count": 2048,
+      "provenance": "ba5d9cf75d93af2c1953c3ed834d8d928f102935"
+    },
+    {
+      "checkpoint": 49501866,
+      "totalRaw": "145432232136334017876",
+      "count": 2056,
+      "provenance": "1a8d3949e215ce7499d8143b89e42b892d36452e"
+    },
+    {
+      "checkpoint": 49533783,
+      "totalRaw": "145446808266141199024",
+      "count": 2057,
+      "provenance": "60f2dc44a6cdbea80bd5ae327a2343096b737b8d"
+    },
+    {
+      "checkpoint": 49533783,
+      "totalRaw": "145446808266141204480",
+      "count": 2057,
+      "provenance": "acb8e2fc9540bf16b5c5052bcda1c6cdbfc0a914"
+    },
+    {
+      "checkpoint": 49607061,
+      "totalRaw": "145496481357268646360",
+      "count": 2058,
+      "provenance": "35e7f6e40e5ea1be30ec65258be5107e2a8ac94a"
+    },
+    {
+      "checkpoint": 49649903,
+      "totalRaw": "145520336128100749746",
+      "count": 2059,
+      "provenance": "613e25fac7f40a0fc7f9b139ec643235c9928a00"
+    },
+    {
+      "checkpoint": 49716933,
+      "totalRaw": "145540914300697211442",
+      "count": 2060,
+      "provenance": "687e0f75ed355479f2587b5c18c0b6cbda08ab46"
+    },
+    {
+      "checkpoint": 49746729,
+      "totalRaw": "145550114808408754506",
+      "count": 2061,
+      "provenance": "a0fa7e72ce990c96b46f1073440bbc22fcbd65ea"
+    },
+    {
+      "checkpoint": 49797114,
+      "totalRaw": "145568759619066472210",
+      "count": 2062,
+      "provenance": "7e4d4fa07631b63dea3f69e71e8250943d3c258f"
+    },
+    {
+      "checkpoint": 49797114,
+      "totalRaw": "145568759619066462208",
+      "count": 2062,
+      "provenance": "657fc1716b6119cdb04ae0b67a8e9f37fd09e8b7"
+    },
+    {
+      "checkpoint": 49883764,
+      "totalRaw": "145621550209120747646",
+      "count": 2064,
+      "provenance": "202cc5506032eb3a09ac05edc50ca5a4bd8c6f4a"
+    },
+    {
+      "checkpoint": 49943939,
+      "totalRaw": "145660288786026182955",
+      "count": 2066,
+      "provenance": "dee3c1cecf1315b60a85190a5971e5f6d1d39f09"
+    },
+    {
+      "checkpoint": 49954870,
+      "totalRaw": "145661349493413899267",
+      "count": 2067,
+      "provenance": "c0c06e6979eabfa2b5b249870e7ad8b1f71f9574"
+    },
+    {
+      "checkpoint": 49954870,
+      "totalRaw": "145661349493413888000",
+      "count": 2067,
+      "provenance": "961dcd0fd628abc46ebc13acf298668f90c9726c"
+    },
+    {
+      "checkpoint": 49954870,
+      "totalRaw": "145661349493413888000",
+      "count": 2067,
+      "provenance": "657659de200947ca46f60f2578b1d2607a31e065"
+    },
+    {
+      "checkpoint": 50146069,
+      "totalRaw": "145722875619895431187",
+      "count": 2069,
+      "provenance": "f9f3355ca8b300b32bb30bff6304140b1de22743"
+    },
+    {
+      "checkpoint": 50318433,
+      "totalRaw": "149182042600911500217",
+      "count": 2080,
+      "provenance": "213e8c39a38afd680a6b19f618ee0402cb200a9f"
+    },
+    {
+      "checkpoint": 50359454,
+      "totalRaw": "150019521588244954478",
+      "count": 2085,
+      "provenance": "1d498d01d457aa62748921ea58a8a3acbd3fc4a4"
+    },
+    {
+      "checkpoint": 50454158,
+      "totalRaw": "151378928690012988681",
+      "count": 2095,
+      "provenance": "0e1afbe22c6be935a77324d2a0ac10d7fdd21311"
+    },
+    {
+      "checkpoint": 50487889,
+      "totalRaw": "151655490984472651730",
+      "count": 2097,
+      "provenance": "a3374e84101ec41cd84ed7ccfbfbd0dd12016cee"
+    },
+    {
+      "checkpoint": 50560563,
+      "totalRaw": "153152739983315695023",
+      "count": 2103,
+      "provenance": "44a91d24223234e434c00b7644c8c63f134bfc9e"
+    },
+    {
+      "checkpoint": 50626200,
+      "totalRaw": "154439332320334450024",
+      "count": 2142,
+      "provenance": "4f8becad97980981c92bb3b19da36e8d4c9da814"
+    },
+    {
+      "checkpoint": 50681492,
+      "totalRaw": "155035386337152438122",
+      "count": 2145,
+      "provenance": "bf3239c8510c3396d15cd52697da506d106a5b3a"
+    },
+    {
+      "checkpoint": 50810077,
+      "totalRaw": "155571677573623703762",
+      "count": 2151,
+      "provenance": "2138b22656255b96a229b9c348d80be412210917"
+    },
+    {
+      "checkpoint": 50875773,
+      "totalRaw": "155817285475863944800",
+      "count": 2154,
+      "provenance": "ab03104d2b0783e19d33bc6bf98811b67df3be76"
+    },
+    {
+      "checkpoint": 50924367,
+      "totalRaw": "156006540173565255772",
+      "count": 2155,
+      "provenance": "1c89c48d619e2feeb024022bc1ab6f7734d58431"
+    },
+    {
+      "checkpoint": 51035771,
+      "totalRaw": "157444341146453235475",
+      "count": 2162,
+      "provenance": "b7a775cdf8678be7e7224cb6b0556561763e46e0"
+    },
+    {
+      "checkpoint": 51097251,
+      "totalRaw": "158104116936207178461",
+      "count": 2165,
+      "provenance": "a5de50ca658a8b72e74f458c76e773e32438ff9f"
+    },
+    {
+      "checkpoint": 51130638,
+      "totalRaw": "158434499007845310729",
+      "count": 2167,
+      "provenance": "ce58bd35dc14e7de59b6e789532d0fd776b2f9b3"
+    },
+    {
+      "checkpoint": 51181055,
+      "totalRaw": "158850752058840837654",
+      "count": 2169,
+      "provenance": "648cad623e2a489a5a2546eadf252209cb667872"
+    },
+    {
+      "checkpoint": 51237103,
+      "totalRaw": "159165427521903358299",
+      "count": 2172,
+      "provenance": "43169b272882972fa8cd6fbbf4962156a905a3e9"
+    },
+    {
+      "checkpoint": 51272780,
+      "totalRaw": "159248401273916226792",
+      "count": 2174,
+      "provenance": "1e7b506e35c4275dfccc9e96383487f78c87a145"
+    },
+    {
+      "checkpoint": 51329757,
+      "totalRaw": "159460489108023129286",
+      "count": 2176,
+      "provenance": "d8717a171d3900ae4b62a2bc9a6d9a1e5b0488f7"
+    },
+    {
+      "checkpoint": 51356001,
+      "totalRaw": "159561221927422561489",
+      "count": 2178,
+      "provenance": "b2b3d14a03d07625f31fce119c01b8cce06f71b7"
+    },
+    {
+      "checkpoint": 51413559,
+      "totalRaw": "159753027681908445206",
+      "count": 2179,
+      "provenance": "6fd4e28478b7b44b6886b0e9161af9af3d372ad5"
+    },
+    {
+      "checkpoint": 51431447,
+      "totalRaw": "159780874533364835990",
+      "count": 2180,
+      "provenance": "01fa82aa6dc3cf9490b9df464edf90d7edd346af"
+    },
+    {
+      "checkpoint": 51474606,
+      "totalRaw": "159960822519068166664",
+      "count": 2182,
+      "provenance": "34fdfeb97205ad8e5045d985a290fe917a4bd30f"
+    },
+    {
+      "checkpoint": 51522808,
+      "totalRaw": "160202808967411939455",
+      "count": 2184,
+      "provenance": "Arithmetic reconstruction: unique two-batch split reproducing retained September19 and September21 snapshots; intermediate raw run not retained."
+    },
+    {
+      "checkpoint": 51580414,
+      "totalRaw": "160380687153072678177",
+      "count": 2186,
+      "provenance": "9fc698de1cf094d2bd9a3376c04bab570b6167b9"
+    }
+  ],
+  "inputSha256": "5284fad735205d000ed3aead8a59489715e7e146b04d7929f062fda1e5407008",
+  "originalSnapshotCanonicalSha256": "ed5d3e070c34db7bf4e133e60fad3d01d1cd1e5692aef8e41f7cae98a9542ab4",
+  "note": "Indexed transfer replay reconciled against archived evidence and chain receipts for each correction. This does not classify receipts as LP fees."
+}

@@ -18,6 +18,9 @@
 import { writeFileSync, readFileSync, existsSync, renameSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import recordWethReceipts from './weth-receipts.cjs';
+import fetchWethHistoryV2 from './weth-history-v2.cjs';
+import walletObservation from './wallet-observation.cjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +35,8 @@ const TOKEN_DECIMALS = 18;
 const USDC_DECIMALS  = 6;
 const BLOCKSCOUT_API = "https://base.blockscout.com/api";
 const OUTPUT_PATH    = join(__dirname, "../src/_data/wallet.json");
+const OBSERVATION_PATH = join(__dirname, '../src/_data/walletObservation.json');
+const RECEIPTS_PATH = join(__dirname, '../src/_data/wethReceipts.json');
 const INDEXER_PENDING_MESSAGE = "Some internal transactions within this block range have not yet been processed";
 
 class IndexerPendingError extends Error {}
@@ -112,19 +117,21 @@ async function blockscoutFetch(url) {
 // Blockscout — token transfer history
 // ---------------------------------------------------------------------------
 
-async function fetchAllTransfers(contractAddress, fromBlock = 0) {
+async function fetchAllTransfers(contractAddress, fromBlock = 0, endBlock = 'latest') {
   const transfers = [];
   const pageSize = 10000;
   let page = 1;
+  const seenPages = new Set();
 
   while (true) {
+    if (page > 20) throw new Error('Incomplete history: page limit reached');
     const url = new URL(BLOCKSCOUT_API);
     url.searchParams.set("module", "account");
     url.searchParams.set("action", "tokentx");
     url.searchParams.set("contractaddress", contractAddress);
     url.searchParams.set("address", WALLET_ADDRESS);
     url.searchParams.set("startblock", fromBlock);
-    url.searchParams.set("endblock", "latest");
+    url.searchParams.set("endblock", String(endBlock));
     url.searchParams.set("sort", "asc");
     url.searchParams.set("offset", pageSize);
     url.searchParams.set("page", page);
@@ -139,6 +146,9 @@ async function fetchAllTransfers(contractAddress, fromBlock = 0) {
     }
 
     if (data.status !== "1" || !Array.isArray(data.result)) throw new Error(`Blockscout tokentx status ${data.status}: ${data.message ?? "invalid transfer response"}`);
+    const signature = JSON.stringify(data.result);
+    if (seenPages.has(signature)) throw new Error('Incomplete token history: repeated page or page limit');
+    seenPages.add(signature);
     transfers.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
@@ -155,8 +165,10 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
   const txs = [];
   const pageSize = 10000;
   let page = 1;
+  const seenPages = new Set();
 
   while (true) {
+    if (page > 20) throw new Error(`Incomplete ${action} history: page limit reached`);
     const url = new URL(BLOCKSCOUT_API);
     url.searchParams.set("module", "account");
     url.searchParams.set("action", action); // "txlist" or "txlistinternal"
@@ -184,6 +196,9 @@ async function fetchAllEthTxs(action, fromBlock = 0) {
     }
 
     if (data.status !== "1" || !Array.isArray(data.result)) throw new Error(`Blockscout ${action} status ${data.status}: ${data.message ?? "invalid transaction response"}`);
+    const signature = JSON.stringify(data.result);
+    if (seenPages.has(signature)) throw new Error(`Incomplete ${action} history: repeated page`);
+    seenPages.add(signature);
     txs.push(...data.result);
     if (data.result.length < pageSize) break;
     page++;
@@ -538,11 +553,11 @@ function savedPrices(existing) {
   return { drb, eth };
 }
 
-function writeSnapshot(output) {
-  const temporary = `${OUTPUT_PATH}.${process.pid}.tmp`;
+function writeSnapshot(output, destination = OUTPUT_PATH) {
+  const temporary = `${destination}.${process.pid}.tmp`;
   try {
     writeFileSync(temporary, JSON.stringify(output, null, 2) + "\n");
-    renameSync(temporary, OUTPUT_PATH);
+    renameSync(temporary, destination);
   } finally {
     if (existsSync(temporary)) unlinkSync(temporary);
   }
@@ -554,15 +569,36 @@ function writeSnapshot(output) {
 // history to recover skipped intervals. Rounded chart balances cannot repair it.
 // ---------------------------------------------------------------------------
 
-async function collect(incremental, existing) {
+async function collect(incremental, existing, currentSnapshot) {
   const previous = incremental ? existing?.ledger : null;
   if (previous) validateLedger(previous);
   if (incremental && !previous) console.log("No exact ledger — rebuilding full transfer history and retaining historical prices.");
   const from = (asset, cursor = "lastBlock") => previous ? previous[asset][cursor] + 1 : 0;
 
   // Sequential Blockscout calls respect rate limits. No partial result is saved.
+  // Collect WETH first and publish its independent record before any unrelated
+  // asset/history/price request. The same response serves the old ledger too.
+  const savedReceipts = existsSync(RECEIPTS_PATH) ? JSON.parse(readFileSync(RECEIPTS_PATH, 'utf8')) : null;
+  if (savedReceipts) recordWethReceipts.validate(savedReceipts);
+  // The old cursor permanently skipped transfers indexed behind it. Replay the
+  // complete WETH prefix each time so newly indexed old events fail closed for
+  // reconciliation instead of disappearing behind a successful newer run.
+  const wethStart = 0;
+  const observedWeth = await fetchWethHistoryV2(blockscoutFetch, wethStart, currentSnapshot.blockNumber);
+  const receipts = recordWethReceipts(savedReceipts, observedWeth, currentSnapshot, existing || {}, wethStart);
+  writeSnapshot(receipts, RECEIPTS_PATH);
+  // Receipt validation has already rejected ambiguous or conflicting identities.
+  // Share its duplicate policy with the older all-asset ledger.
+  const seenWeth = new Set();
+  const wethTx = observedWeth.filter(tx => {
+    if (Number(tx.blockNumber) < from('weth')) return false;
+    if (tx.logIndex === undefined) return true;
+    const key = tx.hash.toLowerCase() + ':' + BigInt(tx.logIndex).toString();
+    if (seenWeth.has(key)) return false;
+    seenWeth.add(key);
+    return true;
+  });
   const drbTx = await fetchAllTransfers(DRB_CONTRACT, from("drb"));
-  const wethTx = await fetchAllTransfers(WETH_CONTRACT, from("weth"));
   const usdcTx = await fetchAllTransfers(USDC_CONTRACT, from("usdc"));
   const normalTx = await fetchAllEthTxs("txlist", from("eth", "lastNormalBlock"));
   const internalTx = await fetchAllEthTxs("txlistinternal", from("eth", "lastInternalBlock"));
@@ -660,10 +696,13 @@ async function refreshWallet(incremental) {
   const existing = existsSync(OUTPUT_PATH) ? JSON.parse(readFileSync(OUTPUT_PATH, "utf8")) : null;
   if (existing?.walletAddress && existing.walletAddress.toLowerCase() !== WALLET_ADDRESS) throw new Error("Existing snapshot belongs to another wallet");
   const currentSnapshot = await fetchCurrentSnapshot();
+  const previousObservation = existsSync(OBSERVATION_PATH) ? JSON.parse(readFileSync(OBSERVATION_PATH,'utf8')) : null;
+  const observation = walletObservation.create(currentSnapshot, existing, previousObservation);
+  writeSnapshot(observation, OBSERVATION_PATH);
   let output;
   try {
     output = {
-      ...await collect(incremental, existing), currentSnapshot,
+      ...await collect(incremental, existing, currentSnapshot), currentSnapshot,
       historyStatus: { state: "updated", checkedAt: new Date().toISOString() },
     };
   } catch (error) {

@@ -1,7 +1,8 @@
 'use strict';
 
 // Present the collected snapshot; never substitute the build time for its date.
-module.exports = function walletSummary(wallet) {
+module.exports = function walletSummary(wallet, receipts = null) {
+  if (receipts) require('./weth-receipts.cjs').validate(receipts);
   const historicalLatest = wallet.walletValueAllTime?.at(-1);
   const current = wallet.currentSnapshot;
   const latest = current || historicalLatest;
@@ -22,7 +23,7 @@ module.exports = function walletSummary(wallet) {
   if (!points.length || points.some(point => !validDate(point.date) || !amount(point.usd))) {
     throw new Error('Saved wallet history is invalid.');
   }
-  const fees = Number(wallet.cumulativeWethEarned);
+  const fees = Number(receipts?.total ?? wallet.cumulativeWethEarned);
   if (!amount(fees)) throw new Error('Saved WETH receipts are invalid.');
   const number = (value, digits) => value.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
   const usd = value => '$' + number(value, 2);
@@ -46,7 +47,8 @@ module.exports = function walletSummary(wallet) {
   const collectedAt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric',
     hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(new Date(current?.observedAt || wallet.lastUpdated)) + ' UTC';
   const valuationDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(latest.date));
-  const receiptsAsOf = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(wallet.lastUpdated));
+  const receiptsObservedAt = receipts?.observedAt || wallet.lastUpdated;
+  const receiptsAsOf = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(receiptsObservedAt));
   const startYear = first.date.slice(0, 4), endYear = last.date.slice(0, 4);
   const range = `${date(first.date)}${startYear === endYear ? '' : ', ' + startYear}–${date(last.date)}, ${endYear}`;
   return {
@@ -54,7 +56,9 @@ module.exports = function walletSummary(wallet) {
     asOf: current || latest.date === new Date(wallet.lastUpdated).toISOString().slice(0, 10) ? collectedAt : `${valuationDate} · collected ${collectedAt}`,
     balances: { drb: number(latest.drb, 0), weth: number(latest.weth, 4), usdc: number(latest.usdc, 2), eth: number(latest.eth, 4) },
     wethReceived: number(fees, 4),
-    receiptsAsOf: current ? receiptsAsOf : '',
+    receiptsAsOf: current || receipts ? receiptsAsOf : '',
+    receiptsObservedAt,
+    receiptsCount: receipts?.count ?? wallet.totalWethTransactions,
     historyNotice: wallet.historyStatus?.state === 'pending' ? 'History update pending. The last saved history is shown below.' : '',
     history: points,
     chart: {
