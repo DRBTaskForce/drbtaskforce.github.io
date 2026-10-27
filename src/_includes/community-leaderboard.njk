@@ -1,3 +1,4 @@
+{% from "data-freshness.njk" import freshness %}
 {% set savedCreators = attention | default({}) %}
 {% macro portrait(leader) %}
 <span class="leader-portrait" aria-hidden="true"><span>{{ leader.author | truncate(2, true, '') | upper | escape }}</span>{% if leader.avatar %}<img src="{{ leader.avatar | escape }}" width="96" height="96" alt="" loading="lazy">{% endif %}</span>
@@ -16,7 +17,8 @@
     </div>
   </header>
 
-  <p class="movement-snapshot">Rankings saved {% if savedCreators.asOf %}<time datetime="{{ savedCreators.asOf }}" data-snapshot>{{ savedCreators.asOf | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily.</p>
+  <p class="movement-snapshot">Rankings saved {% if savedCreators.asOf %}<time datetime="{{ savedCreators.asOf }}" data-snapshot>{{ savedCreators.asOf | formatDate }}</time>{% else %}<span>date unavailable</span>{% endif %}. Updated daily at 14:00 UTC.</p>
+  {{ freshness('rankings', dataStatus.sources.rankings) }}
   {% if creators.metricRechecks.unavailablePosts > 0 %}<p class="movement-note">Some posts use earlier saved counts because their follow-up metrics check was unavailable.</p>{% endif %}
 
     <div class="movement-ranking-panel" id="lb-periods">

@@ -1,0 +1,3 @@
+{% macro freshness(key, record) %}
+<p class="snapshot-status" data-snapshot-source="{{ key }}" data-snapshot-sha256="{{ record.sha256 }}"><span data-freshness="{{ record.schedule }}" data-collected-at="{{ record.observedAt }}">{% if record.schedule == 'rankings' %}Scheduled daily at 14:00 UTC.{% elif record.schedule == 'posts' %}Scheduled daily at 02:00 UTC.{% else %}Wallet collection is scheduled about every five hours.{% endif %}</span></p>
+{% endmacro %}

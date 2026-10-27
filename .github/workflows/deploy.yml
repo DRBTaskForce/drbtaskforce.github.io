@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -34,8 +36,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Offline regression checks
+        run: npm run test:offline
+
       - name: Build with Eleventy
         run: npm run build
+
+      - name: Check saved data against built output
+        run: npm run check:data
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

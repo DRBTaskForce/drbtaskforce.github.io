@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "chainId": 8453,
+  "wallet": "0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9",
+  "token": "0x4200000000000000000000000000000000000006",
+  "totalRaw": "163948387795646321940",
+  "total": "163.94838779564632194",
+  "count": 2247,
+  "checkpointBlock": 52953021,
+  "boundary": [
+    "[\"0xff5b1011f258dd9b8661ef6e314c4b4d35be3c2a94ce51c0600e2aac343e3630\",\"7\",52953021,\"0xd67ae12a1542d61d6ad0055e7ec7e4dec20062709568329447ee9fe7fef05769\",\"0x5ec4f99f342038c67a312a166ff56e6d70383d86\",\"0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9\",\"145403410672256140\"]"
+  ],
+  "queriedThroughBlock": 52980420,
+  "blockHash": "0x38b32709295afa7518f5788ff8a7db75ec934067d8d1715e00598ece74639d07",
+  "observedAt": "2026-10-23T10:09:47.000Z",
+  "source": "Blockscout indexed WETH transfers; bounded by Base RPC observation",
+  "reconciliation": {
+    "auditSha256": "18857a14c887d57c4bb4aa5021d38bd61111b8bf4713ce65aab697bd55fdc68a",
+    "originalTotalRaw": "160380687153072678177",
+    "originalCount": 2186
+  }
+}
