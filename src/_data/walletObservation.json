@@ -1,8 +1,8 @@
 {
   "date": "2026-10-29",
-  "observedAt": "2026-10-29T16:57:22.552Z",
-  "blockNumber": 53251847,
-  "blockHash": "0x1091a29bbce22440ec31126a5b793a4ab1ed45975cffd9a1266de5c99ba949f4",
+  "observedAt": "2026-10-29T23:58:04.356Z",
+  "blockNumber": 53264468,
+  "blockHash": "0xfe8cd1d9cd0f9da600609a6a71a9dc9b115e9962462f1b9e04db6e61978412e3",
   "source": "Base RPC",
   "rawBalances": {
     "drb": "651710694064580328554189692",
@@ -14,9 +14,9 @@
   "weth": 159.2619018309099,
   "usdc": 88826.013903,
   "eth": 16.047018487071846,
-  "drbPrice": 0.0001061,
-  "ethPrice": 2353.82,
-  "usd": 570618.16,
+  "drbPrice": 0.00008844,
+  "ethPrice": 2251.13,
+  "usd": 541106.48,
   "version": 1,
   "chainId": 8453,
   "walletAddress": "0xb1058c959987e3513600eb5b4fd82aeee2a0e4f9"
