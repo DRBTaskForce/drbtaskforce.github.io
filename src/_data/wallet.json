@@ -4079,29 +4079,29 @@
       "drbPrice": 0.0001,
       "ethPrice": 2228.82,
       "usd": 546776.54
+    },
+    {
+      "date": "2026-11-07",
+      "observedAt": "2026-11-07T06:06:37.982Z",
+      "blockNumber": 54206110,
+      "blockHash": "0x4b7efb68182b89c8f1395c20e827e209beaf30a6d18111c3af5387d46d90d5bf",
+      "source": "Base RPC",
+      "rawBalances": {
+        "drb": "662254220997869922531687144",
+        "weth": "159707462269954693289",
+        "usdc": "88826013903",
+        "eth": "16047018487071844138"
+      },
+      "drb": 662254220.99787,
+      "weth": 159.7074622699547,
+      "usdc": 88826.013903,
+      "eth": 16.047018487071846,
+      "drbPrice": 0.00009658,
+      "ethPrice": 2245.48,
+      "usd": 547439.7
     }
   ],
   "walletValueLast30Days": [
-    {
-      "date": "2026-10-08",
-      "observedAt": "2026-10-08T19:07:57.398Z",
-      "blockNumber": 52348564,
-      "blockHash": "0xa924be75a27bbd75b9c8804f4be5c120fecf4c0e087682ff079e3de3c1e5acd7",
-      "source": "Base RPC",
-      "rawBalances": {
-        "drb": "632380893672701170678606343",
-        "weth": "158220369585930829215",
-        "usdc": "88826013903",
-        "eth": "16046966693443903298"
-      },
-      "drb": 632380893.6727011,
-      "weth": 158.22036958593083,
-      "usdc": 88826.013903,
-      "eth": 16.046966693443903,
-      "drbPrice": 0.0001781,
-      "ethPrice": 2446.91,
-      "usd": 627869.54
-    },
     {
       "date": "2026-10-09",
       "observedAt": "2026-10-09T20:08:05.011Z",
@@ -4681,13 +4681,33 @@
       "drbPrice": 0.0001,
       "ethPrice": 2228.82,
       "usd": 546776.54
+    },
+    {
+      "date": "2026-11-07",
+      "observedAt": "2026-11-07T06:06:37.982Z",
+      "blockNumber": 54206110,
+      "blockHash": "0x4b7efb68182b89c8f1395c20e827e209beaf30a6d18111c3af5387d46d90d5bf",
+      "source": "Base RPC",
+      "rawBalances": {
+        "drb": "662254220997869922531687144",
+        "weth": "159707462269954693289",
+        "usdc": "88826013903",
+        "eth": "16047018487071844138"
+      },
+      "drb": 662254220.99787,
+      "weth": 159.7074622699547,
+      "usdc": 88826.013903,
+      "eth": 16.047018487071846,
+      "drbPrice": 0.00009658,
+      "ethPrice": 2245.48,
+      "usd": 547439.7
     }
   ],
   "currentSnapshot": {
-    "date": "2026-11-06",
-    "observedAt": "2026-11-06T20:55:43.446Z",
-    "blockNumber": 54040838,
-    "blockHash": "0x93e0acfc11249d79c640ac4642d5de9204bce85f31c8516ca521ab545099ea7a",
+    "date": "2026-11-07",
+    "observedAt": "2026-11-07T06:06:37.982Z",
+    "blockNumber": 54206110,
+    "blockHash": "0x4b7efb68182b89c8f1395c20e827e209beaf30a6d18111c3af5387d46d90d5bf",
     "source": "Base RPC",
     "rawBalances": {
       "drb": "662254220997869922531687144",
@@ -4699,13 +4719,13 @@
     "weth": 159.7074622699547,
     "usdc": 88826.013903,
     "eth": 16.047018487071846,
-    "drbPrice": 0.0001,
-    "ethPrice": 2228.82,
-    "usd": 546776.54
+    "drbPrice": 0.00009658,
+    "ethPrice": 2245.48,
+    "usd": 547439.7
   },
   "historyStatus": {
     "state": "pending",
-    "checkedAt": "2026-11-06T20:55:43.533Z",
+    "checkedAt": "2026-11-07T06:06:38.090Z",
     "reason": "Blockscout null HTTP 403: history access denied. Saved history has been retained."
   }
 }
